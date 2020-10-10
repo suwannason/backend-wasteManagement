@@ -40,6 +40,7 @@ namespace backend
             services.AddSingleton<UserService>();
             services.AddSingleton<InvoiceService>();
             services.AddSingleton<WasteTypeService>();
+            services.AddSingleton<DisposalService>();
             services.AddSingleton<SubWasteTypeService>();
             services.AddControllers();
         }
@@ -54,7 +55,7 @@ namespace backend
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+                c.SwaggerEndpoint("/api-fae-part/swagger/v1/swagger.json", "My API V1");
             });
             app.UseCors(
                 options => options.WithOrigins("*").AllowAnyMethod().AllowAnyHeader()

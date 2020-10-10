@@ -20,7 +20,8 @@ namespace backend.Services
 
         public List<RecycleWeste> Get()
         {
-            return recycle.Find(book => true).ToList();
+            // return recycle.Find(book => true).ToList();
+            return recycle.Find<RecycleWeste>(recycle => recycle.year == DateTime.Now.Year.ToString() && recycle.status == "open").ToList();
         }
 
         public RecycleWeste Get(string id)

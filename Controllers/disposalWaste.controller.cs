@@ -12,22 +12,22 @@ namespace backend.Controllers
     [ApiController]
     [Route("fae-part/[controller]")]
 
-    public class recycleController : ControllerBase
+    public class disposalController : ControllerBase
     {
 
-        private readonly RecycleService _recycleService;
+        private readonly DisposalService _DisposalService;
 
-        RecycleWesteResponse res = new RecycleWesteResponse();
+        DisposalWesteResponse res = new DisposalWesteResponse();
 
-        public recycleController(RecycleService recycleService)
+        public disposalController(DisposalService DisposalService)
         {
-            _recycleService = recycleService;
+            _DisposalService = DisposalService;
         }
 
         [HttpGet]
-        public ActionResult<RecycleWesteResponse> Get()
+        public ActionResult<DisposalWesteResponse> Get()
         {
-            List<RecycleWeste> data = _recycleService.Get();
+            List<DisposalWaste> data = _DisposalService.Get();
 
             res.success = true;
             res.data = data.ToArray();
@@ -41,9 +41,9 @@ namespace backend.Controllers
         }
 
         [HttpGet("{id}")]
-        public ActionResult<RecycleWeste> Get(string id)
+        public ActionResult<DisposalWaste> Get(string id)
         {
-            var book = _recycleService.Get(id);
+            var book = _DisposalService.Get(id);
 
             if (book == null)
             {
@@ -53,15 +53,15 @@ namespace backend.Controllers
         }
 
         [HttpPost]
-        public ActionResult<RecycleWesteResponse> Create(RecycleWeste body)
+        public ActionResult<DisposalWesteResponse> Create(DisposalWaste body)
         {
             try
             {
                 body.year = DateTime.Now.Year.ToString();
                 body.status = "open";
                 body.month = DateTime.Now.ToString("MMM");
-                RecycleWeste created = _recycleService.Create(body);
-                List<RecycleWeste> data = new List<RecycleWeste>();
+                DisposalWaste created = _DisposalService.Create(body);
+                List<DisposalWaste> data = new List<DisposalWaste>();
                 data.Add(created);
 
                 res.success = true;
@@ -78,17 +78,17 @@ namespace backend.Controllers
         }
 
         [HttpPut("{id}")]
-        public IActionResult Update(string id, RecycleWeste body)
+        public IActionResult Update(string id, DisposalWaste body)
         {
             try
             {
-                var data = _recycleService.Get(id);
+                var data = _DisposalService.Get(id);
 
                 if (data == null)
                 {
                     return NotFound();
                 }
-                _recycleService.Update(id, body);
+                _DisposalService.Update(id, body);
                 res.success = true;
                 res.message = "update success";
 
@@ -105,14 +105,14 @@ namespace backend.Controllers
         [HttpDelete("{id}")]
         public IActionResult Delete(string id)
         {
-            var book = _recycleService.Get(id);
+            var book = _DisposalService.Get(id);
 
             if (book == null)
             {
                 return NotFound();
             }
 
-            _recycleService.Remove(book._id);
+            _DisposalService.Remove(book._id);
 
             res.success = true;
             res.message = "Delete success";

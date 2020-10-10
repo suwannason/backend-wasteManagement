@@ -12,11 +12,7 @@ namespace backend.Models
         public string _id { get; set; }
 
         public string[] topic {get; set; }
-    }
 
-    public class DetailRouteStep {
 
-        public string empNo { get; set; }
-        public string email { get; set; }
     }
 }
