@@ -3,37 +3,75 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
+using System.IO;
 using backend.Services;
 using backend.response;
 using backend.Models;
+using backend.request;
 
 namespace backend.Controllers
 {
     [ApiController]
     [Route("fae-part/[controller]")]
-    public class SubRecycleWasteController : ControllerBase
+    public class subRecycleWasteController : ControllerBase
     {
 
         private readonly SubRecycleService _subRecycleService;
 
         RecycleWesteResponse res = new RecycleWesteResponse();
 
-        public SubRecycleWasteController(SubRecycleService recycleService)
+        public subRecycleWasteController(SubRecycleService recycleService)
         {
             _subRecycleService = recycleService;
         }
 
         [HttpPost]
-        public ActionResult<DefalutResponse> Create(SubRecycleWaste body)
+        [Consumes("multipart/form-data")]
+        public ActionResult<DefalutResponse> Create([FromForm] RequestSubRecycle body)
         {
             try
             {
-                SubRecycleWaste created = _subRecycleService.Create(body);
-                List<SubRecycleWaste> data = new List<SubRecycleWaste>();
-                data.Add(created);
+                string rootFolder = Directory.GetCurrentDirectory();
 
+                string pathString2 = @"\files\";
+
+                string serverPath = rootFolder.Substring(0, rootFolder.LastIndexOf(@"\")) + pathString2;
+
+                SubRecycleWaste DB = new SubRecycleWaste();
+
+                if (!System.IO.Directory.Exists(serverPath))
+                {
+                    Directory.CreateDirectory(serverPath);
+                }
+                string[] allfile = new string[body.files.Length];
+
+                string g = Guid.NewGuid().ToString();
+
+                int i = 0;
+                foreach (var file in body.files)
+                {
+                    if (body.files.Length > 0)
+                    {
+                        allfile[i] = $"{g}-{file.FileName}";
+                        // Console.WriteLine($"{g}-{file.FileName}");
+                        // serverPath + file.FileName
+                        using (FileStream strem = System.IO.File.Create($"{serverPath}{g}-{file.FileName}"))
+                        {
+                            file.CopyTo(strem);
+                        }
+                    }
+                    i = i + 1;
+                }
+                DB.allWeight = body.allWeight;
+                DB.containerWeight = body.containerWeight;
+                DB.factory = body.factory;
+                DB.idMapping = body.idMapping;
+                DB.wasteType = body.wastype;
+                DB.files = allfile;
+                DB.total = body.total;
+                _subRecycleService.Create(DB);
                 res.success = true;
-                res.message = "Insert success";
+                res.message = serverPath;
 
                 return Ok(res);
             }

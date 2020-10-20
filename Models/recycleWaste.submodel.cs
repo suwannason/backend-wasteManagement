@@ -20,9 +20,10 @@ namespace backend.Models
 
         public string containerWeight { get; set; }
 
+        public string[] files { get; set; }
         public string total { get; set; }
 
         public string idMapping { get; set; }
-        
+
     }
 }
