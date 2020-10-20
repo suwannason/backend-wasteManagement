@@ -55,6 +55,11 @@ namespace backend.Controllers
         {
             try
             {
+                if (book.username == "" || book.password == "") {
+                    res.success = false;
+                    res.message = "Usename or password is empty.???";
+                    return BadRequest(res);
+                }
                 User created = _userService.Create(book);
                 List<User> data = new List<User>();
                 data.Add(created);

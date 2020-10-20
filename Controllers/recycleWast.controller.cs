@@ -77,6 +77,7 @@ namespace backend.Controllers
             }
         }
 
+
         [HttpPut("{id}")]
         public IActionResult Update(string id, RecycleWeste body)
         {
@@ -119,5 +120,7 @@ namespace backend.Controllers
 
             return Ok(res);
         }
+    
+    
     }
 }

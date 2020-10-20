@@ -36,6 +36,7 @@ namespace backend
 
             services.AddSingleton<CompanyService>();
             services.AddSingleton<RecycleService>();
+            services.AddSingleton<SubRecycleService>();
             services.AddSingleton<CarService>();
             services.AddSingleton<UserService>();
             services.AddSingleton<InvoiceService>();
@@ -48,14 +49,13 @@ namespace backend
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (env.IsDevelopment())
-            {
+            if (env.IsDevelopment()) {
                 app.UseDeveloperExceptionPage();
             }
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/api-fae-part/swagger/v1/swagger.json", "My API V1");
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
             });
             app.UseCors(
                 options => options.WithOrigins("*").AllowAnyMethod().AllowAnyHeader()
