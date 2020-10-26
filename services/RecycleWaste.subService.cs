@@ -23,6 +23,9 @@ namespace backend.Services
             subRecycle.InsertOne(book);
             return book;
         }
+        public List<SubRecycleWaste> GetByMapping(string mapping) {
+            return subRecycle.Find(item => item.idMapping == mapping).ToList();
+        }
         public void Update(string id, SubRecycleWaste bookIn)
         {
             subRecycle.ReplaceOne(book => book._id == id, bookIn);

@@ -103,17 +103,11 @@ namespace backend.Controllers
             }
         }
 
-        [HttpDelete("{id}")]
-        public IActionResult Delete(string id)
+        [HttpDelete("{idMapping}")]
+        public IActionResult Delete(string idMapping)
         {
-            var book = _recycleService.Get(id);
 
-            if (book == null)
-            {
-                return NotFound();
-            }
-
-            _recycleService.Remove(book._id);
+            _recycleService.Remove(idMapping);
 
             res.success = true;
             res.message = "Delete success";

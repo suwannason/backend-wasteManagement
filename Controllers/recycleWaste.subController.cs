@@ -1,5 +1,4 @@
 
-
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
@@ -109,10 +108,21 @@ namespace backend.Controllers
 
             res.success = true;
             res.message = "Delete success";
-
             return Ok(res);
         }
 
+        [HttpGet("{idMapping}")]
+        public IActionResult GetData(string idMapping) {
+            List<SubRecycleWaste> data = _subRecycleService.GetByMapping(idMapping);
+
+            SubRecycleResponse response = new SubRecycleResponse();
+
+            response.success = true;
+            response.message = "Get data success";
+            response.data = data.ToArray();
+            return Ok(response);
+
+        }
 
     }
 }

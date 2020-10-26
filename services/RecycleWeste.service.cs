@@ -9,6 +9,7 @@ namespace backend.Services
 {
     public class RecycleService {
         private readonly IMongoCollection<RecycleWeste> recycle;
+        private readonly IMongoCollection<SubRecycleWaste> SubRecycleService;
 
         public RecycleService(ICompanieDatabaseSettings settings)
         {
@@ -16,6 +17,7 @@ namespace backend.Services
             var database = client.GetDatabase(settings.DatabaseName);
 
             recycle = database.GetCollection<RecycleWeste>("Recycle");
+            SubRecycleService = database.GetCollection<SubRecycleWaste>("Recycle-detail");
         }
 
         public List<RecycleWeste> Get()
@@ -47,7 +49,8 @@ namespace backend.Services
 
         public void Remove(string id)
         {
-            recycle.DeleteOne(book => book._id == id);
+            recycle.DeleteMany(book => book.idMapping == id);
+            SubRecycleService.DeleteMany(item => item.idMapping == id);
         }
     }
 }
