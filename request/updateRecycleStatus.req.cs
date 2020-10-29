@@ -1,14 +1,7 @@
 
-
-
-public class RecycleApproveREQ {
-
-    public RecycleApproveAttribute[] body { get; set; }
-}
-
-public class RecycleApproveAttribute {
-
-    public string _id { get; set; }
+public class updateWasteStatus {
 
     public string status { get; set; }
+
+    public string[] body { get; set; }
 }

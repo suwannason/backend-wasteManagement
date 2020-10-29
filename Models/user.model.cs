@@ -16,5 +16,7 @@ namespace backend.Models
 
         public string role { get; set; }
 
+        public string position { get; set; }
+
     }
 }

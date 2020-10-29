@@ -8,7 +8,7 @@ namespace backend.response
     {
         public bool success { get; set; }
         public string message { get; set; }
-        public RecycleWeste[] data { get; set; }
+        public Waste[] data { get; set; }
 
     }
 }
