@@ -33,7 +33,6 @@ namespace backend.Controllers
         public ActionResult<RecycleWesteResponse> GetForCheck()
         {
             string username = User.FindFirst("username")?.Value;
-            Console.Write(username);
             List<Waste> data = _recycleService.GetOpen();
             res.success = true;
             res.data = data.ToArray();
@@ -159,7 +158,7 @@ namespace backend.Controllers
 
 
         [HttpPut("{id}")]
-        public IActionResult Update(string id, Waste body)
+        public IActionResult Update(string id, [FromForm] RequestRecycle body)
         {
             try
             {
@@ -169,7 +168,7 @@ namespace backend.Controllers
                 {
                     return NotFound();
                 }
-                _recycleService.Update(id, body);
+                // _recycleService.Update(id, body);
                 res.success = true;
                 res.message = "update success";
 
@@ -182,7 +181,6 @@ namespace backend.Controllers
                 return Forbid();
             }
         }
-
 
     }
 }

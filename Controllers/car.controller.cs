@@ -5,9 +5,11 @@ using backend.response;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System;
+using Microsoft.AspNetCore.Authorization;
 
 namespace backend.Controllers
 {
+    [Authorize]
     [Route("fae-part/[controller]")]
     [ApiController]
 

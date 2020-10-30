@@ -150,7 +150,7 @@ namespace backend.Controllers
             var token = new JwtSecurityToken(_config["Jwt:Issuer"],
               _config["Jwt:Issuer"],
               null,
-              expires: DateTime.Now.AddMinutes(120),
+              expires: DateTime.Now.AddHours(8),
               signingCredentials: credentials);
               
               token.Payload["user"] = userInfo;
