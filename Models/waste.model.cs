@@ -30,6 +30,10 @@ namespace backend.Models
         public string month { get; set; }
         public string status { get; set; }
         
+        public string qtyOfContainer { get; set; }
+        public long createDate { get; set; }
+
+        public string createBy { get; set; }
         public  string[] files { get; set; }
     }
 }

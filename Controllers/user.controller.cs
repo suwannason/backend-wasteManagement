@@ -2,6 +2,7 @@
 using backend.Models;
 using backend.Services;
 using backend.response;
+using backend.request;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System;
@@ -57,24 +58,25 @@ namespace backend.Controllers
             }
             return book;
         }
-
         [HttpPost]
-        public ActionResult<UserResponse> Create(User book)
+        public ActionResult<UserResponse> Create(User body)
         {
             try
             {
-                if (book.username == "" || book.password == "")
+                if (body.username == "" || body.password == "")
                 {
                     res.success = false;
                     res.message = "Usename or password is empty.???";
                     return BadRequest(res);
                 }
-                User created = _userService.Create(book);
-                List<User> data = new List<User>();
-                data.Add(created);
+
+                User created = _userService.Create(body);
 
                 res.success = true;
                 res.message = "Insert success";
+
+                List<User> data = new List<User>();
+                data.Add(body);
                 res.data = data.ToArray();
 
                 return Ok(res);

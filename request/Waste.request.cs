@@ -17,10 +17,13 @@ namespace backend.request {
         public string wasteName { get; set; }
         public string totalWeight { get; set; }
         public string containerWeight { get; set; }
+
+        public string qtyOfContainer { get; set; }
         public string containerType { get; set; }
         public string netWasteWeight { get; set; }
         public string wasteContractor { get; set; }
-        
+        public string status { get; set; }
+        public string[] imageCapture { get; set; }
         public  IFormFile[] files { get; set; }
     }
 }

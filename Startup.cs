@@ -77,12 +77,12 @@ namespace backend
 
                                     JObject data = JObject.Parse("{" + claimed.ToString() + "}");
                                     var username = data["user"]["username"];
-                                    var role = data["user"]["role"];
-                                    var position = data["user"]["position"];
+                                    var permission = data["user"]["permission"];
+                                    
                                     identity.AddClaim(new Claim("access_token", accessToken.RawData));
                                     identity.AddClaim(new Claim("username", username.ToString()));
-                                    identity.AddClaim(new Claim("role", role.ToString()));
-                                    identity.AddClaim(new Claim("position", position.ToString()));
+                                    identity.AddClaim(new Claim("permission", permission.ToString()));
+                                    // identity.AddClaim(new Claim("position", position.ToString()));
                                 }
                             }
                         }
@@ -96,9 +96,6 @@ namespace backend
             services.AddSingleton<CarService>();
             services.AddSingleton<UserService>();
             services.AddSingleton<InvoiceService>();
-            services.AddSingleton<WasteTypeService>();
-            services.AddSingleton<DisposalService>();
-            services.AddSingleton<SubWasteTypeService>();
             services.AddControllers();
         }
 

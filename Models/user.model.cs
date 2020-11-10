@@ -9,14 +9,28 @@ namespace backend.Models
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string _id { get; set; }
-
         public string username { get; set; }
 
         public string password { get; set; }
 
-        public string role { get; set; }
+        public permission[] permission { get; set; }
+    }
 
-        public string position { get; set; }
+    public class permission {
 
+        public permission() {
+            _id = MongoDB.Bson.ObjectId.GenerateNewId().ToString();
+        }
+
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
+
+        public string _id { get; set; }
+
+        public string dept { get; set; }
+
+        public string feature { get; set; }
+
+        public string action { get; set; }
     }
 }
