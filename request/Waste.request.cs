@@ -26,4 +26,14 @@ namespace backend.request {
         public string[] imageCapture { get; set; }
         public  IFormFile[] files { get; set; }
     }
+
+    public class RequestInvoiceDataAll {
+        public bool typeBoi { get; set; }
+        public string lotNo { get; set; }
+        public string date { get; set; }
+    }
+
+    public class RequestInvoiceDataWithName {
+        public string wasteName { get; set; }
+    }
 }

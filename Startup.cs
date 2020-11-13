@@ -96,6 +96,7 @@ namespace backend
             services.AddSingleton<CarService>();
             services.AddSingleton<UserService>();
             services.AddSingleton<InvoiceService>();
+            services.AddSingleton<QuotationService>();
             services.AddControllers();
         }
 
@@ -113,9 +114,8 @@ namespace backend
                 // c.SwaggerEndpoint("/api-fae-part/swagger/v1/swagger.json", "My API V1");
             });
             app.UseCors(
-                options => options.WithOrigins("*").AllowAnyMethod().AllowAnyHeader()
+                options => options.WithOrigins("*").AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin()
             );
-
             // app.UseMvc();
 
             app.UseHttpsRedirection();

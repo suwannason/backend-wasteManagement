@@ -9,7 +9,6 @@ using backend.Services;
 using backend.response;
 using backend.Models;
 using backend.request;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace backend.Controllers
@@ -95,6 +94,24 @@ namespace backend.Controllers
         {
             try
             {
+                // PREMISSION CHECKING
+                string permission = User.FindFirst("permission")?.Value;
+                JObject permissionObj = JObject.Parse(@"{ 'permission': " + permission + "}");
+
+                int allowed = 0;
+                foreach (var record in permissionObj["permission"])
+                {
+                    if (record["dept"].ToString() == "FAE" && record["feature"].ToString() == "waste" && record["action"].ToString() == "prepare")
+                    {
+                        allowed = allowed + 1;
+                        break;
+                    }
+                }
+                if (allowed == 0)
+                {
+                    return Forbid();
+                }
+                // PREMISSION CHECKING
                 string rootFolder = Directory.GetCurrentDirectory();
 
                 string pathString2 = @"\files\";
@@ -196,6 +213,13 @@ namespace backend.Controllers
                 if (data == null)
                 {
                     return NotFound();
+                }
+                if (data.status == "toInvoice")
+                {
+                    res.success = false;
+                    res.message = "Can't update because this.record set to invoice";
+
+                    return Conflict(res);
                 }
                 Waste model = new Waste();
 
@@ -304,9 +328,26 @@ namespace backend.Controllers
 
             // PREMISSION CHECKING
             string permission = User.FindFirst("permission")?.Value;
-            JObject studentObj = JObject.Parse(@"{ 'permission': " + permission + "}");
-            Console.WriteLine(studentObj["permission"][0]);
+            JObject permissionObj = JObject.Parse(@"{ 'permission': " + permission + "}");
+
+            int allowed = 0;
+            foreach (var item in permissionObj["permission"])
+            {
+                Console.WriteLine(item["dept"]);
+                if (item["dept"].ToString() == "FAE")
+                {
+                    allowed = allowed + 1;
+                    break;
+                }
+            }
             // PREMISSION CHECKING
+
+            if (allowed == 0)
+            {
+                res.success = false;
+                res.message = "Permission denied";
+                return Forbid();
+            }
 
 
 
@@ -315,17 +356,72 @@ namespace backend.Controllers
 
             Int64 startDateTimestamp = (Int64)(new DateTimeOffset(startDate)).ToUnixTimeSeconds();
             Int64 endDateTimestamp = (Int64)(new DateTimeOffset(endDate)).ToUnixTimeSeconds();
-            // var charsToRemove = new string[] { "/" };
-            // foreach (var c in charsToRemove)
-            // {
-            //     body.startDate = body.startDate.Replace(c, string.Empty);
-            //     body.endDate = body.endDate.Replace(c, string.Empty);
-            // }
+
             List<Waste> data = _recycleService.getHistory(startDateTimestamp, endDateTimestamp);
             res.success = true;
             res.message = "Get history success";
 
             res.data = data.ToArray();
+            return Ok(res);
+        }
+
+        [HttpPatch("invoice/all")]
+        public IActionResult getDataToInvoiceAll(RequestInvoiceDataAll body)
+        {
+            // PREMISSION CHECKING
+            string permission = User.FindFirst("permission")?.Value;
+            JObject permissionObj = JObject.Parse(@"{ 'permission': " + permission + "}");
+            int allowed = 0;
+            foreach (var item in permissionObj["permission"])
+            {
+                if (item["dept"].ToString() == "FAE" && item["feature"].ToString() == "invoice" && item["action"].ToString() == "prepare")
+                {
+                    allowed = allowed + 1;
+                    break;
+                }
+            }
+            if (allowed == 0)
+            {
+                return Forbid();
+            }
+            // PREMISSION CHECKING
+
+            List<Waste> data = _recycleService.getToInvoiceAll(body);
+            res.success = true;
+            res.message = "Get data to invoice success";
+            res.data = data.ToArray();
+
+            return Ok(res);
+        }
+
+        [HttpPatch("invoice/name")]
+        public IActionResult getDataToInvoiceWasteName(RequestInvoiceDataWithName body)
+        {
+            // PREMISSION CHECKING
+            string permission = User.FindFirst("permission")?.Value;
+            JObject permissionObj = JObject.Parse(@"{ 'permission': " + permission + "}");
+            int allowed = 0;
+            foreach (var item in permissionObj["permission"])
+            {
+                if (item["dept"].ToString() == "FAE" && item["feature"].ToString() == "invoice" && item["action"].ToString() == "prepare")
+                {
+                    allowed = allowed + 1;
+                    break;
+                }
+            }
+            if (allowed == 0)
+            {
+                return Forbid();
+            }
+            // PREMISSION CHECKING
+
+
+
+            List<Waste> data = _recycleService.getToInvoiceName(body);
+            res.success = true;
+            res.message = "Get data to invoice success";
+            res.data = data.ToArray();
+
             return Ok(res);
         }
     }

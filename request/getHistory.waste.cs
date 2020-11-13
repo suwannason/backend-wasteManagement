@@ -1,6 +1,4 @@
 
-using Microsoft.AspNetCore.Http;
-
 namespace backend.request {
 
     public class RequestgetHistory {

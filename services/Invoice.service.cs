@@ -6,8 +6,10 @@ using System.Collections.Generic;
 using System.Linq;
 
 
-namespace backend.Services {
-    public class InvoiceService {
+namespace backend.Services
+{
+    public class InvoiceService
+    {
         private readonly IMongoCollection<Invoices> invoice;
 
         public InvoiceService(ICompanieDatabaseSettings settings)
@@ -32,6 +34,20 @@ namespace backend.Services {
         public void Update(string id, Invoices bookIn)
         {
             invoice.ReplaceOne(book => book._id == id, bookIn);
+        }
+
+        // prepared --> checked --> approved --> makingApproved
+        public void updateStatus(string id, string status)
+        {
+            var filter = Builders<Invoices>.Filter.Eq(item => item._id, id);
+            var update = Builders<Invoices>.Update.Set("status", status);
+
+            invoice.UpdateOne(filter, update);
+        }
+
+        public List<Invoices> getByStatus(string status)
+        {
+            return invoice.Find<Invoices>(item => item.status == status).ToList();
         }
     }
 }

@@ -144,6 +144,23 @@ namespace backend.Controllers
 
             return Ok(res);
         }
+        [AllowAnonymous]
+        [HttpPatch("changepw")]
+        public IActionResult changePassword(RequestChangePw body)
+        {
+            User data = _userService.Login(body.username, body.password);
+
+            if (data == null)
+            {
+                res.success = false;
+                res.message = "User name or password incorrect.";
+                return NotFound(res);
+            }
+            _userService.changePassword(body.username, body.newPassword);
+            res.success = true;
+            res.message = "Change password success";
+            return Ok(res);
+        }
         private string GenerateJSONWebToken(User userInfo)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
@@ -154,8 +171,8 @@ namespace backend.Controllers
               null,
               expires: DateTime.Now.AddHours(8),
               signingCredentials: credentials);
-              
-              token.Payload["user"] = userInfo;
+
+            token.Payload["user"] = userInfo;
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }

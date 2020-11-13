@@ -56,7 +56,14 @@ namespace backend.Services
         {
             User data = users.Find(record => record.username == username && record.password == password).FirstOrDefault();
 
-           return data;
+            return data;
+        }
+        public void changePassword(string username, string newPassword)
+        {
+            var filter = Builders<User>.Filter.Eq(item => item.username, username);
+            var update = Builders<User>.Update.Set("password", newPassword);
+
+            users.UpdateOne(filter, update);
         }
     }
 }
