@@ -67,6 +67,35 @@ namespace backend.Controllers
         [HttpPut("status")]
         public ActionResult<RecycleWesteResponse> UpdateToChecked(updateWasteStatus body)
         {
+            // PREMISSION CHECKING
+            string permission = User.FindFirst("permission")?.Value;
+            JObject permissionObj = JObject.Parse(@"{ 'permission': " + permission + "}");
+
+            int allowed = 0;
+            foreach (var record in permissionObj["permission"])
+            {
+                if (body.status == "checked")
+                {
+                    if (record["dept"].ToString() == "FAE" && record["feature"].ToString() == "waste" && record["action"].ToString() == "check")
+                    {
+                        allowed = allowed + 1;
+                        break;
+                    }
+                }
+                if (body.status == "approve")
+                {
+                    if (record["dept"].ToString() == "FAE" && record["feature"].ToString() == "waste" && record["action"].ToString() == "approve")
+                    {
+                        allowed = allowed + 1;
+                        break;
+                    }
+                }
+            }
+            if (allowed == 0)
+            {
+                return Forbid();
+            }
+            // PREMISSION CHECKING
 
             foreach (var item in body.body)
             {
@@ -183,7 +212,8 @@ namespace backend.Controllers
                 item.month = DateTime.Now.ToString("MMM");
                 item.createBy = User.FindFirst("username")?.Value;
                 item.status = "open";
-                item.createDate = DateTimeOffset.Now.ToUnixTimeSeconds();
+                DateTime createDate = DateTime.ParseExact(DateTime.Now.ToString("yyyy/MM/dd"), "yyyy/MM/dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AdjustToUniversal);
+                item.createDate = (Int64)(new DateTimeOffset(createDate)).ToUnixTimeSeconds();
                 Waste created = _recycleService.Create(item);
                 List<Waste> data = new List<Waste>();
                 data.Add(created);
@@ -333,7 +363,6 @@ namespace backend.Controllers
             int allowed = 0;
             foreach (var item in permissionObj["permission"])
             {
-                Console.WriteLine(item["dept"]);
                 if (item["dept"].ToString() == "FAE")
                 {
                     allowed = allowed + 1;
@@ -351,9 +380,10 @@ namespace backend.Controllers
 
 
 
-            DateTime startDate = DateTime.ParseExact(body.startDate, "yyyy/MM/dd", System.Globalization.CultureInfo.InvariantCulture);
-            DateTime endDate = DateTime.ParseExact(body.endDate, "yyyy/MM/dd", System.Globalization.CultureInfo.InvariantCulture);
+            DateTime startDate = DateTime.ParseExact(body.startDate, "yyyy/MM/dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AdjustToUniversal);
+            DateTime endDate = DateTime.ParseExact(body.endDate, "yyyy/MM/dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AdjustToUniversal);
 
+            // Console.WriteLine(startDate + " ==> " + endDate);
             Int64 startDateTimestamp = (Int64)(new DateTimeOffset(startDate)).ToUnixTimeSeconds();
             Int64 endDateTimestamp = (Int64)(new DateTimeOffset(endDate)).ToUnixTimeSeconds();
 

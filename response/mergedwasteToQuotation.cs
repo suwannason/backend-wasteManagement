@@ -17,6 +17,7 @@ namespace backend.response
 
     public class WasteRecordInvoice {
 
+        public string wasteId { get; set; }
         public string quotationNo { get; set; }
         public string wasteName { get; set; }
         public double quantity { get; set; }

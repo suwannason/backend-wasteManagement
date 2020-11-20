@@ -4,6 +4,7 @@ using backend.Models;
 using MongoDB.Driver;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 
 
 namespace backend.Services
@@ -23,6 +24,10 @@ namespace backend.Services
         public List<Invoices> Get(string year)
         {
             return invoice.Find<Invoices>(invoice => invoice.year == year).ToList();
+        }
+        public Invoices GetById(string id)
+        {
+            return invoice.Find<Invoices>(invoice => invoice._id == id).FirstOrDefault();
         }
 
         public Invoices Create(Invoices body)
@@ -48,6 +53,14 @@ namespace backend.Services
         public List<Invoices> getByStatus(string status)
         {
             return invoice.Find<Invoices>(item => item.status == status).ToList();
+        }
+        public void deleteInvoice(string id)
+        {
+            // invoice.DeleteOne(item => item._id == id);
+            var filter = Builders<Invoices>.Filter.Eq(item => item._id, id);
+            var update = Builders<Invoices>.Update.Set("status", "deleted");
+
+            invoice.UpdateOne(filter, update);
         }
     }
 }

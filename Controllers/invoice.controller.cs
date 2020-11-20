@@ -12,7 +12,7 @@ using Newtonsoft.Json.Linq;
 namespace backend.Controllers
 {
 
-    [Authorize]
+    // [Authorize]
     [ApiController]
     [Route("fae-part/[controller]")]
 
@@ -20,12 +20,14 @@ namespace backend.Controllers
     {
 
         private readonly InvoiceService _invoiceService;
+        private readonly RecycleService _wasteService;
 
         InvoiceResponse res = new InvoiceResponse();
 
-        public invoiceController(InvoiceService invoiceService)
+        public invoiceController(InvoiceService invoiceService, RecycleService wasteService)
         {
             _invoiceService = invoiceService;
+            _wasteService = wasteService;
         }
 
         [HttpPut("{id}")]
@@ -42,7 +44,6 @@ namespace backend.Controllers
                 _invoiceService.Update(id, body);
                 res.success = true;
                 res.message = "update success";
-
                 return Ok(res);
             }
             catch (Exception e)
@@ -52,7 +53,6 @@ namespace backend.Controllers
                 return Forbid();
             }
         }
-
         [HttpPost("prepared")]
         public IActionResult prepared(Invoices body)
         {
@@ -88,7 +88,7 @@ namespace backend.Controllers
                 item.counterpartyAddress = body.counterpartyAddress;
                 item.counterpartyChange = body.counterpartyChange;
                 item.counterPartyChangePosition = body.counterPartyChangePosition;
-                item.counterpartyName = item.counterpartyName;
+                item.counterpartyName = body.counterpartyName;
                 item.fax = body.fax;
                 item.invoiceDate = body.invoiceDate;
                 item.lotNo = body.lotNo;
@@ -98,10 +98,20 @@ namespace backend.Controllers
                 item.wasteItem = body.wasteItem;
                 item.wasteName = body.wasteName;
                 item.status = "prepared";
+                item.subTotal = body.subTotal;
+                item.grandTotal = body.grandTotal;
                 item.year = DateTime.Now.ToString("yyyy");
                 item.month = DateTime.Now.ToString("MMM");
+                item.createDate = DateTimeOffset.Now.ToUnixTimeSeconds();
                 item.createBy = User.FindFirst("username")?.Value;
+
+                foreach (var record in body.wasteItem)
+                {
+                    _wasteService.updateStatus(record.wasteId, "toInvoice");
+                }
                 _invoiceService.Create(item);
+                res.success = true;
+                res.message = "create invoice";
                 return Ok(res);
             }
             catch (Exception e)
@@ -136,7 +146,7 @@ namespace backend.Controllers
         {
             try
             {
-                List<Invoices> data = _invoiceService.getByStatus(status);
+                var data = _invoiceService.getByStatus(status);
                 res.success = true;
                 res.message = "Get invoice success";
                 res.data = data.ToArray();
@@ -147,6 +157,28 @@ namespace backend.Controllers
                 Console.WriteLine(e.StackTrace);
                 return Conflict();
             }
+        }
+    
+        [HttpDelete("{id}")]
+        public IActionResult deleteInvoice(string id) {
+            
+            Invoices data = _invoiceService.GetById(id);
+
+            if (data == null) {
+                res.success = false;
+                res.message = "Not found record.";
+                return NotFound(res);
+            }
+
+            _invoiceService.deleteInvoice(id);
+            res.success = true;
+            res.message = "Delete invoice success";
+
+            foreach (var item in data.wasteItem)
+            {
+                _wasteService.updateStatus(item.wasteId, "approve");
+            }
+            return Ok(res);
         }
     }
 }

@@ -31,6 +31,9 @@ namespace backend.Models
 
         public string invoiceDate { get; set; }
 
+        public string subTotal { get; set; }
+        public string grandTotal { get; set; }
+
         // HEADER INVOICE MAKING
 
         [BsonDefaultValue("")]

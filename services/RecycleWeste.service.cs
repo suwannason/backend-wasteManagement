@@ -89,7 +89,7 @@ namespace backend.Services
             var lte = Builders<Waste>.Filter.Lte(item => item.createDate, endDate);
             // return filter;
 
-            return recycle.Find(Builders<Waste>.Filter.And(gte & lte)).ToList();
+            return recycle.Find(Builders<Waste>.Filter.Or(gte & lte)).ToList();
         }
 
         public List<Waste> getToInvoiceAll(request.RequestInvoiceDataAll request)
@@ -98,16 +98,22 @@ namespace backend.Services
             var dateFilter = Builders<Waste>.Filter.Eq(item => item.date, request.date);
             var boiFilter = Builders<Waste>.Filter.Eq(item => item.typeBoi, request.typeBoi);
             var lotNoFilter = Builders<Waste>.Filter.Eq(item => item.lotNo, request.lotNo);
+            var wasteNameFilter = Builders<Waste>.Filter.Eq(item => item.wasteName, request.wasteName);
+
             var deletedFilter = Builders<Waste>.Filter.Ne(item => item.status, "deleted");
+            var approveFilter = Builders<Waste>.Filter.Eq(item => item.status, "approve");
             var invoiceFilter = Builders<Waste>.Filter.Ne(item => item.status, "toInvoice");
 
-            return recycle.Find(Builders<Waste>.Filter.And(dateFilter & boiFilter & lotNoFilter & deletedFilter & invoiceFilter)).ToList();
+            var andOpration = Builders<Waste>.Filter.And(boiFilter & approveFilter & lotNoFilter & wasteNameFilter & deletedFilter & invoiceFilter);
+
+            return recycle.Find(Builders<Waste>.Filter.Or(dateFilter | andOpration)).ToList();
+            // return recycle.Find(Builders<Waste>.Filter.And(dateFilter & boiFilter & lotNoFilter & deletedFilter & invoiceFilter)).ToList();
         }
 
         public List<Waste> getToInvoiceName(request.RequestInvoiceDataWithName request)
         {
 
-            var dateFilter = Builders<Waste>.Filter.Eq(item => item.date, request.wasteName);
+            var dateFilter = Builders<Waste>.Filter.Eq(item => item.wasteName, request.wasteName);
             var deletedFilter = Builders<Waste>.Filter.Ne(item => item.status, "deleted");
             var invoiceFilter = Builders<Waste>.Filter.Ne(item => item.status, "toInvoice");
 

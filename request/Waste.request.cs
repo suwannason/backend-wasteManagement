@@ -31,6 +31,7 @@ namespace backend.request {
         public bool typeBoi { get; set; }
         public string lotNo { get; set; }
         public string date { get; set; }
+        public string wasteName { get; set; }
     }
 
     public class RequestInvoiceDataWithName {
