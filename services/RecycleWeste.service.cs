@@ -58,6 +58,7 @@ namespace backend.Services
             .Set("lotNo", bookIn.lotNo)
             .Set("netWasteWeight", bookIn.netWasteWeight)
             .Set("totalWeight", bookIn.totalWeight)
+            .Set("qtyOfContainer", bookIn.qtyOfContainer)
             .Set("typeBoi", bookIn.typeBoi).Set("status", bookIn.status)
             .Set("wasteContractor", bookIn.wasteContractor).Set("wasteGroup", bookIn.wasteGroup).Set("wasteName", bookIn.wasteName);
 

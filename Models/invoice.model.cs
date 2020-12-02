@@ -37,7 +37,7 @@ namespace backend.Models
         // HEADER INVOICE MAKING
 
         [BsonDefaultValue("")]
-        public bool typeBoi { get; set; }
+        public string typeBoi { get; set; }
 
         [BsonDefaultValue("")]
         public string lotNo { get; set; }

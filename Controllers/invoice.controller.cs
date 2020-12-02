@@ -35,7 +35,7 @@ namespace backend.Controllers
         {
             try
             {
-                var data = _invoiceService.Get(id);
+                var data = _invoiceService.GetById(id);
 
                 if (data == null)
                 {

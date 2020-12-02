@@ -203,6 +203,7 @@ namespace backend.Controllers
                 item.phase = body.phase;
                 item.status = body.status;
                 item.time = body.time;
+                item.qtyOfContainer = body.qtyOfContainer;
                 item.totalWeight = body.totalWeight;
                 item.typeBoi = body.typeBoi;
                 item.wasteContractor = body.wasteContractor;
@@ -320,7 +321,7 @@ namespace backend.Controllers
 
                 model.phase = body.phase;
                 model.qtyOfContainer = body.qtyOfContainer;
-                model.status = "open";
+                model.status = body.status;
                 model.time = body.time;
                 model.totalWeight = body.totalWeight;
                 model.typeBoi = body.typeBoi;

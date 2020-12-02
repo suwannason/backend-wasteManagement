@@ -38,7 +38,9 @@ namespace backend.Services
 
         public void Update(string id, Invoices bookIn)
         {
-            invoice.ReplaceOne(book => book._id == id, bookIn);
+            invoice.DeleteOne(item => item._id == id);
+            invoice.InsertOne(bookIn);
+            // invoice.ReplaceOne(book => book._id == id, bookIn);
         }
 
         // prepared --> checked --> approved --> makingApproved

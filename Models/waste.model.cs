@@ -13,7 +13,7 @@ namespace backend.Models
         public string date { get; set; }
         public string time { get; set; }
         public string phase { get; set; }
-        public bool typeBoi { get; set; }
+        public string typeBoi { get; set; }
         public string cptType { get; set; }
         public string lotNo { get; set; }
         public string companyApprove { get; set; }
