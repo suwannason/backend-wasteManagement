@@ -54,7 +54,8 @@ namespace backend.Services
 
         public List<Invoices> getByStatus(string status)
         {
-            return invoice.Find<Invoices>(item => item.status == status).ToList();
+            List<Invoices> data = invoice.Find<Invoices>(item => item.status == status).ToList();
+            return data;
         }
         public void deleteInvoice(string id)
         {

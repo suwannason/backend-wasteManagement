@@ -12,7 +12,7 @@ using Newtonsoft.Json.Linq;
 namespace backend.Controllers
 {
 
-    // [Authorize]
+    [Authorize]
     [ApiController]
     [Route("fae-part/[controller]")]
 
@@ -126,6 +126,48 @@ namespace backend.Controllers
         {
             try
             {
+                // PREMISSION CHECKING
+                string permission = User.FindFirst("permission")?.Value;
+                JObject permissionObj = JObject.Parse(@"{ 'permission': " + permission + "}");
+
+                int allowed = 0;
+                foreach (var record in permissionObj["permission"])
+                {
+                    if (body.status == "checked")
+                    {
+                        if (record["dept"].ToString() == "FAE" && record["feature"].ToString() == "invoice" && record["action"].ToString() == "check")
+                        {
+                            allowed = allowed + 1;
+                            break;
+                        }
+                    }
+
+                    if (body.status == "approved")
+                    {
+                        if (record["dept"].ToString() == "FAE" && record["feature"].ToString() == "invoice" && record["action"].ToString() == "approve")
+                        {
+                            allowed = allowed + 1;
+                            break;
+                        }
+                    }
+                    if (body.status == "makingApproved")
+                    {
+                        if (record["dept"].ToString() == "FAE" && record["feature"].ToString() == "invoice" && record["action"].ToString() == "making")
+                        {
+                            allowed = allowed + 1;
+                            break;
+                        }
+                    }
+                }
+                if (allowed == 0)
+                {
+                    res.success = false;
+                    res.message = "Permission denied";
+                    return Forbid();
+                }
+                // PREMISSION CHECKING
+
+
                 foreach (var item in body.body)
                 {
                     _invoiceService.updateStatus(item, body.status);
@@ -146,10 +188,17 @@ namespace backend.Controllers
         {
             try
             {
-                var data = _invoiceService.getByStatus(status);
+                Console.WriteLine(status);
+                List<Invoices> data = _invoiceService.getByStatus(status);
                 res.success = true;
-                res.message = "Get invoice success";
                 res.data = data.ToArray();
+
+                if (res.data.Length == 0)
+                {
+                    res.message = "No data.";
+                    return NotFound(res);
+                }
+                res.message = "Get invoice success";
                 return Ok(res);
             }
             catch (Exception e)
@@ -158,13 +207,15 @@ namespace backend.Controllers
                 return Conflict();
             }
         }
-    
+
         [HttpDelete("{id}")]
-        public IActionResult deleteInvoice(string id) {
-            
+        public IActionResult deleteInvoice(string id)
+        {
+
             Invoices data = _invoiceService.GetById(id);
 
-            if (data == null) {
+            if (data == null)
+            {
                 res.success = false;
                 res.message = "Not found record.";
                 return NotFound(res);
