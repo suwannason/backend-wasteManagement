@@ -13,6 +13,16 @@ namespace backend.Models
 
         public string password { get; set; }
 
+        public string email { get; set; }
+
+        public string tel { get; set; }
+
+        public string band { get; set; }
+
+        public bool canLogin { get; set; }
+
+        public string name { get ;set; }
+
         public permission[] permission { get; set; }
     }
 

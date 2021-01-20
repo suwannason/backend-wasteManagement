@@ -14,7 +14,7 @@ using Newtonsoft.Json.Linq;
 namespace backend.Controllers
 {
 
-    [Authorize]
+    // [Authorize]
     [ApiController]
     [Route("fae-part/[controller]")]
 
@@ -143,12 +143,15 @@ namespace backend.Controllers
                 // PREMISSION CHECKING
                 string rootFolder = Directory.GetCurrentDirectory();
 
-                string pathString2 = @"\files\";
+                string pathString2 = @"\API site\files\wastemanagement\";
                 Waste item = new Waste();
                 item.companyApprove = body.companyApprove;
                 item.containerType = body.containerType;
                 item.containerWeight = body.containerWeight;
-                item.cptType = body.cptType;
+                item.cptType_1 = body.cptType_1;
+                item.cptType_2 = body.cptType_2;
+                item.cptType_3 = body.cptType_3;
+                item.cptType_4 = body.cptType_4;
                 item.date = body.date;
 
                 int numberOfList = 0;
@@ -197,7 +200,6 @@ namespace backend.Controllers
                     }
                 }
                 item.files = allfile;
-                item.gennerateGroup = body.gennerateGroup;
                 item.lotNo = body.lotNo;
                 item.netWasteWeight = body.netWasteWeight;
                 item.phase = body.phase;
@@ -205,8 +207,6 @@ namespace backend.Controllers
                 item.time = body.time;
                 item.qtyOfContainer = body.qtyOfContainer;
                 item.totalWeight = body.totalWeight;
-                item.typeBoi = body.typeBoi;
-                item.wasteContractor = body.wasteContractor;
                 item.wasteGroup = body.wasteGroup;
                 item.wasteName = body.wasteName;
                 item.year = DateTime.Now.ToString("yyyy");
@@ -223,6 +223,7 @@ namespace backend.Controllers
                 res.message = "Insert success";
                 res.data = data.ToArray();
 
+                res.serverPath = serverPath;
                 return Ok(res);
             }
             catch (Exception err)
@@ -258,7 +259,10 @@ namespace backend.Controllers
                 model.companyApprove = body.companyApprove;
                 model.containerType = body.containerType;
                 model.containerWeight = body.containerWeight;
-                model.cptType = body.cptType;
+                model.cptType_1 = body.cptType_1;
+                model.cptType_2 = body.cptType_2;
+                model.cptType_3 = body.cptType_3;
+                model.cptType_4 = body.cptType_4;
                 model.date = body.date;
 
                 int numberOfList = 0;
@@ -275,7 +279,7 @@ namespace backend.Controllers
                 string[] allfile = new string[numberOfList];
                 string rootFolder = Directory.GetCurrentDirectory();
 
-                string pathString2 = @"\files\";
+                string pathString2 = @"\files\wastemanagement\";
 
                 string serverPath = rootFolder.Substring(0, rootFolder.LastIndexOf(@"\")) + pathString2;
 
@@ -313,7 +317,6 @@ namespace backend.Controllers
                     }
                 }
                 model.files = allfile;
-                model.gennerateGroup = body.gennerateGroup;
                 model.lotNo = body.lotNo;
                 // model.year = DateTime.Now.ToString("yyyy");
                 model.month = DateTime.Now.ToString("MMM");
@@ -324,15 +327,13 @@ namespace backend.Controllers
                 model.status = body.status;
                 model.time = body.time;
                 model.totalWeight = body.totalWeight;
-                model.typeBoi = body.typeBoi;
-                model.wasteContractor = body.wasteContractor;
                 model.wasteGroup = body.wasteGroup;
                 model.wasteName = body.wasteName;
                 model.year = DateTime.Now.ToString("yyyy");
 
                 _recycleService.Update(id, model);
                 res.success = true;
-                res.message = "update success";
+                res.message = "updaste success";
                 return Ok(res);
             }
             catch (Exception e)

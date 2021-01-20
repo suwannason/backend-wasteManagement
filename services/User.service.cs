@@ -1,6 +1,7 @@
 
 
 using backend.Models;
+using backend.request;
 using MongoDB.Driver;
 using System.Collections.Generic;
 using System.Linq;
@@ -58,10 +59,16 @@ namespace backend.Services
 
             return data;
         }
-        public void changePassword(string username, string newPassword)
+        public void changePassword(User body)
         {
-            var filter = Builders<User>.Filter.Eq(item => item.username, username);
-            var update = Builders<User>.Update.Set("password", newPassword);
+            var filter = Builders<User>.Filter.Eq(item => item.username, body.username);
+            var update = Builders<User>.Update
+            .Set("password", body.password)
+            .Set("name", body.name)
+            .Set("canLogin", true)
+            .Set("email", body.email)
+            .Set("band", body.band)
+            .Set("tel", body.tel);
 
             users.UpdateOne(filter, update);
         }

@@ -52,15 +52,14 @@ namespace backend.Services
             .Set("companyApprove", bookIn.companyApprove)
             .Set("containerType", bookIn.containerType)
             .Set("containerWeight", bookIn.containerWeight)
-            .Set("cptType", bookIn.cptType)
+            .Set("cptType", bookIn.cptType_1)
             .Set("files", bookIn.files)
-            .Set("gennerateGroup", bookIn.gennerateGroup)
             .Set("lotNo", bookIn.lotNo)
             .Set("netWasteWeight", bookIn.netWasteWeight)
             .Set("totalWeight", bookIn.totalWeight)
             .Set("qtyOfContainer", bookIn.qtyOfContainer)
-            .Set("typeBoi", bookIn.typeBoi).Set("status", bookIn.status)
-            .Set("wasteContractor", bookIn.wasteContractor).Set("wasteGroup", bookIn.wasteGroup).Set("wasteName", bookIn.wasteName);
+            .Set("status", bookIn.status)
+            .Set("wasteGroup", bookIn.wasteGroup).Set("wasteName", bookIn.wasteName);
 
             recycle.UpdateOne(filter, update);
             // recycle.ReplaceOne(book => book._id == id, bookIn);
@@ -95,9 +94,7 @@ namespace backend.Services
 
         public List<Waste> getToInvoiceAll(request.RequestInvoiceDataAll request)
         {
-
             var dateFilter = Builders<Waste>.Filter.Eq(item => item.date, request.date);
-            var boiFilter = Builders<Waste>.Filter.Eq(item => item.typeBoi, request.typeBoi);
             var lotNoFilter = Builders<Waste>.Filter.Eq(item => item.lotNo, request.lotNo);
             var wasteNameFilter = Builders<Waste>.Filter.Eq(item => item.wasteName, request.wasteName);
 
@@ -105,7 +102,7 @@ namespace backend.Services
             var approveFilter = Builders<Waste>.Filter.Eq(item => item.status, "approve");
             var invoiceFilter = Builders<Waste>.Filter.Ne(item => item.status, "toInvoice");
 
-            var andOpration = Builders<Waste>.Filter.And(boiFilter & approveFilter & lotNoFilter & wasteNameFilter & deletedFilter & invoiceFilter);
+            var andOpration = Builders<Waste>.Filter.And(approveFilter & lotNoFilter & wasteNameFilter & deletedFilter & invoiceFilter);
 
             return recycle.Find(Builders<Waste>.Filter.Or(dateFilter | andOpration)).ToList();
             // return recycle.Find(Builders<Waste>.Filter.And(dateFilter & boiFilter & lotNoFilter & deletedFilter & invoiceFilter)).ToList();

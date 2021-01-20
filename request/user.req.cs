@@ -7,5 +7,9 @@ namespace backend.request
         public string password { get; set; }
 
         public string newPassword { get; set; }
+
+        public string email { get; set; }
+
+        public string tel { get; set; }
     }
 }

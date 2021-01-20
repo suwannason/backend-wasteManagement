@@ -10,5 +10,7 @@ namespace backend.response
         public string message { get; set; }
         public Waste[] data { get; set; }
 
+        public string serverPath { get; set; }
+
     }
 }

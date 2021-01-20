@@ -9,26 +9,27 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace backend.Controllers
 {
-    [Authorize]
+    // [Authorize]
     [Route("fae-part/[controller]")]
     [ApiController]
-    public class wasteNameController : ControllerBase
+    
+    public class wasteGroupController : ControllerBase
     {
-        private readonly WasteNameService _wastenameService;
-        private readonly wasteGroupService _wasteGroupService;
+        private readonly wasteGroupService _wasteGrouService;
 
-        WastenameResponse res = new WastenameResponse();
 
-        public wasteNameController(WasteNameService wasteNameService, wasteGroupService wastegroup)
+        WasteGroupResponse res = new WasteGroupResponse();
+
+        public wasteGroupController(wasteGroupService wasteGroupService)
         {
-            _wastenameService = wasteNameService;
-            _wasteGroupService = wastegroup;
+            _wasteGrouService = wasteGroupService;
+
         }
 
         [HttpGet]
-        public ActionResult<WastenameResponse> Get()
+        public ActionResult<WasteGroupResponse> Get()
         {
-            List<WasteName> data = _wastenameService.Get();
+            List<WasteGroup> data = _wasteGrouService.Get();
 
             res.success = true;
             res.data = data.ToArray();
@@ -37,14 +38,14 @@ namespace backend.Controllers
                 res.message = "Notfound Data.";
                 return NotFound(res);
             }
-            res.message = "Get wastename success";
+            res.message = "Get company success";
             return Ok(res);
         }
 
-        [HttpGet("{id}", Name = "GetWaste")]
-        public ActionResult<WasteName> Get(string id)
+        [HttpGet("{id}")]
+        public ActionResult<WasteGroup> Get(string id)
         {
-            var book = _wastenameService.Get(id);
+            var book = _wasteGrouService.Get(id);
 
             if (book == null)
             {
@@ -54,22 +55,14 @@ namespace backend.Controllers
         }
 
         [HttpPost]
-        public ActionResult<WastenameResponse> Create(WasteName book)
+        public ActionResult<WasteGroupResponse> Create(WasteGroup book)
         {
             try
             {
-
-                WasteName nameChecked = _wastenameService.getWastenameByname(book.wasteName);
-
-                if (nameChecked != null) {
-                    res.success = false;
-                    res.message = "This name had been created";
-                    return BadRequest(res);
-                }
-                WasteName created = _wastenameService.Create(book);
-                List<WasteName> data = new List<WasteName>();
+                WasteGroup created = _wasteGrouService.Create(book);
+                List<WasteGroup> data = new List<WasteGroup>();
                 data.Add(created);
-                
+
                 res.success = true;
                 res.message = "Insert success";
                 res.data = data.ToArray();
@@ -84,9 +77,9 @@ namespace backend.Controllers
         }
 
         [HttpPut("{id}")]
-        public IActionResult Update(string id, WasteName bookIn)
+        public IActionResult Update(string id, WasteGroup bookIn)
         {
-            var book = _wastenameService.Get(id);
+            var book = _wasteGrouService.Get(id);
 
             if (book == null)
             {
@@ -94,7 +87,7 @@ namespace backend.Controllers
             }
 
             Console.Write(id);
-            _wastenameService.Update(id, bookIn);
+            _wasteGrouService.Update(id, bookIn);
 
             res.success = true;
             res.message = "Update success";
@@ -104,19 +97,28 @@ namespace backend.Controllers
         [HttpDelete("{id}")]
         public IActionResult Delete(string id)
         {
-            var book = _wastenameService.Get(id);
+            var book = _wasteGrouService.Get(id);
 
             if (book == null)
             {
                 return NotFound();
             }
 
-            _wastenameService.Remove(book._id);
+            _wasteGrouService.Remove(book._id);
 
             res.success = true;
             res.message = "Delete success";
 
             return Ok(res);
+        }
+
+        [HttpGet("mainType")]
+
+        public IActionResult getMainType()
+        {
+            var data = _wasteGrouService.getMaintype();
+
+            return Ok(data);
         }
     }
 }

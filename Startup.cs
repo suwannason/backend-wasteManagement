@@ -35,8 +35,16 @@ namespace backend
             services.Configure<CompaniesDatabaseSettings>(
                 Configuration.GetSection(nameof(CompaniesDatabaseSettings)));
 
+            services.Configure<Endpoint>(
+                Configuration.GetSection(nameof(Endpoint))
+            );
+
             services.AddSingleton<ICompanieDatabaseSettings>(sp =>
                 sp.GetRequiredService<IOptions<CompaniesDatabaseSettings>>().Value);
+
+            services.AddSingleton<IEndpoint>(sp =>
+                sp.GetRequiredService<IOptions<Endpoint>>().Value
+            );
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(option =>
             {
@@ -98,6 +106,7 @@ namespace backend
             services.AddSingleton<InvoiceService>();
             services.AddSingleton<QuotationService>();
             services.AddSingleton<WasteNameService>();
+            services.AddSingleton<wasteGroupService>();
             services.AddControllers();
         }
 

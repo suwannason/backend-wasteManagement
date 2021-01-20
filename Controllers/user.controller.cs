@@ -12,6 +12,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
+using System.Net.Http;
+using Newtonsoft.Json;
+using System.Threading.Tasks;
 
 namespace backend.Controllers
 {
@@ -21,14 +24,16 @@ namespace backend.Controllers
     public class userController : ControllerBase
     {
         private readonly UserService _userService;
+        private readonly string GLOBAL_API_ENDPOINT;
         private IConfiguration _config;
 
         UserResponse res = new UserResponse();
 
-        public userController(UserService userService, IConfiguration config)
+        public userController(UserService userService, IConfiguration config, IEndpoint setting)
         {
             _userService = userService;
             _config = config;
+            GLOBAL_API_ENDPOINT = setting.global_api;
         }
 
         [HttpGet]
@@ -146,20 +151,36 @@ namespace backend.Controllers
         }
         [AllowAnonymous]
         [HttpPatch("changepw")]
-        public IActionResult changePassword(RequestChangePw body)
+        public async Task<IActionResult> changePassword(RequestChangePw body)
         {
             User data = _userService.Login(body.username, body.password);
-
             if (data == null)
             {
                 res.success = false;
                 res.message = "User name or password incorrect.";
                 return NotFound(res);
             }
-            _userService.changePassword(body.username, body.newPassword);
-            res.success = true;
-            res.message = "Change password success";
-            return Ok(res);
+            User setData = new User();
+            using (HttpClient client = new HttpClient())
+            {
+                client.Timeout = TimeSpan.FromSeconds(30);
+                string req = "{\"command\": \"SELECT GNAME_ENG,FNAME_ENG, BAND FROM ADMIN.V_EMP_DATA_ALL_H where emp_no='" + body.username + "'\"}";
+                StringContent content = new StringContent(req, Encoding.UTF8, "application/json");
+                HttpResponseMessage response = await client.PostAsync(GLOBAL_API_ENDPOINT + "/middleware/oracle/hrms", content);
+
+                Console.WriteLine(response.Content.ReadAsStringAsync());
+                var rec = JsonConvert.DeserializeObject<dynamic>(response.Content.ReadAsStringAsync().Result);
+
+                setData.username = body.username;
+                setData.name = rec["data"][0]["GNAME_ENG"] + " " + rec["data"][0]["FNAME_ENG"];
+                setData.band = rec["data"][0]["BAND"];
+                setData.tel = body.tel;
+                setData.email = body.email;
+                setData.password = body.newPassword;
+
+                _userService.changePassword(setData);
+                return Ok(setData);
+            }
         }
         private string GenerateJSONWebToken(User userInfo)
         {

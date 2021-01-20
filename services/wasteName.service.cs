@@ -48,5 +48,9 @@ namespace backend.Services
         {
             wasteName.DeleteOne(book => book._id == id);
         }
+
+        public WasteName getWastenameByname(string name) {
+            return wasteName.Find<WasteName>(waste => waste.wasteName == name).FirstOrDefault();
+        }
     }
 }
