@@ -68,6 +68,8 @@ namespace backend.Services
             .Set("canLogin", true)
             .Set("email", body.email)
             .Set("band", body.band)
+            .Set("dept", body.dept)
+            .Set("div", body.div)
             .Set("tel", body.tel);
 
             users.UpdateOne(filter, update);

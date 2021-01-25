@@ -86,9 +86,21 @@ namespace backend
                                     JObject data = JObject.Parse("{" + claimed.ToString() + "}");
                                     var username = data["user"]["username"];
                                     var permission = data["user"]["permission"];
+                                    var name = data["user"]["name"];
+                                    var email = data["user"]["email"];
+                                    var div = data["user"]["div"];
+                                    var dept = data["user"]["dept"];
+                                    var tel = data["user"]["tel"];
+                                    var band = data["user"]["band"];
                                     
                                     identity.AddClaim(new Claim("access_token", accessToken.RawData));
                                     identity.AddClaim(new Claim("username", username.ToString()));
+                                    identity.AddClaim(new Claim("name", name.ToString()));
+                                    identity.AddClaim(new Claim("email", email.ToString()));
+                                    identity.AddClaim(new Claim("div", div.ToString()));
+                                    identity.AddClaim(new Claim("dept", dept.ToString()));
+                                    identity.AddClaim(new Claim("tel", tel.ToString()));
+                                    identity.AddClaim(new Claim("band", band.ToString()));
                                     identity.AddClaim(new Claim("permission", permission.ToString()));
                                     // identity.AddClaim(new Claim("position", position.ToString()));
                                 }
@@ -107,6 +119,7 @@ namespace backend
             services.AddSingleton<QuotationService>();
             services.AddSingleton<WasteNameService>();
             services.AddSingleton<wasteGroupService>();
+            services.AddSingleton<RequesterService>();
             services.AddControllers();
         }
 
@@ -120,8 +133,8 @@ namespace backend
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-                // c.SwaggerEndpoint("/api-fae-part/swagger/v1/swagger.json", "My API V1");
+                // c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+                c.SwaggerEndpoint("/api-fae-part/swagger/v1/swagger.json", "My API V1");
             });
             app.UseCors(
                 options => options.WithOrigins("*").AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin()

@@ -4,7 +4,7 @@ using MongoDB.Driver;
 using System.Collections.Generic;
 using System.Linq;
 using System;
-using System.Globalization;
+using backend.request;
 
 namespace backend.Services
 {
@@ -73,12 +73,33 @@ namespace backend.Services
             recycle.UpdateOne(filter, update);
         }
 
-        public void updateStatus(string id, string status)
+        public void updateStatus(string id, string status, Profile profile)
         {
             var filter = Builders<Waste>.Filter.Eq(item => item._id, id);
-            var update = Builders<Waste>.Update.Set("status", status);
 
-            recycle.UpdateOne(filter, update);
+            Profile user = new Profile();
+
+            user.band = profile.band;
+            user.dept = profile.dept;
+            user.div = profile.div;
+            user.empNo = profile.empNo;
+            user.name = profile.name;
+            if (status == "checked")
+            {
+                var update = Builders<Waste>.Update.Set("status", status).Set("checkBy", user);
+                recycle.UpdateOne(filter, update);
+
+            }
+            else if (status == "approved")
+            {
+                var update = Builders<Waste>.Update.Set("status", status).Set("approveBy", user);
+                recycle.UpdateOne(filter, update);
+            }
+            else if (status == "toInvoice")
+            {
+                var update = Builders<Waste>.Update.Set("status", status).Set("makingBy", user);
+                recycle.UpdateOne(filter, update);
+            }
         }
 
         public List<Waste> getHistory(Int64 startDate, Int64 endDate)

@@ -138,6 +138,12 @@ namespace backend.Controllers
                 res.message = "User name or password incorrect.";
                 return NotFound(res);
             }
+            if (data.canLogin == false) {
+                res.success = false;
+                res.message = "Can't login please update profile !!";
+
+                return BadRequest(res);
+            }
             string token = GenerateJSONWebToken(data);
             res.success = true;
             res.message = "Login success";
@@ -164,7 +170,7 @@ namespace backend.Controllers
             using (HttpClient client = new HttpClient())
             {
                 client.Timeout = TimeSpan.FromSeconds(30);
-                string req = "{\"command\": \"SELECT GNAME_ENG,FNAME_ENG, BAND FROM ADMIN.V_EMP_DATA_ALL_H where emp_no='" + body.username + "'\"}";
+                string req = "{\"command\": \"SELECT GNAME_ENG,FNAME_ENG, BAND, DEPT_ABB_NAME, DIV_ABB_NAME FROM ADMIN.V_EMP_DATA_ALL_H where emp_no='" + body.username + "'\"}";
                 StringContent content = new StringContent(req, Encoding.UTF8, "application/json");
                 HttpResponseMessage response = await client.PostAsync(GLOBAL_API_ENDPOINT + "/middleware/oracle/hrms", content);
 
@@ -174,6 +180,8 @@ namespace backend.Controllers
                 setData.username = body.username;
                 setData.name = rec["data"][0]["GNAME_ENG"] + " " + rec["data"][0]["FNAME_ENG"];
                 setData.band = rec["data"][0]["BAND"];
+                setData.dept = rec["data"][0]["DEPT_ABB_NAME"];
+                setData.div = rec["data"][0]["DIV_ABB_NAME"];
                 setData.tel = body.tel;
                 setData.email = body.email;
                 setData.password = body.newPassword;

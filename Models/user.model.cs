@@ -14,7 +14,8 @@ namespace backend.Models
         public string password { get; set; }
 
         public string email { get; set; }
-
+        public string dept { get; set; }
+        public string div { get; set; }
         public string tel { get; set; }
 
         public string band { get; set; }

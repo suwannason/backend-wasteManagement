@@ -79,6 +79,13 @@ namespace backend.Controllers
                     return Forbid();
                 }
                 // PREMISSION CHECKING
+                Profile user = new Profile();
+
+                user.empNo = User.FindFirst("username")?.Value;
+                user.band = User.FindFirst("band")?.Value;
+                user.dept = User.FindFirst("dept")?.Value;
+                user.div = User.FindFirst("div")?.Value;
+                user.name = User.FindFirst("name")?.Value;
 
                 Invoices item = new Invoices();
 
@@ -107,7 +114,7 @@ namespace backend.Controllers
 
                 foreach (var record in body.wasteItem)
                 {
-                    _wasteService.updateStatus(record.wasteId, "toInvoice");
+                    _wasteService.updateStatus(record.wasteId, "toInvoice", user);
                 }
                 _invoiceService.Create(item);
                 res.success = true;
@@ -214,6 +221,7 @@ namespace backend.Controllers
 
             Invoices data = _invoiceService.GetById(id);
 
+
             if (data == null)
             {
                 res.success = false;
@@ -225,9 +233,17 @@ namespace backend.Controllers
             res.success = true;
             res.message = "Delete invoice success";
 
+            Profile user = new Profile();
+
+            user.empNo = User.FindFirst("username")?.Value;
+            user.band = User.FindFirst("band")?.Value;
+            user.dept = User.FindFirst("dept")?.Value;
+            user.div = User.FindFirst("div")?.Value;
+            user.name = User.FindFirst("name")?.Value;
+
             foreach (var item in data.wasteItem)
             {
-                _wasteService.updateStatus(item.wasteId, "approve");
+                _wasteService.updateStatus(item.wasteId, "approve", user);
             }
             return Ok(res);
         }

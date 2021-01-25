@@ -2,6 +2,7 @@
 
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using backend.request;
 
 namespace backend.Models
 {
@@ -37,15 +38,10 @@ namespace backend.Models
         public string qtyOfContainer { get; set; }
         public long createDate { get; set; }
 
-        public string createBy { get; set; }
         public string[] files { get; set; }
-    }
-
-    public class maintype
-    {
-        public string step1 { get; set; }
-        public string step2 { get; set; }
-        public string step3 { get; set; }
-        public string step4 { get; set; }
+        public Profile prepareBy { get; set; }
+        public Profile checkBy { get; set; }
+        public Profile approveBy { get; set; }
+        public Profile makingBy { get; set; }
     }
 }

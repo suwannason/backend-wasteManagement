@@ -14,7 +14,7 @@ using Newtonsoft.Json.Linq;
 namespace backend.Controllers
 {
 
-    // [Authorize]
+    [Authorize]
     [ApiController]
     [Route("fae-part/[controller]")]
 
@@ -69,6 +69,14 @@ namespace backend.Controllers
         {
             // PREMISSION CHECKING
             string permission = User.FindFirst("permission")?.Value;
+            Profile user = new Profile();
+
+            user.empNo = User.FindFirst("username")?.Value;
+            user.band = User.FindFirst("band")?.Value;
+            user.dept = User.FindFirst("dept")?.Value;
+            user.div = User.FindFirst("div")?.Value;
+            user.name = User.FindFirst("name")?.Value;
+
             JObject permissionObj = JObject.Parse(@"{ 'permission': " + permission + "}");
 
             int allowed = 0;
@@ -99,7 +107,7 @@ namespace backend.Controllers
 
             foreach (var item in body.body)
             {
-                _recycleService.updateStatus(item, body.status);
+                _recycleService.updateStatus(item, body.status, user);
             }
             res.success = true;
             res.message = "Update to " + body.status + " success";
@@ -211,7 +219,7 @@ namespace backend.Controllers
                 item.wasteName = body.wasteName;
                 item.year = DateTime.Now.ToString("yyyy");
                 item.month = DateTime.Now.ToString("MMM");
-                item.createBy = User.FindFirst("username")?.Value;
+                // item.createBy = User.FindFirst("username")?.Value;
                 item.status = "open";
                 DateTime createDate = DateTime.ParseExact(DateTime.Now.ToString("yyyy/MM/dd"), "yyyy/MM/dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AdjustToUniversal);
                 item.createDate = (Int64)(new DateTimeOffset(createDate)).ToUnixTimeSeconds();
