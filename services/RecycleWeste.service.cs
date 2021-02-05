@@ -52,13 +52,17 @@ namespace backend.Services
             .Set("companyApprove", bookIn.companyApprove)
             .Set("containerType", bookIn.containerType)
             .Set("containerWeight", bookIn.containerWeight)
-            .Set("cptType", bookIn.cptType_1)
+            .Set("cptMainType", bookIn.cptMainType)
             .Set("files", bookIn.files)
             .Set("lotNo", bookIn.lotNo)
+            .Set("department", bookIn.department)
+            .Set("division", bookIn.division)
+            .Set("biddingType", bookIn.biddingType)
             .Set("netWasteWeight", bookIn.netWasteWeight)
             .Set("totalWeight", bookIn.totalWeight)
             .Set("qtyOfContainer", bookIn.qtyOfContainer)
             .Set("status", bookIn.status)
+            .Set("contractorCompany", bookIn.contractorCompany)
             .Set("wasteGroup", bookIn.wasteGroup).Set("wasteName", bookIn.wasteName);
 
             recycle.UpdateOne(filter, update);

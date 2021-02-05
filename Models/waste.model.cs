@@ -14,12 +14,13 @@ namespace backend.Models
         public string date { get; set; }
         public string time { get; set; }
         public string phase { get; set; }
-        public string cptType_1 { get; set; }
-        public string cptType_2 { get; set; }
-        public string cptType_3 { get; set; }
-        public string cptType_4 { get; set; }
+        public string cptMainType { get; set; }
+        public string wasteType { get; set; }
+        public string boiType { get; set; }
+        public string partNormalType { get; set; }
 
         public string department { get; set; }
+        public string productionType { get; set; }
         public string division { get; set; }
         public string lotNo { get; set; }
         public string companyApprove { get; set; }
@@ -30,6 +31,7 @@ namespace backend.Models
         public string containerType { get; set; }
         public string netWasteWeight { get; set; }
         public string biddingType { get; set; }
+        public string contractorCompany { get; set; }
 
         public string year { get; set; }
         public string month { get; set; }

@@ -7,6 +7,6 @@ namespace backend.response {
         public bool success { get; set; }
         public string message { get; set; }
 
-        public RequesterSchema[] data { get; set; }
+        public HazadousSchema[] data { get; set; }
     }
 }

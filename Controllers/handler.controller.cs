@@ -1,10 +1,7 @@
 
 using System;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
-using System.Web;
 using System.IO;
-using System.Drawing;
 using Microsoft.AspNetCore.Authorization;
 
 using backend.request;
@@ -23,7 +20,7 @@ namespace backend.Controllers
         {
             string rootFolder = Directory.GetCurrentDirectory();
 
-            string pathString2 = @"\files\";
+            string pathString2 = @"\API site\files\wastemanagement\";
 
             convertBase64ToimageRes res = new convertBase64ToimageRes();
 

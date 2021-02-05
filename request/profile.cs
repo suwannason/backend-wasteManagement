@@ -7,5 +7,6 @@ namespace backend.request
         public string band { get; set; }
         public string dept { get; set; }
         public string div { get; set; }
+        public string tel { get; set; }
     }
 }

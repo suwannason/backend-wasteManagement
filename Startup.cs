@@ -29,7 +29,7 @@ namespace backend
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddCors(); // Make sure you call this previous to AddMvc
+            services.AddCors();
             services.AddSwaggerGen();
 
             services.Configure<CompaniesDatabaseSettings>(
@@ -92,7 +92,7 @@ namespace backend
                                     var dept = data["user"]["dept"];
                                     var tel = data["user"]["tel"];
                                     var band = data["user"]["band"];
-                                    
+
                                     identity.AddClaim(new Claim("access_token", accessToken.RawData));
                                     identity.AddClaim(new Claim("username", username.ToString()));
                                     identity.AddClaim(new Claim("name", name.ToString()));
@@ -119,7 +119,8 @@ namespace backend
             services.AddSingleton<QuotationService>();
             services.AddSingleton<WasteNameService>();
             services.AddSingleton<wasteGroupService>();
-            services.AddSingleton<RequesterService>();
+            services.AddSingleton<HazadousService>();
+            services.AddSingleton<InfectionsService>();
             services.AddControllers();
         }
 
@@ -130,15 +131,22 @@ namespace backend
             {
                 app.UseDeveloperExceptionPage();
             }
+            app.UseCors(
+                options =>
+                options.AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowAnyOrigin()
+                // .AllowCredentials()
+          
+            );
+
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
-                // c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-                c.SwaggerEndpoint("/api-fae-part/swagger/v1/swagger.json", "My API V1");
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+                // c.SwaggerEndpoint("/api-fae-part/swagger/v1/swagger.json", "My API V1");
             });
-            app.UseCors(
-                options => options.WithOrigins("*").AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin()
-            );
             // app.UseMvc();
 
             app.UseHttpsRedirection();

@@ -156,10 +156,12 @@ namespace backend.Controllers
                 item.companyApprove = body.companyApprove;
                 item.containerType = body.containerType;
                 item.containerWeight = body.containerWeight;
-                item.cptType_1 = body.cptType_1;
-                item.cptType_2 = body.cptType_2;
-                item.cptType_3 = body.cptType_3;
-                item.cptType_4 = body.cptType_4;
+                item.cptMainType = body.cptMainType;
+                item.wasteType = body.wasteType;
+                item.boiType = body.boiType;
+                item.contractorCompany = body.contractorCompany;
+                item.productionType = body.productionType;
+                item.partNormalType = body.partNormalType;
                 item.date = body.date;
 
                 int numberOfList = 0;
@@ -219,6 +221,31 @@ namespace backend.Controllers
                 item.wasteName = body.wasteName;
                 item.year = DateTime.Now.ToString("yyyy");
                 item.month = DateTime.Now.ToString("MMM");
+                item.department = body.department;
+                item.division = body.division;
+                item.biddingType = body.biddingType;
+
+                Profile user = new Profile();
+                Profile Emptyuser = new Profile();
+
+                Emptyuser.empNo = "-";
+                Emptyuser.band = "-";
+                Emptyuser.dept = "-";
+                Emptyuser.div = "-";
+                Emptyuser.name = "-";
+                Emptyuser.tel = "-";
+
+                user.empNo = User.FindFirst("username")?.Value;
+                user.band = User.FindFirst("band")?.Value;
+                user.dept = User.FindFirst("dept")?.Value;
+                user.div = User.FindFirst("div")?.Value;
+                user.name = User.FindFirst("name")?.Value;
+                user.tel = User.FindFirst("tel")?.Value;
+
+                item.prepareBy = user;
+                item.checkBy = Emptyuser;
+                item.approveBy = Emptyuser;
+                item.makingBy = Emptyuser;
                 // item.createBy = User.FindFirst("username")?.Value;
                 item.status = "open";
                 DateTime createDate = DateTime.ParseExact(DateTime.Now.ToString("yyyy/MM/dd"), "yyyy/MM/dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AdjustToUniversal);
@@ -267,11 +294,15 @@ namespace backend.Controllers
                 model.companyApprove = body.companyApprove;
                 model.containerType = body.containerType;
                 model.containerWeight = body.containerWeight;
-                model.cptType_1 = body.cptType_1;
-                model.cptType_2 = body.cptType_2;
-                model.cptType_3 = body.cptType_3;
-                model.cptType_4 = body.cptType_4;
+                model.cptMainType = body.cptMainType;
+                model.wasteType = body.wasteType;
+                model.boiType = body.boiType;
+                model.partNormalType = body.partNormalType;
                 model.date = body.date;
+                model.department = body.department;
+                model.division = body.division;
+                model.biddingType = body.biddingType;
+                model.contractorCompany = body.contractorCompany;
 
                 int numberOfList = 0;
                 if (body.imageCapture != null)
@@ -287,7 +318,7 @@ namespace backend.Controllers
                 string[] allfile = new string[numberOfList];
                 string rootFolder = Directory.GetCurrentDirectory();
 
-                string pathString2 = @"\files\wastemanagement\";
+                string pathString2 = @"\API site\files\wastemanagement\";
 
                 string serverPath = rootFolder.Substring(0, rootFolder.LastIndexOf(@"\")) + pathString2;
 
