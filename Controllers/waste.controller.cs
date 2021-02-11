@@ -105,7 +105,7 @@ namespace backend.Controllers
             }
             // PREMISSION CHECKING
 
-            foreach (var item in body.body)
+            foreach (string item in body.body)
             {
                 _recycleService.updateStatus(item, body.status, user);
             }
@@ -116,7 +116,7 @@ namespace backend.Controllers
         [HttpGet("{id}")]
         public ActionResult<Waste> Get(string id)
         {
-            var book = _recycleService.Get(id);
+            Waste book = _recycleService.Get(id);
 
             if (book == null)
             {

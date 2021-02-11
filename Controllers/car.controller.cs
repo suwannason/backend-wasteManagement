@@ -42,7 +42,7 @@ namespace backend.Controllers
         [HttpGet("{id}")]
         public ActionResult<Cars> Get(string id)
         {
-            var book = _carService.Get(id);
+            Cars book = _carService.Get(id);
 
             if (book == null)
             {
@@ -76,7 +76,7 @@ namespace backend.Controllers
         [HttpPut("{id}")]
         public IActionResult Update(string id, Cars bookIn)
         {
-            var book = _carService.Get(id);
+            Cars book = _carService.Get(id);
 
             if (book == null)
             {
@@ -91,7 +91,7 @@ namespace backend.Controllers
         [HttpDelete("{id}")]
         public IActionResult Delete(string id)
         {
-            var book = _carService.Get(id);
+            Cars book = _carService.Get(id);
 
             if (book == null)
             {

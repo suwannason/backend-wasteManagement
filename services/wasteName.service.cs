@@ -12,8 +12,8 @@ namespace backend.Services
 
         public WasteNameService(ICompanieDatabaseSettings settings)
         {
-            var client = new MongoClient(settings.ConnectionString);
-            var database = client.GetDatabase(settings.DatabaseName);
+            MongoClient client = new MongoClient(settings.ConnectionString);
+            IMongoDatabase database = client.GetDatabase(settings.DatabaseName);
 
             wasteName = database.GetCollection<WasteName>("WasteName");
         }

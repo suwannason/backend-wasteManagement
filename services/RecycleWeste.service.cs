@@ -44,7 +44,7 @@ namespace backend.Services
 
         public void Update(string id, Waste bookIn)
         {
-            var filter = Builders<Waste>.Filter.Eq(item => item._id, id);
+            FilterDefinition<Waste> filter = Builders<Waste>.Filter.Eq(item => item._id, id);
             var update = Builders<Waste>.Update
             .Set("date", bookIn.date)
             .Set("time", bookIn.time)
@@ -71,15 +71,15 @@ namespace backend.Services
 
         public void Remove(string id)
         {
-            var filter = Builders<Waste>.Filter.Eq(item => item._id, id);
-            var update = Builders<Waste>.Update.Set("status", "deleted");
+            FilterDefinition<Waste> filter = Builders<Waste>.Filter.Eq(item => item._id, id);
+            UpdateDefinition<Waste> update = Builders<Waste>.Update.Set("status", "deleted");
 
             recycle.UpdateOne(filter, update);
         }
 
         public void updateStatus(string id, string status, Profile profile)
         {
-            var filter = Builders<Waste>.Filter.Eq(item => item._id, id);
+            FilterDefinition<Waste> filter = Builders<Waste>.Filter.Eq(item => item._id, id);
 
             Profile user = new Profile();
 
@@ -90,18 +90,18 @@ namespace backend.Services
             user.name = profile.name;
             if (status == "checked")
             {
-                var update = Builders<Waste>.Update.Set("status", status).Set("checkBy", user);
+                UpdateDefinition<Waste> update = Builders<Waste>.Update.Set("status", status).Set("checkBy", user);
                 recycle.UpdateOne(filter, update);
 
             }
             else if (status == "approved")
             {
-                var update = Builders<Waste>.Update.Set("status", status).Set("approveBy", user);
+                UpdateDefinition<Waste> update = Builders<Waste>.Update.Set("status", status).Set("approveBy", user);
                 recycle.UpdateOne(filter, update);
             }
             else if (status == "toInvoice")
             {
-                var update = Builders<Waste>.Update.Set("status", status).Set("makingBy", user);
+                UpdateDefinition<Waste> update = Builders<Waste>.Update.Set("status", status).Set("makingBy", user);
                 recycle.UpdateOne(filter, update);
             }
         }
@@ -110,8 +110,8 @@ namespace backend.Services
         {
             Console.WriteLine(startDate + " ==> " + endDate);
 
-            var gte = Builders<Waste>.Filter.Gte(item => item.createDate, startDate);
-            var lte = Builders<Waste>.Filter.Lte(item => item.createDate, endDate);
+            FilterDefinition<Waste> gte = Builders<Waste>.Filter.Gte(item => item.createDate, startDate);
+            FilterDefinition<Waste> lte = Builders<Waste>.Filter.Lte(item => item.createDate, endDate);
             // return filter;
 
             return recycle.Find(Builders<Waste>.Filter.Or(gte & lte)).ToList();
@@ -119,15 +119,15 @@ namespace backend.Services
 
         public List<Waste> getToInvoiceAll(request.RequestInvoiceDataAll request)
         {
-            var dateFilter = Builders<Waste>.Filter.Eq(item => item.date, request.date);
-            var lotNoFilter = Builders<Waste>.Filter.Eq(item => item.lotNo, request.lotNo);
-            var wasteNameFilter = Builders<Waste>.Filter.Eq(item => item.wasteName, request.wasteName);
+            FilterDefinition<Waste> dateFilter = Builders<Waste>.Filter.Eq(item => item.date, request.date);
+            FilterDefinition<Waste> lotNoFilter = Builders<Waste>.Filter.Eq(item => item.lotNo, request.lotNo);
+            FilterDefinition<Waste> wasteNameFilter = Builders<Waste>.Filter.Eq(item => item.wasteName, request.wasteName);
 
-            var deletedFilter = Builders<Waste>.Filter.Ne(item => item.status, "deleted");
-            var approveFilter = Builders<Waste>.Filter.Eq(item => item.status, "approve");
-            var invoiceFilter = Builders<Waste>.Filter.Ne(item => item.status, "toInvoice");
+            FilterDefinition<Waste> deletedFilter = Builders<Waste>.Filter.Ne(item => item.status, "deleted");
+            FilterDefinition<Waste> approveFilter = Builders<Waste>.Filter.Eq(item => item.status, "approve");
+            FilterDefinition<Waste> invoiceFilter = Builders<Waste>.Filter.Ne(item => item.status, "toInvoice");
 
-            var andOpration = Builders<Waste>.Filter.And(approveFilter & lotNoFilter & wasteNameFilter & deletedFilter & invoiceFilter);
+            FilterDefinition<Waste> andOpration = Builders<Waste>.Filter.And(approveFilter & lotNoFilter & wasteNameFilter & deletedFilter & invoiceFilter);
 
             return recycle.Find(Builders<Waste>.Filter.Or(dateFilter | andOpration)).ToList();
             // return recycle.Find(Builders<Waste>.Filter.And(dateFilter & boiFilter & lotNoFilter & deletedFilter & invoiceFilter)).ToList();
@@ -136,9 +136,9 @@ namespace backend.Services
         public List<Waste> getToInvoiceName(request.RequestInvoiceDataWithName request)
         {
 
-            var dateFilter = Builders<Waste>.Filter.Eq(item => item.wasteName, request.wasteName);
-            var deletedFilter = Builders<Waste>.Filter.Ne(item => item.status, "deleted");
-            var invoiceFilter = Builders<Waste>.Filter.Ne(item => item.status, "toInvoice");
+            FilterDefinition<Waste> dateFilter = Builders<Waste>.Filter.Eq(item => item.wasteName, request.wasteName);
+            FilterDefinition<Waste> deletedFilter = Builders<Waste>.Filter.Ne(item => item.status, "deleted");
+            FilterDefinition<Waste> invoiceFilter = Builders<Waste>.Filter.Ne(item => item.status, "toInvoice");
 
             return recycle.Find(Builders<Waste>.Filter.And(dateFilter & deletedFilter & invoiceFilter)).ToList();
         }

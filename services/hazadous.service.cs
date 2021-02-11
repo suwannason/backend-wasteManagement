@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using backend.Models;
 using backend.request;
+using System;
 
 namespace backend.Services
 {
@@ -23,6 +24,13 @@ namespace backend.Services
             _Hazadous = database.GetCollection<HazadousSchema>("Hazadous");
         }
 
+        public long countItemsByTracking(string trackingId)
+        {
+            FilterDefinition<HazadousSchema> dataFilter = Builders<HazadousSchema>.Filter.Eq(item => item.trackingId, trackingId);
+
+            return _Hazadous.CountDocuments(dataFilter);
+        }
+
         public List<HazadousSchema> getAll()
         {
             return _Hazadous.Find<HazadousSchema>(item => true).ToList();
@@ -31,8 +39,24 @@ namespace backend.Services
         {
             List<HazadousSchema> items = new List<HazadousSchema>();
 
+            string currentYear = DateTime.Now.Year.ToString();
+            SortDefinitionBuilder<HazadousSchema> builder = Builders<HazadousSchema>.Sort;
+            SortDefinition<HazadousSchema> sort = builder.Descending("record");
+
             Parallel.ForEach(body.hazardous, item =>
             {
+                HazadousSchema lastItem = _Hazadous.Find<HazadousSchema>(item => item.year == currentYear).Sort(sort).FirstOrDefault();
+
+                string record = "";
+
+                if (lastItem == null)
+                {
+                    record = "001";
+                }
+                else
+                {
+                    record = (Int32.Parse(lastItem.record) + 1).ToString().PadLeft(3, '0');
+                }
                 items.Add(new HazadousSchema
                 {
                     date = body.date,
@@ -57,7 +81,8 @@ namespace backend.Services
                     wasteType = item.wasteType,
                     weightPerContainer = item.weightPerContainer,
                     status = "req-prepared",
-
+                    record = record,
+                    year = currentYear,
                     req_prepared = req_prepare,
                     req_checked = new Profile { empNo = "-", name = "-", band = "-", dept = "-", div = "-", tel = "-" },
                     req_approved = new Profile { empNo = "-", name = "-", band = "-", dept = "-", div = "-", tel = "-" },
@@ -75,8 +100,34 @@ namespace backend.Services
             FilterDefinition<HazadousSchema> filter = Builders<HazadousSchema>.Filter.Eq(item => item._id, id);
             UpdateDefinition<HazadousSchema> update = Builders<HazadousSchema>.Update.Set("status", status);
 
-            _Hazadous.UpdateOne(filter, update);
+            _Hazadous.UpdateMany(filter, update);
         }
 
+        public List<HazadousSchema> getByStatus(string status, string dept)
+        {
+            Console.WriteLine(status + " ++> " + dept);
+            return _Hazadous
+            .Find<HazadousSchema>(item => item.status == status && item.dept == dept)
+            .ToList<HazadousSchema>();
+        }
+        public List<HazadousSchema> getByTrackingIdAndStatus(string trackingId, string status)
+        {
+            return _Hazadous
+            .Find<HazadousSchema>(item => item.trackingId == trackingId && item.status == status)
+            .ToList<HazadousSchema>();
+        }
+        public string getLastRecord()
+        {
+            string currentYear = DateTime.Now.Year.ToString();
+            SortDefinitionBuilder<HazadousSchema> builder = Builders<HazadousSchema>.Sort;
+            SortDefinition<HazadousSchema> sort = builder.Descending("record");
+            HazadousSchema data = _Hazadous.Find(item => item.year == currentYear).Sort(sort).FirstOrDefault();
+
+            if (data == null)
+            {
+                return "000";
+            }
+            return data.record;
+        }
     }
 }

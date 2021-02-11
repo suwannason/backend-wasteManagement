@@ -121,6 +121,8 @@ namespace backend
             services.AddSingleton<wasteGroupService>();
             services.AddSingleton<HazadousService>();
             services.AddSingleton<InfectionsService>();
+            services.AddSingleton<ScrapMatrialImoService>();
+            services.AddSingleton<PricingService>();
             services.AddControllers();
         }
 

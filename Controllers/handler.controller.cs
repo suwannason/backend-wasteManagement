@@ -42,7 +42,7 @@ namespace backend.Controllers
 
                 fileNameList[i] = uuid + ".png";
 
-                using (var imageFile = new FileStream(serverPath + @"\" + uuid + ".png", FileMode.Create))
+                using (FileStream imageFile = new FileStream(serverPath + @"\" + uuid + ".png", FileMode.Create))
                 {
                     imageFile.Write(imageBytes, 0, imageBytes.Length);
                     imageFile.Flush();

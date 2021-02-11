@@ -1,4 +1,5 @@
 
+
 namespace backend.request
 {
 
@@ -35,7 +36,8 @@ namespace backend.request
         public string weightPerContainer { get; set; }
         public string totalWeight { get; set; }
     }
-    public class Infections {
+    public class Infections
+    {
         public string no { get; set; }
         public string wasteEachDept { get; set; }
         public string wasteName { get; set; }
@@ -46,7 +48,8 @@ namespace backend.request
         public string weightPerContainer { get; set; }
         public string totalWeight { get; set; }
     }
-    public class ScrapMatrialimo {
+    public class ScrapMatrialimo
+    {
         public string summaryType { get; set; }
         public string imoLotNo { get; set; }
         public string moveOutDate { get; set; }
@@ -64,8 +67,23 @@ namespace backend.request
         public string netWasteWeight { get; set; }
     }
 
-    public class UpdateStatusFormRequester {
-        public string[] id { get; set; }
+    public class UpdateStatusFormRequester
+    {
+        public string[] trackingId { get; set; }
         public string status { get; set; }
+    }
+    public class getByStatus
+    {
+        public string trackingId { get; set; }
+        public string status { get; set; }
+    }
+    public class maxlotRequest
+    {
+        public string dept { get; set; }
+    }
+    public class uploadData
+    {
+        public string form { get; set; }
+        public Microsoft.AspNetCore.Http.IFormFile file { get; set; }
     }
 }

@@ -49,6 +49,8 @@ namespace backend.Models
         public string totalPrice { get; set; }
         // FIELD ON MERGE
         public string year { get; set; }
+        public string trackingId { get; set; }
         public string status { get; set; }
+        public string record { get; set; }
     }
 }

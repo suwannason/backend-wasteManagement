@@ -41,5 +41,7 @@ namespace backend.Models
     // APPROVING STEP
 
     public string status { get; set; }
+    public string year { get; set; }
+    public string record { get; set; }
     }
 }

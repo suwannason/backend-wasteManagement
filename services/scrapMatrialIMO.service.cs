@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 using backend.Models;
 using backend.request;
-
+using System;
 
 namespace backend.Services
 {
@@ -24,31 +24,98 @@ namespace backend.Services
         {
             List<ScrapMatrialimoSchema> data = new List<ScrapMatrialimoSchema>();
 
-            // Parallel.ForEach(body.scrapImo, item =>
-            // {
-            //     data.Add(new ScrapMatrialimoSchema
-            //     {
-            //         no = item.no,
-            //         dept = body.dept,
-            //         div = body.div,
-            //         date = body.date,
-            //         time = body.time,
-            //         biddingType = "-",
-            //         containerType = item.containerType,
+            string currentYear = DateTime.Now.Year.ToString();
+            SortDefinitionBuilder<ScrapMatrialimoSchema> builder = Builders<ScrapMatrialimoSchema>.Sort;
+            SortDefinition<ScrapMatrialimoSchema> sort = builder.Descending("record");
 
-            //         qtyOfContainer = item.qtyOfContainer,
-                
-            //         totalWeight = item.totalWeight,
-            //         req_prepared = req_prepare,
-            //         status = "req-prepared",
-            //         req_checked = new Profile { empNo = "-", name = "-", band = "-", dept = "-", div = "-", tel = "-" },
-            //         req_approved = new Profile { empNo = "-", name = "-", band = "-", dept = "-", div = "-", tel = "-" },
+            Parallel.ForEach(body.scrapImo, item =>
+            {
+                ScrapMatrialimoSchema lastItem = _scrapMatrial.Find<ScrapMatrialimoSchema>(item => item.year == currentYear).Sort(sort).FirstOrDefault();
 
-            //         fae_checked = new Profile { empNo = "-", name = "-", band = "-", dept = "-", div = "-", tel = "-" },
-            //         fae_approved = new Profile { empNo = "-", name = "-", band = "-", dept = "-", div = "-", tel = "-" },
-            //     });
-            // });
-            // _scrapMatrial.InsertMany(data);
+                string record = "";
+
+                if (lastItem == null)
+                {
+                    record = "001";
+                }
+                else
+                {
+                    record = (Int32.Parse(lastItem.record) + 1).ToString().PadLeft(3, '0');
+                }
+
+                data.Add(new ScrapMatrialimoSchema
+                {
+                    no = item.no,
+                    date = body.date,
+                    div = body.div,
+                    dept = body.dept,
+                    time = body.time,
+                    biddingType = "<DEFAULT DB BY ITC>",
+                    containerType = item.containerType,
+
+                    qtyOfContainer = item.qtyOfContainer,
+                    trackingId = trackingId,
+                    matrialName = item.matrialName,
+                    moveOutDate = item.moveOutDate,
+                    imoLotNo = "<CREATE API FOR FN GET LAST LOT>",
+                    color = "<DEFAULT DB BY ITC>",
+                    biddingNo = "<DEFAULT DB BY ITC>",
+                    unitPrice = "<DEFAULT DB BY ITC>",
+                    totalPrice = "item.netWasteWeight * <DEFAULT DB BY ITC (unit price)>",
+                    boiType = item.boiType,
+                    containerWeight = item.containerWeight,
+                    unit = item.unit,
+                    groupBoiName = item.groupBoiName,
+                    groupBoiNo = item.groupBoiNo,
+                    matrialCode = item.matrialCode,
+                    netWasteWeight = item.netWasteWeight,
+                    summaryType = item.summaryType,
+
+                    record = record,
+                    totalWeight = item.totalWeight,
+                    req_prepared = req_prepare,
+                    status = "req-prepared",
+                    itc_approved = new Profile { empNo = "-", name = "-", band = "-", dept = "-", div = "-", tel = "-" },
+                    itc_checked = new Profile { empNo = "-", name = "-", band = "-", dept = "-", div = "-", tel = "-" },
+                    req_checked = new Profile { empNo = "-", name = "-", band = "-", dept = "-", div = "-", tel = "-" },
+                    req_approved = new Profile { empNo = "-", name = "-", band = "-", dept = "-", div = "-", tel = "-" },
+                    year = currentYear,
+                    fae_checked = new Profile { empNo = "-", name = "-", band = "-", dept = "-", div = "-", tel = "-" },
+                    fae_approved = new Profile { empNo = "-", name = "-", band = "-", dept = "-", div = "-", tel = "-" },
+                });
+            });
+            _scrapMatrial.InsertMany(data);
+        }
+        public List<ScrapMatrialimoSchema> getByTrackingIdAndStatus(string trackingId, string status)
+        {
+            return _scrapMatrial
+            .Find<ScrapMatrialimoSchema>(item => item.trackingId == trackingId && item.status == status)
+            .ToList<ScrapMatrialimoSchema>();
+        }
+
+        public void updateStatus(string id, string status)
+        {
+            FilterDefinition<ScrapMatrialimoSchema> filter = Builders<ScrapMatrialimoSchema>.Filter.Eq(item => item._id, id);
+            UpdateDefinition<ScrapMatrialimoSchema> update = Builders<ScrapMatrialimoSchema>.Update.Set("status", status);
+
+            _scrapMatrial.UpdateMany(filter, update);
+        }
+
+        public string getLastRecord()
+        {
+            string currentYear = DateTime.Now.Year.ToString();
+            SortDefinitionBuilder<ScrapMatrialimoSchema> builder = Builders<ScrapMatrialimoSchema>.Sort;
+            SortDefinition<ScrapMatrialimoSchema> sort = builder.Descending("record");
+            ScrapMatrialimoSchema data = _scrapMatrial.Find(item => item.year == currentYear).Sort(sort).FirstOrDefault();
+
+            if (data == null) {
+                return "000";
+            }
+            return data.record;
+        }
+    
+        public void handleUpload(List<ScrapMatrialimoSchema> body) {
+            _scrapMatrial.InsertMany(body);
         }
     }
 }

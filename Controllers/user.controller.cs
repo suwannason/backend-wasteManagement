@@ -55,7 +55,7 @@ namespace backend.Controllers
         [HttpGet("{id}")]
         public ActionResult<User> Get(string id)
         {
-            var book = _userService.Get(id);
+            User book = _userService.Get(id);
 
             if (book == null)
             {
@@ -96,7 +96,7 @@ namespace backend.Controllers
         [HttpPut("{id}")]
         public IActionResult Update(string id, User body)
         {
-            var book = _userService.Get(id);
+            User book = _userService.Get(id);
 
             if (book == null)
             {
@@ -111,7 +111,7 @@ namespace backend.Controllers
         [HttpDelete("{id}")]
         public IActionResult Delete(string id)
         {
-            var book = _userService.Get(id);
+            User book = _userService.Get(id);
 
             if (book == null)
             {
