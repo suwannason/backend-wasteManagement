@@ -13,7 +13,6 @@ namespace backend.Models
     public string time { get; set; }
     public string dept { get; set; }
     public string div { get; set; }
-    public string trackingId { get; set; }
     public string phase { get; set; }
     public string wasteName { get; set; }
     public string wasteGroup { get; set; }

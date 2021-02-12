@@ -122,7 +122,9 @@ namespace backend
             services.AddSingleton<HazadousService>();
             services.AddSingleton<InfectionsService>();
             services.AddSingleton<ScrapMatrialImoService>();
+            services.AddSingleton<ScrapMatrialPMDService>();
             services.AddSingleton<PricingService>();
+            services.AddSingleton<prepareLotService>();
             services.AddControllers();
         }
 

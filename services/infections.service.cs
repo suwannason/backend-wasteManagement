@@ -20,13 +20,13 @@ namespace backend.Services
             _Infections = database.GetCollection<InfectionSchema>("Infections");
         }
 
-        public long countItemsByTracking(string trackingId)
+        public long countItemsByTracking(string status)
         {
-            FilterDefinition<InfectionSchema> dataFilter = Builders<InfectionSchema>.Filter.Eq(item => item.trackingId, trackingId);
+            FilterDefinition<InfectionSchema> dataFilter = Builders<InfectionSchema>.Filter.Eq(item => item.status, status);
 
             return _Infections.CountDocuments(dataFilter);
         }
-        public void create(ReuqesterREQ body, Profile req_prepare, string trackingId)
+        public void create(ReuqesterREQ body, Profile req_prepare)
         {
             List<InfectionSchema> data = new List<InfectionSchema>();
 
@@ -62,7 +62,6 @@ namespace backend.Services
                     qtyOfContainer = item.qtyOfContainer,
                     suggestionByFae = "Waiting for FAE",
                     totalWeight = item.totalWeight,
-                    trackingId = trackingId,
                     valuableType = "Waiting for FAE",
                     wasteEachDept = item.wasteEachDept,
                     wasteName = item.wasteName,
@@ -89,10 +88,10 @@ namespace backend.Services
             .ToList<InfectionSchema>();
         }
 
-        public List<InfectionSchema> getByTrackingIdAndStatus(string trackingId, string status)
+        public List<InfectionSchema> getByStatus(string status)
         {
             return _Infections
-            .Find<InfectionSchema>(item => item.trackingId == trackingId && item.status == status)
+            .Find<InfectionSchema>(item => item.status == status)
             .ToList<InfectionSchema>();
         }
 

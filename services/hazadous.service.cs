@@ -24,9 +24,9 @@ namespace backend.Services
             _Hazadous = database.GetCollection<HazadousSchema>("Hazadous");
         }
 
-        public long countItemsByTracking(string trackingId)
+        public long countItemsByTracking(string lotNo)
         {
-            FilterDefinition<HazadousSchema> dataFilter = Builders<HazadousSchema>.Filter.Eq(item => item.trackingId, trackingId);
+            FilterDefinition<HazadousSchema> dataFilter = Builders<HazadousSchema>.Filter.Eq(item => item.lotNo, lotNo);
 
             return _Hazadous.CountDocuments(dataFilter);
         }
@@ -35,7 +35,7 @@ namespace backend.Services
         {
             return _Hazadous.Find<HazadousSchema>(item => true).ToList();
         }
-        public void create(ReuqesterREQ body, Profile req_prepare, string trackingId)
+        public void create(ReuqesterREQ body, Profile req_prepare)
         {
             List<HazadousSchema> items = new List<HazadousSchema>();
 
@@ -63,7 +63,6 @@ namespace backend.Services
                     dept = body.date,
                     time = body.time,
                     div = body.div,
-                    trackingId = trackingId,
                     binddingType = item.binddingType,
                     boiType = item.boiType,
                     companyApproveNo = item.companyApproveNo,
@@ -95,9 +94,9 @@ namespace backend.Services
             _Hazadous.InsertMany(items);
         }
 
-        public void updateStatus(string id, string status)
+        public void updateStatus(string lotNo, string status)
         {
-            FilterDefinition<HazadousSchema> filter = Builders<HazadousSchema>.Filter.Eq(item => item._id, id);
+            FilterDefinition<HazadousSchema> filter = Builders<HazadousSchema>.Filter.Eq(item => item.lotNo, lotNo);
             UpdateDefinition<HazadousSchema> update = Builders<HazadousSchema>.Update.Set("status", status);
 
             _Hazadous.UpdateMany(filter, update);
@@ -110,10 +109,10 @@ namespace backend.Services
             .Find<HazadousSchema>(item => item.status == status && item.dept == dept)
             .ToList<HazadousSchema>();
         }
-        public List<HazadousSchema> getByTrackingIdAndStatus(string trackingId, string status)
+        public List<HazadousSchema> getByLotnoIdAndStatus(string lotNo, string status)
         {
             return _Hazadous
-            .Find<HazadousSchema>(item => item.trackingId == trackingId && item.status == status)
+            .Find<HazadousSchema>(item => item.lotNo == lotNo && item.status == status)
             .ToList<HazadousSchema>();
         }
         public string getLastRecord()

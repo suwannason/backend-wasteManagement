@@ -21,8 +21,16 @@ namespace backend.Services
             _pmd = database.GetCollection<ScrapMatrialpmdSchema>("ScrapMatrialPMD");
         }
 
-        public void create() {
-            
+        public void create()
+        {
+
+        }
+        public void updateStatus(string lotNo, string status)
+        {
+            FilterDefinition<ScrapMatrialpmdSchema> filter = Builders<ScrapMatrialpmdSchema>.Filter.Eq(item => item.lotNo, lotNo);
+            UpdateDefinition<ScrapMatrialpmdSchema> update = Builders<ScrapMatrialpmdSchema>.Update.Set("status", status);
+
+            _pmd.UpdateMany(filter, update);
         }
     }
 }

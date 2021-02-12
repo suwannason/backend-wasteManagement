@@ -69,12 +69,12 @@ namespace backend.request
 
     public class UpdateStatusFormRequester
     {
-        public string[] trackingId { get; set; }
+        public string[] lotNo { get; set; }
         public string status { get; set; }
     }
     public class getByStatus
     {
-        public string trackingId { get; set; }
+        public string lotNo { get; set; }
         public string status { get; set; }
     }
     public class maxlotRequest

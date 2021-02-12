@@ -20,7 +20,7 @@ namespace backend.Services
             _scrapMatrial = database.GetCollection<ScrapMatrialimoSchema>("ScrapMatrialImo");
         }
 
-        public void create(ReuqesterREQ body, Profile req_prepare, string trackingId)
+        public void create(ReuqesterREQ body, Profile req_prepare)
         {
             List<ScrapMatrialimoSchema> data = new List<ScrapMatrialimoSchema>();
 
@@ -54,7 +54,6 @@ namespace backend.Services
                     containerType = item.containerType,
 
                     qtyOfContainer = item.qtyOfContainer,
-                    trackingId = trackingId,
                     matrialName = item.matrialName,
                     moveOutDate = item.moveOutDate,
                     imoLotNo = "<CREATE API FOR FN GET LAST LOT>",
@@ -86,16 +85,16 @@ namespace backend.Services
             });
             _scrapMatrial.InsertMany(data);
         }
-        public List<ScrapMatrialimoSchema> getByTrackingIdAndStatus(string trackingId, string status)
+        public List<ScrapMatrialimoSchema> getByLotNoAndStatus(string lotNo, string status)
         {
             return _scrapMatrial
-            .Find<ScrapMatrialimoSchema>(item => item.trackingId == trackingId && item.status == status)
+            .Find<ScrapMatrialimoSchema>(item => item.imoLotNo == lotNo && item.status == status)
             .ToList<ScrapMatrialimoSchema>();
         }
 
-        public void updateStatus(string id, string status)
+        public void updateStatus(string lotNo, string status)
         {
-            FilterDefinition<ScrapMatrialimoSchema> filter = Builders<ScrapMatrialimoSchema>.Filter.Eq(item => item._id, id);
+            FilterDefinition<ScrapMatrialimoSchema> filter = Builders<ScrapMatrialimoSchema>.Filter.Eq(item => item.imoLotNo, lotNo);
             UpdateDefinition<ScrapMatrialimoSchema> update = Builders<ScrapMatrialimoSchema>.Update.Set("status", status);
 
             _scrapMatrial.UpdateMany(filter, update);
@@ -108,14 +107,22 @@ namespace backend.Services
             SortDefinition<ScrapMatrialimoSchema> sort = builder.Descending("record");
             ScrapMatrialimoSchema data = _scrapMatrial.Find(item => item.year == currentYear).Sort(sort).FirstOrDefault();
 
-            if (data == null) {
+            if (data == null)
+            {
                 return "000";
             }
             return data.record;
         }
-    
-        public void handleUpload(List<ScrapMatrialimoSchema> body) {
+
+        public void handleUpload(List<ScrapMatrialimoSchema> body)
+        {
             _scrapMatrial.InsertMany(body);
+        }
+        public List<ScrapMatrialimoSchema> getByStatus(string status, string dept)
+        {
+            return _scrapMatrial
+            .Find<ScrapMatrialimoSchema>(item => item.status == status)
+            .ToList<ScrapMatrialimoSchema>();
         }
     }
 }

@@ -18,9 +18,9 @@ namespace backend.Models {
         public string boiType { get; set; }
         public string partNormalType { get; set; }
 
-        public string department { get; set; }
+        public string dept { get; set; }
         public string productionType { get; set; }
-        public string division { get; set; }
+        public string div { get; set; }
         public string lotNo { get; set; }
         public string companyApprove { get; set; }
         public string wasteGroup { get; set; }

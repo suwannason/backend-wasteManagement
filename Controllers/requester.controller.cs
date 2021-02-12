@@ -17,25 +17,27 @@ namespace backend.Controllers
 
     [Route("fae-part/[controller]")]
     [ApiController]
-    // [Authorize]
+    [Authorize]
     public class requesterController : ControllerBase
     {
         private readonly HazadousService _hazadous;
         private readonly InfectionsService _infections;
         private readonly ScrapMatrialImoService _scrapImo;
+        private readonly ScrapMatrialPMDService _scrapPmd;
 
         RequesterResponse res = new RequesterResponse();
 
-        public requesterController(HazadousService req, InfectionsService infect, ScrapMatrialImoService scrapImo)
+        public requesterController(HazadousService req, InfectionsService infect, ScrapMatrialImoService scrapImo, ScrapMatrialPMDService pmd)
         {
             _hazadous = req;
             _infections = infect;
             _scrapImo = scrapImo;
+            _scrapPmd = pmd;
         }
 
         [HttpPost]
         public async Task<ActionResult<RequesterResponse>> create(ReuqesterREQ body)
-        {
+        { // create by web form
             Profile req_prepare = new Profile();
 
             req_prepare.empNo = User.FindFirst("username")?.Value;
@@ -48,20 +50,18 @@ namespace backend.Controllers
             body.div = User.FindFirst("div")?.Value;
             body.dept = User.FindFirst("dept")?.Value;
 
-            string trackingId = System.Guid.NewGuid().ToString();
-
             List<Task> onCreate = new List<Task>();
             if (body.hazardous.Length > 0)
             {
-                onCreate.Add(Task.Run(() => { _hazadous.create(body, req_prepare, trackingId); }));
+                onCreate.Add(Task.Run(() => { _hazadous.create(body, req_prepare); }));
             }
             if (body.infections.Length > 0)
             {
-                onCreate.Add(Task.Run(() => { _infections.create(body, req_prepare, trackingId); }));
+                onCreate.Add(Task.Run(() => { _infections.create(body, req_prepare); }));
             }
             if (body.scrapImo.Length > 0)
             {
-                onCreate.Add(Task.Run(() => { _scrapImo.create(body, req_prepare, trackingId); }));
+                onCreate.Add(Task.Run(() => { _scrapImo.create(body, req_prepare); }));
             }
 
             Task created = Task.WhenAll(onCreate.ToArray());
@@ -83,12 +83,12 @@ namespace backend.Controllers
         public ActionResult<RequesterResponse> updateStatus(UpdateStatusFormRequester body)
         {
 
-            foreach (string item in body.trackingId)
+            Parallel.ForEach(body.lotNo, item =>
             {
                 _hazadous.updateStatus(item, body.status);
-                _infections.updateStatus(item, body.status);
                 _scrapImo.updateStatus(item, body.status);
-            }
+                _scrapPmd.updateStatus(item, body.status);
+            });
             res.success = true;
             res.message = "Update status to " + body.status + " success.";
             return Ok(res);
@@ -104,10 +104,12 @@ namespace backend.Controllers
                 // req-prepared, req-checked, req-approved --> fae-prepared, fae-checked, fae-approved
                 List<InfectionSchema> infecs = _infections.getByStatus(status, dept);
                 List<HazadousSchema> hazas = _hazadous.getByStatus(status, dept);
+                List<ScrapMatrialimoSchema> scrapImo = _scrapImo.getByStatus(status, dept);
 
                 typeItem type = new typeItem();
                 type.infectionsWaste = infecs.ToArray();
                 type.hazadousWaste = hazas.ToArray();
+                type.scrapImo = scrapImo.ToArray();
 
                 res.success = true;
                 res.message = "Item on : " + status;
@@ -120,17 +122,16 @@ namespace backend.Controllers
             }
         }
 
-        [HttpPatch("getByTracking")]
-        public ActionResult getByTrackingId(getByStatus body)
+        [HttpPatch("getByLotNo")]
+        public ActionResult getByLotNo(getByStatus body)
         {
             try
             {
-                List<HazadousSchema> hazadous = _hazadous.getByTrackingIdAndStatus(body.trackingId, body.status);
-                List<InfectionSchema> infections = _infections.getByTrackingIdAndStatus(body.trackingId, body.status);
-                List<ScrapMatrialimoSchema> scraps = _scrapImo.getByTrackingIdAndStatus(body.trackingId, body.status);
+                List<HazadousSchema> hazadous = _hazadous.getByLotnoIdAndStatus(body.lotNo, body.status);
+                List<InfectionSchema> infections = _infections.getByStatus(body.status);
+                List<ScrapMatrialimoSchema> scraps = _scrapImo.getByLotNoAndStatus(body.lotNo, body.status);
 
                 typeItem data = new typeItem();
-
                 data.hazadousWaste = hazadous.ToArray();
                 data.infectionsWaste = infections.ToArray();
                 data.scrapImo = scraps.ToArray();
