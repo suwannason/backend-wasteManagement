@@ -51,7 +51,7 @@ namespace backend.request
     public class ScrapMatrialimo
     {
         public string summaryType { get; set; }
-        public string imoLotNo { get; set; }
+        public string lotNo { get; set; }
         public string moveOutDate { get; set; }
         public string no { get; set; }
         public string matrialCode { get; set; }
@@ -85,5 +85,10 @@ namespace backend.request
     {
         public string form { get; set; }
         public Microsoft.AspNetCore.Http.IFormFile file { get; set; }
+    }
+
+    public class startEndDate {
+        public string startDate { get; set; }
+        public string endDate { get; set; }
     }
 }

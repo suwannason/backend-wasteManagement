@@ -104,10 +104,13 @@ namespace backend.Services
 
         public List<HazadousSchema> getByStatus(string status, string dept)
         {
-            Console.WriteLine(status + " ++> " + dept);
             return _Hazadous
-            .Find<HazadousSchema>(item => item.status == status && item.dept == dept)
+            .Find<HazadousSchema>(item => item.status == status & item.dept == dept)
             .ToList<HazadousSchema>();
+        }
+
+        public List<HazadousSchema> getByStatus_fae(string status) {
+            return _Hazadous.Find<HazadousSchema>(item => item.status == status).ToList<HazadousSchema>();
         }
         public List<HazadousSchema> getByLotnoIdAndStatus(string lotNo, string status)
         {

@@ -10,6 +10,25 @@ namespace backend.response {
 
         public string token { get; set; }
         public User[] data { get; set; }
+    }
 
+    public class LDAPresponse {
+        public LDAPprofile profile { get; set; }
+        public systemList systems { get; set; }
+    }
+
+    public class LDAPprofile {
+        public string empNo { get; set; }
+        public string fnameEn { get; set; }
+        public string lnameEn { get; set; }
+        public string deptCode { get; set; }
+        public string deptShortName { get; set; }
+        public string deptFullName { get; set; }
+        public string divShortName { get; set; }
+        public string band { get; set; }
+    }
+    public class systemList {
+        public int systemId { get; set; }
+        public string systemName { get; set; }
     }
 }

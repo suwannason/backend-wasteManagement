@@ -11,14 +11,14 @@ namespace backend.Models {
         [BsonRepresentation(BsonType.ObjectId)]
         public string _id { get; set; }
         public string date { get; set; }
-        public string time { get; set; }
-        public string phase { get; set; }
-        public string cptMainType { get; set; }
-        public string wasteType { get; set; }
-        public string boiType { get; set; }
+        public string time { get; set; } //
+        public string phase { get; set; } // 
+        public string cptMainType { get; set; } //
+        public string wasteType { get; set; } //
+        public string boiType { get; set; } // itc
         public string partNormalType { get; set; }
 
-        public string dept { get; set; }
+        public string dept { get; set; } // pmd
         public string productionType { get; set; }
         public string div { get; set; }
         public string lotNo { get; set; }

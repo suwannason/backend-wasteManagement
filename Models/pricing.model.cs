@@ -9,6 +9,8 @@ namespace backend.Models {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string _id { get; set; }
+
+        public string no { get; set; }
         public string[] wasteName { get; set; }
         public string biddingType { get; set; }
         public string color { get; set; }

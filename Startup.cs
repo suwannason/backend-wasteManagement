@@ -125,6 +125,7 @@ namespace backend
             services.AddSingleton<ScrapMatrialPMDService>();
             services.AddSingleton<PricingService>();
             services.AddSingleton<prepareLotService>();
+            services.AddSingleton<ITC_IMO_DB_service>();
             services.AddControllers();
         }
 

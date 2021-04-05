@@ -30,18 +30,6 @@ namespace backend.Services
 
             Parallel.ForEach(body.scrapImo, item =>
             {
-                ScrapMatrialimoSchema lastItem = _scrapMatrial.Find<ScrapMatrialimoSchema>(item => item.year == currentYear).Sort(sort).FirstOrDefault();
-
-                string record = "";
-
-                if (lastItem == null)
-                {
-                    record = "001";
-                }
-                else
-                {
-                    record = (Int32.Parse(lastItem.record) + 1).ToString().PadLeft(3, '0');
-                }
 
                 data.Add(new ScrapMatrialimoSchema
                 {
@@ -49,14 +37,12 @@ namespace backend.Services
                     date = body.date,
                     div = body.div,
                     dept = body.dept,
-                    time = body.time,
                     biddingType = "<DEFAULT DB BY ITC>",
-                    containerType = item.containerType,
 
                     qtyOfContainer = item.qtyOfContainer,
                     matrialName = item.matrialName,
                     moveOutDate = item.moveOutDate,
-                    imoLotNo = "<CREATE API FOR FN GET LAST LOT>",
+                    lotNo = "<CREATE API FOR FN GET LAST LOT>",
                     color = "<DEFAULT DB BY ITC>",
                     biddingNo = "<DEFAULT DB BY ITC>",
                     unitPrice = "<DEFAULT DB BY ITC>",
@@ -68,9 +54,6 @@ namespace backend.Services
                     groupBoiNo = item.groupBoiNo,
                     matrialCode = item.matrialCode,
                     netWasteWeight = item.netWasteWeight,
-                    summaryType = item.summaryType,
-
-                    record = record,
                     totalWeight = item.totalWeight,
                     req_prepared = req_prepare,
                     status = "req-prepared",
@@ -88,30 +71,16 @@ namespace backend.Services
         public List<ScrapMatrialimoSchema> getByLotNoAndStatus(string lotNo, string status)
         {
             return _scrapMatrial
-            .Find<ScrapMatrialimoSchema>(item => item.imoLotNo == lotNo && item.status == status)
+            .Find<ScrapMatrialimoSchema>(item => item.lotNo == lotNo && item.status == status)
             .ToList<ScrapMatrialimoSchema>();
         }
 
         public void updateStatus(string lotNo, string status)
         {
-            FilterDefinition<ScrapMatrialimoSchema> filter = Builders<ScrapMatrialimoSchema>.Filter.Eq(item => item.imoLotNo, lotNo);
+            FilterDefinition<ScrapMatrialimoSchema> filter = Builders<ScrapMatrialimoSchema>.Filter.Eq(item => item.lotNo, lotNo);
             UpdateDefinition<ScrapMatrialimoSchema> update = Builders<ScrapMatrialimoSchema>.Update.Set("status", status);
 
             _scrapMatrial.UpdateMany(filter, update);
-        }
-
-        public string getLastRecord()
-        {
-            string currentYear = DateTime.Now.Year.ToString();
-            SortDefinitionBuilder<ScrapMatrialimoSchema> builder = Builders<ScrapMatrialimoSchema>.Sort;
-            SortDefinition<ScrapMatrialimoSchema> sort = builder.Descending("record");
-            ScrapMatrialimoSchema data = _scrapMatrial.Find(item => item.year == currentYear).Sort(sort).FirstOrDefault();
-
-            if (data == null)
-            {
-                return "000";
-            }
-            return data.record;
         }
 
         public void handleUpload(List<ScrapMatrialimoSchema> body)
@@ -120,9 +89,23 @@ namespace backend.Services
         }
         public List<ScrapMatrialimoSchema> getByStatus(string status, string dept)
         {
+            Console.WriteLine(dept);
             return _scrapMatrial
-            .Find<ScrapMatrialimoSchema>(item => item.status == status)
+            .Find<ScrapMatrialimoSchema>(item => item.status == status & item.dept == dept)
             .ToList<ScrapMatrialimoSchema>();
+        }
+
+        public List<ScrapMatrialimoSchema> getByStatus_fae(string status) {
+            return _scrapMatrial.Find<ScrapMatrialimoSchema>(item => item.status == status).ToList<ScrapMatrialimoSchema>();
+        }
+    
+        public List<ScrapMatrialimoSchema> getHistory (string startDate, string endDate) {
+
+            Console.WriteLine(startDate + " --> " + endDate);
+            FilterDefinition<ScrapMatrialimoSchema> start = Builders<ScrapMatrialimoSchema>.Filter.Gte(item => item.moveOutDate, startDate);
+            FilterDefinition<ScrapMatrialimoSchema> end = Builders<ScrapMatrialimoSchema>.Filter.Lte(item => item.moveOutDate, endDate);
+
+            return _scrapMatrial.Find<ScrapMatrialimoSchema>(start & end).ToList<ScrapMatrialimoSchema>();
         }
     }
 }

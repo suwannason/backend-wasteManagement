@@ -83,9 +83,19 @@ namespace backend.Services
         public List<InfectionSchema> getByStatus(string status, string dept)
         {
             FilterDefinition<InfectionSchema> statusFilter = Builders<InfectionSchema>.Filter.Eq(item => item.status, status);
-            return _Infections
-            .Find(statusFilter)
-            .ToList<InfectionSchema>();
+            FilterDefinition<InfectionSchema> deptFilter = Builders<InfectionSchema>.Filter.Eq(item => item.dept, dept);
+
+            List<InfectionSchema> data = _Infections.Find(Builders<InfectionSchema>.Filter.And(statusFilter & deptFilter)).ToList<InfectionSchema>();
+            return data;
+        }
+
+        public List<InfectionSchema> getByStatus_fae(string status)
+        {
+            FilterDefinition<InfectionSchema> statusFilter = Builders<InfectionSchema>.Filter.Eq(item => item.status, status);
+
+            List<InfectionSchema> data = _Infections.Find(statusFilter).ToList<InfectionSchema>();
+
+            return data;
         }
 
         public List<InfectionSchema> getByStatus(string status)
