@@ -6,7 +6,7 @@ using MongoDB.Bson.Serialization.Attributes;
 namespace backend.Models
 {
 
-    public class ScrapMatrialimoSchema
+    public class requesterUploadSchema
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]

@@ -9,29 +9,29 @@ using System;
 
 namespace backend.Services
 {
-    public class ScrapMatrialImoService
+    public class requesterUploadServices
     {
-        private readonly IMongoCollection<ScrapMatrialimoSchema> _scrapMatrial;
-        public ScrapMatrialImoService(ICompanieDatabaseSettings settings)
+        private readonly IMongoCollection<requesterUploadSchema> _scrapMatrial;
+        public requesterUploadServices(ICompanieDatabaseSettings settings)
         {
             MongoClientBase client = new MongoClient(settings.ConnectionString);
             IMongoDatabase database = client.GetDatabase(settings.DatabaseName);
 
-            _scrapMatrial = database.GetCollection<ScrapMatrialimoSchema>("ScrapMatrialImo");
+            _scrapMatrial = database.GetCollection<requesterUploadSchema>("Requester");
         }
 
         public void create(ReuqesterREQ body, Profile req_prepare)
         {
-            List<ScrapMatrialimoSchema> data = new List<ScrapMatrialimoSchema>();
+            List<requesterUploadSchema> data = new List<requesterUploadSchema>();
 
             string currentYear = DateTime.Now.Year.ToString();
-            SortDefinitionBuilder<ScrapMatrialimoSchema> builder = Builders<ScrapMatrialimoSchema>.Sort;
-            SortDefinition<ScrapMatrialimoSchema> sort = builder.Descending("record");
+            SortDefinitionBuilder<requesterUploadSchema> builder = Builders<requesterUploadSchema>.Sort;
+            SortDefinition<requesterUploadSchema> sort = builder.Descending("record");
 
             Parallel.ForEach(body.scrapImo, item =>
             {
 
-                data.Add(new ScrapMatrialimoSchema
+                data.Add(new requesterUploadSchema
                 {
                     no = item.no,
                     date = body.date,
@@ -68,44 +68,51 @@ namespace backend.Services
             });
             _scrapMatrial.InsertMany(data);
         }
-        public List<ScrapMatrialimoSchema> getByLotNoAndStatus(string lotNo, string status)
+        public List<requesterUploadSchema> getByLotNoAndStatus(string lotNo, string status)
         {
             return _scrapMatrial
-            .Find<ScrapMatrialimoSchema>(item => item.lotNo == lotNo && item.status == status)
-            .ToList<ScrapMatrialimoSchema>();
+            .Find<requesterUploadSchema>(item => item.lotNo == lotNo && item.status == status)
+            .ToList<requesterUploadSchema>();
         }
 
         public void updateStatus(string lotNo, string status)
         {
-            FilterDefinition<ScrapMatrialimoSchema> filter = Builders<ScrapMatrialimoSchema>.Filter.Eq(item => item.lotNo, lotNo);
-            UpdateDefinition<ScrapMatrialimoSchema> update = Builders<ScrapMatrialimoSchema>.Update.Set("status", status);
+            FilterDefinition<requesterUploadSchema> filter = Builders<requesterUploadSchema>.Filter.Eq(item => item.lotNo, lotNo);
+            UpdateDefinition<requesterUploadSchema> update = Builders<requesterUploadSchema>.Update.Set("status", status);
 
             _scrapMatrial.UpdateMany(filter, update);
         }
 
-        public void handleUpload(List<ScrapMatrialimoSchema> body)
+        public void handleUpload(List<requesterUploadSchema> body)
         {
             _scrapMatrial.InsertMany(body);
         }
-        public List<ScrapMatrialimoSchema> getByStatus(string status, string dept)
+        public List<requesterUploadSchema> getByStatus(string status, string dept)
         {
             Console.WriteLine(dept);
             return _scrapMatrial
-            .Find<ScrapMatrialimoSchema>(item => item.status == status & item.dept == dept)
-            .ToList<ScrapMatrialimoSchema>();
+            .Find<requesterUploadSchema>(item => item.status == status & item.dept == dept)
+            .ToList<requesterUploadSchema>();
         }
 
-        public List<ScrapMatrialimoSchema> getByStatus_fae(string status) {
-            return _scrapMatrial.Find<ScrapMatrialimoSchema>(item => item.status == status).ToList<ScrapMatrialimoSchema>();
+        public List<requesterUploadSchema> getByStatus_fae(string status) {
+            return _scrapMatrial.Find<requesterUploadSchema>(item => item.status == status).ToList<requesterUploadSchema>();
         }
     
-        public List<ScrapMatrialimoSchema> getHistory (string startDate, string endDate) {
+        public List<requesterUploadSchema> getHistory (string startDate, string endDate) {
 
             Console.WriteLine(startDate + " --> " + endDate);
-            FilterDefinition<ScrapMatrialimoSchema> start = Builders<ScrapMatrialimoSchema>.Filter.Gte(item => item.moveOutDate, startDate);
-            FilterDefinition<ScrapMatrialimoSchema> end = Builders<ScrapMatrialimoSchema>.Filter.Lte(item => item.moveOutDate, endDate);
+            FilterDefinition<requesterUploadSchema> start = Builders<requesterUploadSchema>.Filter.Gte(item => item.moveOutDate, startDate);
+            FilterDefinition<requesterUploadSchema> end = Builders<requesterUploadSchema>.Filter.Lte(item => item.moveOutDate, endDate);
 
-            return _scrapMatrial.Find<ScrapMatrialimoSchema>(start & end).ToList<ScrapMatrialimoSchema>();
+            return _scrapMatrial.Find<requesterUploadSchema>(start & end).ToList<requesterUploadSchema>();
+        }
+
+        public void updateRefInvoice(string lotNo) {
+            FilterDefinition<requesterUploadSchema> filter = Builders<requesterUploadSchema>.Filter.Eq(item => item.lotNo, lotNo);
+            UpdateDefinition<requesterUploadSchema> update = Builders<requesterUploadSchema>.Update.Set("invoiceRef", true);
+
+            _scrapMatrial.UpdateMany(filter, update);
         }
     }
 }

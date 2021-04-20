@@ -22,19 +22,19 @@ namespace backend.Controllers
     {
         private readonly HazadousService _hazadous;
         private readonly InfectionsService _infections;
-        private readonly ScrapMatrialImoService _scrapImo;
-        private readonly ScrapMatrialPMDService _scrapPmd;
+        private readonly requesterUploadServices _scrapImo;
         private readonly ITC_IMO_DB_service _itc_imo;
+        private readonly RecycleService _waste;
 
         RequesterResponse res = new RequesterResponse();
 
-        public requesterController(HazadousService req, InfectionsService infect, ScrapMatrialImoService scrapImo, ScrapMatrialPMDService pmd, ITC_IMO_DB_service itc_imo)
+        public requesterController(HazadousService req, InfectionsService infect, requesterUploadServices scrapImo, ITC_IMO_DB_service itc_imo, RecycleService waste)
         {
             _hazadous = req;
             _infections = infect;
             _scrapImo = scrapImo;
-            _scrapPmd = pmd;
             _itc_imo = itc_imo;
+            _waste = waste;
         }
 
         [HttpPost]
@@ -89,7 +89,6 @@ namespace backend.Controllers
             {
                 _hazadous.updateStatus(item, body.status);
                 _scrapImo.updateStatus(item, body.status);
-                _scrapPmd.updateStatus(item, body.status);
             });
             res.success = true;
             res.message = "Update status to " + body.status + " success.";
@@ -112,7 +111,7 @@ namespace backend.Controllers
                 {
                     List<InfectionSchema> infecs = _infections.getByStatus_fae(status);
                     List<HazadousSchema> hazas = _hazadous.getByStatus_fae(status);
-                    List<ScrapMatrialimoSchema> scrapImo = _scrapImo.getByStatus_fae(status);
+                    List<requesterUploadSchema> scrapImo = _scrapImo.getByStatus_fae(status);
 
                     type.infectionsWaste = infecs.ToArray();
                     type.hazadousWaste = hazas.ToArray();
@@ -125,7 +124,7 @@ namespace backend.Controllers
                 {
                     List<InfectionSchema> infecs = _infections.getByStatus(status, dept);
                     List<HazadousSchema> hazas = _hazadous.getByStatus(status, dept);
-                    List<ScrapMatrialimoSchema> scrapImo = _scrapImo.getByStatus(status, dept);
+                    List<requesterUploadSchema> scrapImo = _scrapImo.getByStatus(status, dept);
 
                     type.infectionsWaste = infecs.ToArray();
                     type.hazadousWaste = hazas.ToArray();
@@ -149,7 +148,7 @@ namespace backend.Controllers
             {
                 List<HazadousSchema> hazadous = _hazadous.getByLotnoIdAndStatus(body.lotNo, body.status);
                 List<InfectionSchema> infections = _infections.getByStatus(body.status);
-                List<ScrapMatrialimoSchema> scraps = _scrapImo.getByLotNoAndStatus(body.lotNo, body.status);
+                List<requesterUploadSchema> scraps = _scrapImo.getByLotNoAndStatus(body.lotNo, body.status);
 
                 typeItem data = new typeItem();
                 data.hazadousWaste = hazadous.ToArray();
@@ -212,21 +211,11 @@ namespace backend.Controllers
 
             handleUpload action = new handleUpload(_itc_imo);
 
-            if (body.form.ToUpper() == "IMO")
-            {
-                List<ScrapMatrialimoSchema> data = action.IMOupload($"{serverPath}{body.file.FileName}", req_prepare, usertmp);
+            List<requesterUploadSchema> data = action.Upload($"{serverPath}{body.file.FileName}", req_prepare, usertmp);
 
-                Console.WriteLine("==================================");
-                _scrapImo.handleUpload(data);
-            }
-            else if (body.form.ToUpper() == "PMD")
-            {
-                action.PMDupload($"{serverPath}{body.file.FileName}", req_prepare, usertmp);
-            }
-            else
-            {
-                return BadRequest(new { success = false, message = "Form invalid" });
-            }
+            Console.WriteLine("==================================");
+            _scrapImo.handleUpload(data);
+
             return Ok(new { success = true, message = "Upload data success." });
         }
 
@@ -237,11 +226,35 @@ namespace backend.Controllers
 
             if (User.FindFirst("dept")?.Value.ToLower() == "imo")
             {
-                List<ScrapMatrialimoSchema> data = _scrapImo.getHistory(body.startDate, body.endDate);
+                List<requesterUploadSchema> data = _scrapImo.getHistory(body.startDate, body.endDate);
                 return Ok(new { success = true, message = "Get imo history success", data, });
             }
 
             return Unauthorized(new { success = false, message = "User login department DB not match" });
+        }
+
+        [HttpPatch("invoice")]
+        public ActionResult addInvoice(invoiceRef body)
+        {
+            try
+            {
+
+                foreach (string item in body.check)
+                {
+                    _scrapImo.updateRefInvoice(item);
+                }
+
+                foreach (string item in body.uncheck)
+                {
+                    _waste.updateInvoiceRef(item);
+                }
+                return Ok();
+            }
+            catch (System.Exception e)
+            {
+
+                return Problem(e.StackTrace);
+            }
         }
     }
 

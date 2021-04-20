@@ -45,5 +45,6 @@ namespace backend.Models
         public Profile checkBy { get; set; }
         public Profile approveBy { get; set; }
         public Profile makingBy { get; set; }
+        public bool invoiceRef { get; set; } // true = invoice , false = refferance
     }
 }

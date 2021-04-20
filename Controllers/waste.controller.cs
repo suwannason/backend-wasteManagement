@@ -163,6 +163,7 @@ namespace backend.Controllers
                 item.productionType = body.productionType;
                 item.partNormalType = body.partNormalType;
                 item.date = body.date;
+                item.invoiceRef = false;
 
                 int numberOfList = 0;
                 if (body.imageCapture != null)

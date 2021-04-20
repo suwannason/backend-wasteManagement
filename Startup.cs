@@ -113,17 +113,13 @@ namespace backend
 
             services.AddSingleton<CompanyService>();
             services.AddSingleton<RecycleService>();
-            services.AddSingleton<CarService>();
             services.AddSingleton<UserService>();
             services.AddSingleton<InvoiceService>();
-            services.AddSingleton<QuotationService>();
             services.AddSingleton<WasteNameService>();
             services.AddSingleton<wasteGroupService>();
             services.AddSingleton<HazadousService>();
             services.AddSingleton<InfectionsService>();
-            services.AddSingleton<ScrapMatrialImoService>();
-            services.AddSingleton<ScrapMatrialPMDService>();
-            services.AddSingleton<PricingService>();
+            services.AddSingleton<requesterUploadServices>();
             services.AddSingleton<prepareLotService>();
             services.AddSingleton<ITC_IMO_DB_service>();
             services.AddControllers();

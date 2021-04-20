@@ -18,7 +18,7 @@ public class handleUpload
         _itc_IMO = itc_imo;
     }
 
-    public List<ScrapMatrialimoSchema> IMOupload(string pathFile, Profile prepare, Profile emptyUser)
+    public List<requesterUploadSchema> Upload(string pathFile, Profile prepare, Profile emptyUser)
     {
 
         using (ExcelPackage package = new ExcelPackage(new FileInfo(pathFile)))
@@ -26,7 +26,7 @@ public class handleUpload
             ExcelWorkbook Workbook = package.Workbook;
             ExcelWorksheet sheet = Workbook.Worksheets[0];
 
-            List<ScrapMatrialimoSchema> data = new List<ScrapMatrialimoSchema>();
+            List<requesterUploadSchema> data = new List<requesterUploadSchema>();
 
             int colCount = sheet.Dimension.Columns;
             int rowCount = sheet.Dimension.Rows;
@@ -36,7 +36,7 @@ public class handleUpload
             string matrialCode = ""; string matrialName = "";
             for (int row = 5; row <= rowCount; row++)
             {
-                ScrapMatrialimoSchema rowData = new ScrapMatrialimoSchema();
+                requesterUploadSchema rowData = new requesterUploadSchema();
                 isEmptyRow = false;
                 for (int col = 1; col <= colCount; col++)
                 {
@@ -283,13 +283,4 @@ public class handleUpload
     //         return data;
     //     }
     // }
-
-    public List<ScrapMatrialpmdSchema> PMDUpload()
-    {
-
-        List<ScrapMatrialpmdSchema> data = new List<ScrapMatrialpmdSchema>();
-
-
-        return data;
-    }
 }

@@ -142,5 +142,12 @@ namespace backend.Services
 
             return recycle.Find(Builders<Waste>.Filter.And(dateFilter & deletedFilter & invoiceFilter)).ToList();
         }
+
+        public void updateInvoiceRef(string lotNo) {
+            FilterDefinition<Waste> filter = Builders<Waste>.Filter.Eq(item => item.lotNo, lotNo);
+
+            UpdateDefinition<Waste> update = Builders<Waste>.Update.Set("invoiceRef", true);
+            recycle.UpdateMany(filter, update);
+        }
     }
 }

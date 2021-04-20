@@ -18,7 +18,7 @@ namespace backend.response
 
         public HazadousSchema[] hazadousWaste { get; set; }
         public InfectionSchema[] infectionsWaste { get; set; }
-        public ScrapMatrialimoSchema[] scrapImo { get; set; }
+        public requesterUploadSchema[] scrapImo { get; set; }
     }
 
     public class lastItemResponse

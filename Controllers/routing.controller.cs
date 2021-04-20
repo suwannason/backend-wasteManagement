@@ -18,11 +18,11 @@ namespace backend.Controllers
     {
         private readonly HazadousService _hazadous;
         private readonly InfectionsService _infections;
-        private readonly ScrapMatrialImoService _scrapImo;
+        private readonly requesterUploadServices _scrapImo;
 
         private readonly prepareLotService _prepareLot;
 
-        public routingController(HazadousService req, InfectionsService infect, ScrapMatrialImoService scrapImo, prepareLotService prepareLot)
+        public routingController(HazadousService req, InfectionsService infect, requesterUploadServices scrapImo, prepareLotService prepareLot)
         {
             _hazadous = req;
             _infections = infect;

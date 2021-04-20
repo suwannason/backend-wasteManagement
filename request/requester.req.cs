@@ -91,4 +91,9 @@ namespace backend.request
         public string startDate { get; set; }
         public string endDate { get; set; }
     }
+
+    public class invoiceRef {
+        public string[] check { get; set; }
+        public string[] uncheck { get; set; }
+    }
 }
