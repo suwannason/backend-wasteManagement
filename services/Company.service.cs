@@ -47,5 +47,11 @@ namespace backend.Services
         {
             company.DeleteOne(book => book._id == id);
         }
+
+        public void upload(List<Companies> data) {
+            company.DeleteMany(item => true);
+
+            company.InsertMany(data);
+        }
     }
 }

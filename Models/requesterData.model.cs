@@ -32,8 +32,12 @@ namespace backend.Models
         public Profile req_prepared { get; set; }
         public Profile req_checked { get; set; }
         public Profile req_approved { get; set; }
+
         public Profile itc_checked { get; set; }
         public Profile itc_approved { get; set; }
+        public Profile pdc_prepared { get; set; }
+        public Profile pdc_checked { get; set; }
+        public Profile pdc_approved { get; set; }
         public Profile fae_checked { get; set; }
         public Profile fae_approved { get; set; }
         // APPROVING STEP

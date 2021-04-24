@@ -54,7 +54,7 @@ namespace backend.Controllers
             }
         }
         [HttpPost("prepared")]
-        public IActionResult prepared(Invoices body)
+        public IActionResult prepared(createInvoice body)
         {
             try
             {
@@ -86,40 +86,38 @@ namespace backend.Controllers
                 user.dept = User.FindFirst("dept")?.Value;
                 user.div = User.FindFirst("div")?.Value;
                 user.name = User.FindFirst("name")?.Value;
+                user.date = DateTime.Now.ToString("yyyy/MM/dd");
 
-                Invoices item = new Invoices();
+                Profile user_tmp = new Profile();
 
-                item.contractEndDate = body.contractEndDate;
-                item.contractNo = body.contractNo;
-                item.contractStartDate = body.contractStartDate;
-                item.counterpartyAddress = body.counterpartyAddress;
-                item.counterpartyChange = body.counterpartyChange;
-                item.counterPartyChangePosition = body.counterPartyChangePosition;
-                item.counterpartyName = body.counterpartyName;
-                item.fax = body.fax;
-                item.invoiceDate = body.invoiceDate;
-                item.lotNo = body.lotNo;
-                item.moveOutDate = body.moveOutDate;
-                item.phoneNo = body.phoneNo;
-                item.typeBoi = body.typeBoi;
-                item.wasteItem = body.wasteItem;
-                item.wasteName = body.wasteName;
-                item.status = "prepared";
-                item.subTotal = body.subTotal;
-                item.grandTotal = body.grandTotal;
-                item.year = DateTime.Now.ToString("yyyy");
-                item.month = DateTime.Now.ToString("MMM");
-                item.createDate = DateTimeOffset.Now.ToUnixTimeSeconds();
-                item.createBy = User.FindFirst("username")?.Value;
+                user_tmp.empNo = "-";
+                user_tmp.band = "-";
+                user_tmp.dept = "-";
+                user_tmp.div = "-";
+                user_tmp.name = "-";
+                user_tmp.date = "-";
 
-                foreach (var record in body.wasteItem)
+                string currentDate = DateTime.Now.ToString("yyyy/MM/dd");
+                List<Invoices> data = new List<Invoices>();
+                foreach (string lotNo in body.lotNo)
                 {
-                    _wasteService.updateStatus(record.wasteId, "toInvoice", user);
+                    data.Add(new Invoices
+                    {
+                        company = body.company,
+                        createDate = currentDate,
+                        fae_prepared = user,
+                        fae_checked = user_tmp,
+                        fae_approved = user_tmp,
+                        gm_approved = user_tmp,
+                        status = "fae-prepared",
+                        lotNo = lotNo,
+                        year = DateTime.Now.ToString("yyyy"),
+                        month = DateTime.Now.ToString("MM")
+                    });
                 }
-                _invoiceService.Create(item);
-                res.success = true;
-                res.message = "create invoice";
-                return Ok(res);
+
+                _invoiceService.Create(data);
+                return Ok(new { success = true, message = "Create invoices success."});
             }
             catch (Exception e)
             {
@@ -241,11 +239,13 @@ namespace backend.Controllers
             user.div = User.FindFirst("div")?.Value;
             user.name = User.FindFirst("name")?.Value;
 
-            foreach (var item in data.wasteItem)
-            {
-                _wasteService.updateStatus(item.wasteId, "approve", user);
-            }
             return Ok(res);
+        }
+        [HttpPatch("data")]
+        public ActionResult getRecordTocreateInvoice(RequestgetHistory body)
+        {
+
+            return Ok();
         }
     }
 }

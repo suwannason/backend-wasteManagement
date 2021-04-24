@@ -8,5 +8,6 @@ namespace backend.request
         public string dept { get; set; }
         public string div { get; set; }
         public string tel { get; set; }
+        public string date { get; set; }
     }
 }

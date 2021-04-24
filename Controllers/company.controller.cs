@@ -1,22 +1,21 @@
 
 using backend.Models;
 using backend.Services;
-using backend.response;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System;
 using Microsoft.AspNetCore.Authorization;
+using backend.request;
+using OfficeOpenXml;
+using System.IO;
 
 namespace backend.Controllers
 {
-    [Authorize]
+    [Authorize, ApiController]
     [Route("fae-part/[controller]")]
-    [ApiController]
     public class companyController : ControllerBase
     {
         private readonly CompanyService _companyService;
-
-        CompanyResponse res = new CompanyResponse();
 
         public companyController(CompanyService companyService)
         {
@@ -24,19 +23,11 @@ namespace backend.Controllers
         }
 
         [HttpGet]
-        public ActionResult<CompanyResponse> Get()
+        public ActionResult Get()
         {
             List<Companies> data = _companyService.Get();
 
-            res.success = true;
-            res.data = data.ToArray();
-            if (data.Count == 0)
-            {
-                res.message = "Notfound Data.";
-                return NotFound(res);
-            }
-            res.message = "Get company success";
-            return Ok(res);
+            return Ok();
         }
 
         [HttpGet("{id}", Name = "GetBook")]
@@ -52,19 +43,12 @@ namespace backend.Controllers
         }
 
         [HttpPost]
-        public ActionResult<CompanyResponse> Create(Companies book)
+        public ActionResult Create(Companies book)
         {
             try
             {
                 Companies created = _companyService.Create(book);
-                List<Companies> data = new List<Companies>();
-                data.Add(created);
-                
-                res.success = true;
-                res.message = "Insert success";
-                res.data = data.ToArray();
-
-                return Ok(res);
+                return Ok(created);
             }
             catch (Exception err)
             {
@@ -82,12 +66,7 @@ namespace backend.Controllers
             {
                 return NotFound();
             }
-
-            Console.Write(id);
             _companyService.Update(id, bookIn);
-
-            res.success = true;
-            res.message = "Update success";
             return NoContent();
         }
 
@@ -103,10 +82,39 @@ namespace backend.Controllers
 
             _companyService.Remove(book._id);
 
-            res.success = true;
-            res.message = "Delete success";
+            return Ok();
+        }
 
-            return Ok(res);
+        [HttpPost("upload"), Consumes("multipart/form-data")]
+        public ActionResult upload([FromForm] uploadData body) {
+
+            FileInfo existFile = new FileInfo("PATH");
+            using(ExcelPackage excel = new ExcelPackage(existFile))
+            {
+                ExcelWorkbook workbook = excel.Workbook;
+                ExcelWorksheet sheet = workbook.Worksheets[0];
+
+                int colCount = sheet.Dimension.End.Column;
+                int rowCount = sheet.Dimension.End.Row;
+
+                List<Companies> items = new List<Companies>();
+
+                for (int row = 2; row < rowCount; row += 1)
+                {
+                    Companies item = new Companies();
+                    for (int col = 1; col < colCount; col += 1)
+                    {
+                        string value = sheet.Cells[row, col].Value?.ToString();
+
+                        switch (col)
+                        {
+                            case 1: Console.WriteLine(value); break;
+                        }
+                    }
+                    items.Add(item);
+                }
+            }
+            return StatusCode(200);
         }
     }
 }

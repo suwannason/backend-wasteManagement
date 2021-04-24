@@ -30,10 +30,9 @@ namespace backend.Services
             return invoice.Find<Invoices>(invoice => invoice._id == id).FirstOrDefault();
         }
 
-        public Invoices Create(Invoices body)
+        public void Create(List<Invoices> data)
         {
-            invoice.InsertOne(body);
-            return body;
+            invoice.InsertMany(data);
         }
 
         public void Update(string id, Invoices bookIn)

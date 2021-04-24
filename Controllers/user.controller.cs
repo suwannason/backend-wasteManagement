@@ -25,6 +25,7 @@ namespace backend.Controllers
     {
         private readonly UserService _userService;
         private readonly string GLOBAL_API_ENDPOINT;
+        private readonly string LDAP_AUTH;
         private IConfiguration _config;
 
         UserResponse res = new UserResponse();
@@ -34,6 +35,7 @@ namespace backend.Controllers
             _userService = userService;
             _config = config;
             GLOBAL_API_ENDPOINT = setting.global_api;
+            LDAP_AUTH = setting.ldap_auth;
         }
 
         [HttpGet]
@@ -153,6 +155,23 @@ namespace backend.Controllers
             formatUser.Add(data);
             res.data = formatUser.ToArray();
 
+            return Ok(res);
+        }
+        [HttpPost("login/ldap"), AllowAnonymous]
+        public async Task<ActionResult> loginAD(User body) {
+
+            AD_API res = null;
+            using(HttpClient client = new HttpClient())
+            {
+                client.Timeout = TimeSpan.FromSeconds(30);
+                string request = "{ \"username\": \"" + body.username + "\"," + "\"password\":" + "\""+ body.password + "\"}";
+                StringContent content = new StringContent(request, Encoding.UTF8, "application/json");
+
+                HttpResponseMessage response = await client.PostAsync(LDAP_AUTH + "/authentication/ldap", content);
+
+                res = JsonConvert.DeserializeObject<AD_API>(response.Content.ReadAsStringAsync().Result);
+
+            }
             return Ok(res);
         }
         [AllowAnonymous]

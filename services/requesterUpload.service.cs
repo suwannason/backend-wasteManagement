@@ -82,6 +82,57 @@ namespace backend.Services
 
             _scrapMatrial.UpdateMany(filter, update);
         }
+        public void signedProfile(string lotNo, string status, Profile user)
+        {
+            Console.WriteLine("signedProfile: " + status);
+            FilterDefinition<requesterUploadSchema> eqlotNo = Builders<requesterUploadSchema>.Filter.Eq(item => item.lotNo, lotNo);
+            FilterDefinition<requesterUploadSchema> eqStatus = Builders<requesterUploadSchema>.Filter.Eq(item => item.status, status);
+
+            UpdateDefinition<requesterUploadSchema> update = null;
+            if (status == "req-checked")
+            {
+                update = Builders<requesterUploadSchema>.Update.Set("req_checked", user);
+            }
+            else if (status == "req-approved")
+            {
+                update = Builders<requesterUploadSchema>.Update.Set("req_approved", user);
+            }
+            else if (status == "pdc-prepared")
+            {
+                update = Builders<requesterUploadSchema>.Update.Set("pdc_prepared", user);
+            }
+            else if (status == "pdc-checked")
+            {
+                update = Builders<requesterUploadSchema>.Update.Set("pdc_checked", user);
+            }
+            else if (status == "pdc-approved")
+            {
+                update = Builders<requesterUploadSchema>.Update.Set("pdc_approved", user);
+            }
+            else if (status == "itc-checked")
+            {
+                update = Builders<requesterUploadSchema>.Update.Set("itc_checked", user);
+            }
+            else if (status == "itc-approved")
+            {
+                update = Builders<requesterUploadSchema>.Update.Set("itc_approved", user);
+            }
+            else if (status == "fae-prepared")
+            {
+                update = Builders<requesterUploadSchema>.Update.Set("fae_prepared", user);
+            }
+            else if (status == "fae-checked")
+            {
+                Console.WriteLine("skhdl");
+                update = Builders<requesterUploadSchema>.Update.Set("fae_checked", user);
+            }
+            else if (status == "fae-approved")
+            {
+                update = Builders<requesterUploadSchema>.Update.Set("fae_approved", user);
+            }
+
+            _scrapMatrial.UpdateMany(eqlotNo & eqStatus, update);
+        }
 
         public void handleUpload(List<requesterUploadSchema> body)
         {
@@ -95,11 +146,13 @@ namespace backend.Services
             .ToList<requesterUploadSchema>();
         }
 
-        public List<requesterUploadSchema> getByStatus_fae(string status) {
+        public List<requesterUploadSchema> getByStatus_fae(string status)
+        {
             return _scrapMatrial.Find<requesterUploadSchema>(item => item.status == status).ToList<requesterUploadSchema>();
         }
-    
-        public List<requesterUploadSchema> getHistory (string startDate, string endDate) {
+
+        public List<requesterUploadSchema> getHistory(string startDate, string endDate)
+        {
 
             Console.WriteLine(startDate + " --> " + endDate);
             FilterDefinition<requesterUploadSchema> start = Builders<requesterUploadSchema>.Filter.Gte(item => item.moveOutDate, startDate);
@@ -108,7 +161,8 @@ namespace backend.Services
             return _scrapMatrial.Find<requesterUploadSchema>(start & end).ToList<requesterUploadSchema>();
         }
 
-        public void updateRefInvoice(string lotNo) {
+        public void updateRefInvoice(string lotNo)
+        {
             FilterDefinition<requesterUploadSchema> filter = Builders<requesterUploadSchema>.Filter.Eq(item => item.lotNo, lotNo);
             UpdateDefinition<requesterUploadSchema> update = Builders<requesterUploadSchema>.Update.Set("invoiceRef", true);
 

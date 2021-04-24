@@ -2,11 +2,11 @@
 using Microsoft.AspNetCore.Mvc;
 
 using backend.Services;
-using backend.response;
 using backend.request;
 using System;
 using backend.Models;
 using Microsoft.AspNetCore.Authorization;
+using System.Threading.Tasks;
 
 namespace backend.Controllers
 {
@@ -147,6 +147,34 @@ namespace backend.Controllers
             {
                 return Problem(e.StackTrace);
             }
+        }
+
+        [HttpPatch("pdc/prepare")]
+        public ActionResult pdcPrepare(invoiceRef body)
+        {
+            Profile user = new Profile();
+
+            user.empNo = User.FindFirst("username")?.Value;
+            user.band = User.FindFirst("band")?.Value;
+            user.dept = User.FindFirst("dept")?.Value;
+            user.div = User.FindFirst("div")?.Value;
+            user.name = User.FindFirst("name")?.Value;
+
+            Parallel.ForEach(body.check, item =>
+            {
+                _scrapImo.updateStatus(item, "pdc-prepared");
+                _scrapImo.signedProfile(item, "pdc-prepared", user);
+            });
+
+            Parallel.ForEach(body.uncheck, item =>
+            {
+                _scrapImo.updateStatus(item, "pdc-approved");
+                _scrapImo.signedProfile(item, "pdc-prepared", user);
+            });
+            return Ok(new {
+                success = true,
+                message = "Prepare data success"
+            });
         }
     }
 }

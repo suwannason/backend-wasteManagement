@@ -23,72 +23,39 @@ namespace backend.Controllers
         private readonly HazadousService _hazadous;
         private readonly InfectionsService _infections;
         private readonly requesterUploadServices _scrapImo;
-        private readonly ITC_IMO_DB_service _itc_imo;
+        private readonly itcDBservice _itcDB;
         private readonly RecycleService _waste;
 
         RequesterResponse res = new RequesterResponse();
 
-        public requesterController(HazadousService req, InfectionsService infect, requesterUploadServices scrapImo, ITC_IMO_DB_service itc_imo, RecycleService waste)
+        public requesterController(HazadousService req, InfectionsService infect, requesterUploadServices scrapImo, itcDBservice itc_imo, RecycleService waste)
         {
             _hazadous = req;
             _infections = infect;
             _scrapImo = scrapImo;
-            _itc_imo = itc_imo;
+            _itcDB = itc_imo;
             _waste = waste;
         }
 
-        [HttpPost]
-        public async Task<ActionResult<RequesterResponse>> create(ReuqesterREQ body)
-        { // create by web form
-            Profile req_prepare = new Profile();
-
-            req_prepare.empNo = User.FindFirst("username")?.Value;
-            req_prepare.band = User.FindFirst("band")?.Value;
-            req_prepare.dept = User.FindFirst("dept")?.Value;
-            req_prepare.div = User.FindFirst("div")?.Value;
-            req_prepare.name = User.FindFirst("name")?.Value;
-            req_prepare.tel = User.FindFirst("tel")?.Value;
-
-            body.div = User.FindFirst("div")?.Value;
-            body.dept = User.FindFirst("dept")?.Value;
-
-            List<Task> onCreate = new List<Task>();
-            if (body.hazardous.Length > 0)
-            {
-                onCreate.Add(Task.Run(() => { _hazadous.create(body, req_prepare); }));
-            }
-            if (body.infections.Length > 0)
-            {
-                onCreate.Add(Task.Run(() => { _infections.create(body, req_prepare); }));
-            }
-            if (body.scrapImo.Length > 0)
-            {
-                onCreate.Add(Task.Run(() => { _scrapImo.create(body, req_prepare); }));
-            }
-
-            Task created = Task.WhenAll(onCreate.ToArray());
-            await created;
-            res.success = true;
-            res.message = "create requester data success";
-            return Ok(res);
-        }
-
-        [HttpGet]
-        public ActionResult<RequesterResponse> getAll()
-        {
-            res.success = true;
-            res.message = "Get data success";
-
-            return Ok(res);
-        }
         [HttpPut("status")]
         public ActionResult<RequesterResponse> updateStatus(UpdateStatusFormRequester body)
         {
+            Profile user = new Profile();
+
+            user.empNo = User.FindFirst("username")?.Value;
+            user.band = User.FindFirst("band")?.Value;
+            user.dept = User.FindFirst("dept")?.Value;
+            user.div = User.FindFirst("div")?.Value;
+            user.name = User.FindFirst("name")?.Value;
+            user.tel = User.FindFirst("tel")?.Value;
 
             Parallel.ForEach(body.lotNo, item =>
             {
-                _hazadous.updateStatus(item, body.status);
                 _scrapImo.updateStatus(item, body.status);
+            });
+
+            Parallel.ForEach(body.lotNo, item => {
+                _scrapImo.signedProfile(item, body.status, user);
             });
             res.success = true;
             res.message = "Update status to " + body.status + " success.";
@@ -107,7 +74,7 @@ namespace backend.Controllers
                 typeItem type = new typeItem();
                 res.message = "Item on : " + status;
                 // req-prepared, req-checked, req-approved --> fae-prepared, fae-checked, fae-approved
-                if (dept.ToUpper() == "FAE" || dept.ToUpper() == "ITC")
+                if (dept.ToUpper() == "FAE" || dept.ToUpper() == "ITC" || dept.ToUpper() == "PDC")
                 {
                     List<InfectionSchema> infecs = _infections.getByStatus_fae(status);
                     List<HazadousSchema> hazas = _hazadous.getByStatus_fae(status);
@@ -196,7 +163,8 @@ namespace backend.Controllers
                 return Forbid();
             }
 
-            using (FileStream strem = System.IO.File.Create($"{serverPath}{body.file.FileName}"))
+            string filename = serverPath + System.Guid.NewGuid().ToString() + "-" + body.file.FileName;
+            using (FileStream strem = System.IO.File.Create(filename))
             {
                 body.file.CopyTo(strem);
             }
@@ -209,7 +177,7 @@ namespace backend.Controllers
             usertmp.div = "-";
             usertmp.tel = "-";
 
-            handleUpload action = new handleUpload(_itc_imo);
+            handleUpload action = new handleUpload(_itcDB);
 
             List<requesterUploadSchema> data = action.Upload($"{serverPath}{body.file.FileName}", req_prepare, usertmp);
 

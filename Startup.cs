@@ -121,7 +121,8 @@ namespace backend
             services.AddSingleton<InfectionsService>();
             services.AddSingleton<requesterUploadServices>();
             services.AddSingleton<prepareLotService>();
-            services.AddSingleton<ITC_IMO_DB_service>();
+            services.AddSingleton<faeDBservice>();
+            services.AddSingleton<itcDBservice>();
             services.AddControllers();
         }
 

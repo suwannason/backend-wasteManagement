@@ -5,4 +5,10 @@ namespace backend.request
 
         public string[] body { get; set; }
     }
+
+    public class createInvoice {
+        public string[] lotNo { get; set; }
+
+        public backend.Models.Companies company { get; set; }
+    }
 }

@@ -11,11 +11,11 @@ using System.Globalization;
 public class handleUpload
 {
 
-    private readonly ITC_IMO_DB_service _itc_IMO;
+    private readonly itcDBservice _itcdb;
 
-    public handleUpload(ITC_IMO_DB_service itc_imo)
+    public handleUpload(itcDBservice itcdb)
     {
-        _itc_IMO = itc_imo;
+        _itcdb = itcdb;
     }
 
     public List<requesterUploadSchema> Upload(string pathFile, Profile prepare, Profile emptyUser)
@@ -62,6 +62,11 @@ public class handleUpload
                         string value = sheet.Cells[row, col].Value?.ToString();
                         Console.WriteLine(value);
                         int lastIndex = (int)sheet.Cells[row, col].Value?.ToString().IndexOf(" ");
+
+                        if (lastIndex == -1) {
+                            lastIndex = (int)sheet.Cells[row, col].Value?.ToString().Length;
+                        }
+                        Console.WriteLine("lastIndex: " + lastIndex);
                         rowData.moveOutDate = DateTime.ParseExact(value.Substring(0, lastIndex), "m/d/yyyy", CultureInfo.InvariantCulture).ToString("yyyy/mm/dd");
                     }
                     else if (col == 5)
@@ -98,15 +103,15 @@ public class handleUpload
                     {
                         rowData.unit = sheet.Cells[row, col].Value?.ToString();
 
-                        ITC_IMO_SCHEMA imo = _itc_IMO.matCode_name(matrialCode, matrialName);
+                        ITCDB itc = _itcdb.matCode_name(matrialCode, matrialName);
 
                         // ITC
-                        if (imo != null)
+                        if (itc != null)
                         {
-                            Console.WriteLine("---------> " + imo.groupBoiNo);
-                            rowData.boiType = imo.boiType;
-                            rowData.groupBoiNo = imo.groupBoiNo;
-                            rowData.groupBoiName = imo.groupBoiName;
+                            Console.WriteLine("---------> " + itc.groupBoiNo);
+                            rowData.boiType = itc.privilegeType;
+                            rowData.groupBoiNo = itc.groupBoiNo;
+                            rowData.groupBoiName = itc.groupBoiName;
                         }
                         else
                         {
@@ -141,6 +146,9 @@ public class handleUpload
                     rowData.itc_approved = emptyUser;
                     rowData.fae_checked = emptyUser;
                     rowData.fae_approved = emptyUser;
+                    rowData.pdc_prepared = emptyUser;
+                    rowData.pdc_checked = emptyUser;
+                    rowData.pdc_approved = emptyUser;
                 }
                 if (isEmptyRow == false)
                 {

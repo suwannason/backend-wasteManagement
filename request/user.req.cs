@@ -12,4 +12,8 @@ namespace backend.request
 
         public string tel { get; set; }
     }
+
+    public class uploadFile {
+        public Microsoft.AspNetCore.Http.IFormFile file { get; set; }
+    }
 }
