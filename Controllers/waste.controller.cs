@@ -162,7 +162,7 @@ namespace backend.Controllers
                 item.contractorCompany = body.contractorCompany;
                 item.productionType = body.productionType;
                 item.partNormalType = body.partNormalType;
-                item.date = body.date;
+                item.moveOutDate = body.date;
                 item.invoiceRef = false;
 
                 int numberOfList = 0;
@@ -299,7 +299,7 @@ namespace backend.Controllers
                 model.wasteType = body.wasteType;
                 model.boiType = body.boiType;
                 model.partNormalType = body.partNormalType;
-                model.date = body.date;
+                model.moveOutDate = body.date;
                 model.department = body.department;
                 model.division = body.division;
                 model.biddingType = body.biddingType;

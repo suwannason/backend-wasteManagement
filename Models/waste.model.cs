@@ -11,7 +11,7 @@ namespace backend.Models
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string _id { get; set; }
-        public string date { get; set; }
+        public string moveOutDate { get; set; }
         public string time { get; set; }
         public string phase { get; set; }
         public string cptMainType { get; set; }

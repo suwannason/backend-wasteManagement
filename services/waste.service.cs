@@ -46,7 +46,7 @@ namespace backend.Services
         {
             FilterDefinition<Waste> filter = Builders<Waste>.Filter.Eq(item => item._id, id);
             var update = Builders<Waste>.Update
-            .Set("date", bookIn.date)
+            .Set("moveOutDate", bookIn.moveOutDate)
             .Set("time", bookIn.time)
             .Set("phase", bookIn.phase)
             .Set("companyApprove", bookIn.companyApprove)
@@ -119,7 +119,7 @@ namespace backend.Services
 
         public List<Waste> getToInvoiceAll(request.RequestInvoiceDataAll request)
         {
-            FilterDefinition<Waste> dateFilter = Builders<Waste>.Filter.Eq(item => item.date, request.date);
+            FilterDefinition<Waste> dateFilter = Builders<Waste>.Filter.Eq(item => item.moveOutDate, request.date);
             FilterDefinition<Waste> lotNoFilter = Builders<Waste>.Filter.Eq(item => item.lotNo, request.lotNo);
             FilterDefinition<Waste> wasteNameFilter = Builders<Waste>.Filter.Eq(item => item.wasteName, request.wasteName);
 
@@ -143,11 +143,21 @@ namespace backend.Services
             return recycle.Find(Builders<Waste>.Filter.And(dateFilter & deletedFilter & invoiceFilter)).ToList();
         }
 
-        public void updateInvoiceRef(string lotNo) {
+        public void updateInvoiceRef(string lotNo)
+        {
             FilterDefinition<Waste> filter = Builders<Waste>.Filter.Eq(item => item.lotNo, lotNo);
 
             UpdateDefinition<Waste> update = Builders<Waste>.Update.Set("invoiceRef", true);
             recycle.UpdateMany(filter, update);
+        }
+        public List<Waste> searchToInvoice(string startDate, string endDate)
+        {
+
+            FilterDefinition<Waste> start = Builders<Waste>.Filter.Gte(item => item.moveOutDate, startDate);
+            FilterDefinition<Waste> end = Builders<Waste>.Filter.Lte(item => item.moveOutDate, endDate);
+
+            return recycle.Find<Waste>(start & end).ToList<Waste>();
+
         }
     }
 }

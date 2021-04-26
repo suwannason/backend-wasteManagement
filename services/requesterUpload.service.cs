@@ -168,5 +168,13 @@ namespace backend.Services
 
             _scrapMatrial.UpdateMany(filter, update);
         }
+        public List<requesterUploadSchema> searchToInvoice(string startDate, string endDate) {
+
+            FilterDefinition<requesterUploadSchema> start = Builders<requesterUploadSchema>.Filter.Gte(item => item.moveOutDate, startDate);
+            FilterDefinition<requesterUploadSchema> end = Builders<requesterUploadSchema>.Filter.Lte(item => item.moveOutDate, endDate);
+
+            return _scrapMatrial.Find<requesterUploadSchema>(start & end).ToList<requesterUploadSchema>();
+            
+        }
     }
 }

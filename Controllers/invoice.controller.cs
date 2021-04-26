@@ -21,13 +21,15 @@ namespace backend.Controllers
 
         private readonly InvoiceService _invoiceService;
         private readonly RecycleService _wasteService;
+        private readonly requesterUploadServices _requester;
 
         InvoiceResponse res = new InvoiceResponse();
 
-        public invoiceController(InvoiceService invoiceService, RecycleService wasteService)
+        public invoiceController(InvoiceService invoiceService, RecycleService wasteService, requesterUploadServices requester)
         {
             _invoiceService = invoiceService;
             _wasteService = wasteService;
+            _requester = requester;
         }
 
         [HttpPut("{id}")]
@@ -117,7 +119,7 @@ namespace backend.Controllers
                 }
 
                 _invoiceService.Create(data);
-                return Ok(new { success = true, message = "Create invoices success."});
+                return Ok(new { success = true, message = "Create invoices success." });
             }
             catch (Exception e)
             {
@@ -173,7 +175,7 @@ namespace backend.Controllers
                 // PREMISSION CHECKING
 
 
-                foreach (var item in body.body)
+                foreach (string item in body.lotNo)
                 {
                     _invoiceService.updateStatus(item, body.status);
                 }
@@ -246,6 +248,24 @@ namespace backend.Controllers
         {
 
             return Ok();
+        }
+
+        [HttpPatch("search")]
+        public ActionResult getLotOnSearch(startEndDate body)
+        {
+
+            List<requesterUploadSchema> requester = _requester.searchToInvoice(body.startDate, body.endDate);
+            List<Waste> waste = _wasteService.searchToInvoice(body.startDate, body.endDate);
+
+            return Ok(new
+            {
+                success = true,
+                message = "Waste data",
+                data = new {
+                    requester = requester,
+                    fae = waste,
+                }
+            });
         }
     }
 }

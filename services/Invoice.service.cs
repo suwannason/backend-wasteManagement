@@ -43,12 +43,12 @@ namespace backend.Services
         }
 
         // prepared --> checked --> approved --> makingApproved
-        public void updateStatus(string id, string status)
+        public void updateStatus(string lotNo, string status)
         {
-            var filter = Builders<Invoices>.Filter.Eq(item => item._id, id);
+            var filter = Builders<Invoices>.Filter.Eq(item => item.lotNo, lotNo);
             var update = Builders<Invoices>.Update.Set("status", status);
 
-            invoice.UpdateOne(filter, update);
+            invoice.UpdateMany(filter, update);
         }
 
         public List<Invoices> getByStatus(string status)
