@@ -22,5 +22,7 @@ namespace backend.Models
 
         // public string invoiceDate { get; set; }
 
+        public string fileName { get; set; }
+
     }
 }

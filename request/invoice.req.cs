@@ -7,8 +7,9 @@ namespace backend.request
     }
 
     public class createInvoice {
-        public string[] lotNo { get; set; }
+        public string[] requester { get; set; }
 
+        public string[] fae { get; set; }
         public backend.Models.company company { get; set; }
     }
 }

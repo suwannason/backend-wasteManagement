@@ -30,7 +30,6 @@ namespace backend.Models
         public string containerWeight { get; set; }
         public string containerType { get; set; }
         public string netWasteWeight { get; set; }
-        public string biddingType { get; set; }
         public string contractorCompany { get; set; }
 
         public string year { get; set; }
@@ -46,5 +45,13 @@ namespace backend.Models
         public Profile approveBy { get; set; }
         public Profile makingBy { get; set; }
         public bool invoiceRef { get; set; } // true = invoice , false = refferance
+
+        // pricing
+        public string biddingNo { get; set; }
+        public string biddingType { get; set; }
+        public string color { get; set; }
+        public string unitPrice { get; set; }
+        public string totalPrice { get; set; }
+        // pricing
     }
 }

@@ -22,7 +22,7 @@ namespace backend.Controllers
     {
         private readonly HazadousService _hazadous;
         private readonly InfectionsService _infections;
-        private readonly requesterUploadServices _scrapImo;
+        private readonly requesterUploadServices _requester;
         private readonly itcDBservice _itcDB;
         private readonly RecycleService _waste;
 
@@ -32,7 +32,7 @@ namespace backend.Controllers
         {
             _hazadous = req;
             _infections = infect;
-            _scrapImo = scrapImo;
+            _requester = scrapImo;
             _itcDB = itc_imo;
             _waste = waste;
         }
@@ -51,11 +51,11 @@ namespace backend.Controllers
 
             Parallel.ForEach(body.lotNo, item =>
             {
-                _scrapImo.updateStatus(item, body.status);
+                _requester.updateStatus(item, body.status);
             });
 
             Parallel.ForEach(body.lotNo, item => {
-                _scrapImo.signedProfile(item, body.status, user);
+                _requester.signedProfile(item, body.status, user);
             });
             res.success = true;
             res.message = "Update status to " + body.status + " success.";
@@ -78,7 +78,7 @@ namespace backend.Controllers
                 {
                     List<InfectionSchema> infecs = _infections.getByStatus_fae(status);
                     List<HazadousSchema> hazas = _hazadous.getByStatus_fae(status);
-                    List<requesterUploadSchema> scrapImo = _scrapImo.getByStatus_fae(status);
+                    List<requesterUploadSchema> scrapImo = _requester.getByStatus_fae(status);
 
                     type.infectionsWaste = infecs.ToArray();
                     type.hazadousWaste = hazas.ToArray();
@@ -91,7 +91,7 @@ namespace backend.Controllers
                 {
                     List<InfectionSchema> infecs = _infections.getByStatus(status, dept);
                     List<HazadousSchema> hazas = _hazadous.getByStatus(status, dept);
-                    List<requesterUploadSchema> scrapImo = _scrapImo.getByStatus(status, dept);
+                    List<requesterUploadSchema> scrapImo = _requester.getByStatus(status, dept);
 
                     type.infectionsWaste = infecs.ToArray();
                     type.hazadousWaste = hazas.ToArray();
@@ -108,25 +108,18 @@ namespace backend.Controllers
             }
         }
 
-        [HttpPatch("getByLotNo")]
-        public ActionResult getByLotNo(getByStatus body)
+        [HttpGet("invoice/{lotNo}")]
+        public ActionResult getByLotNo(string lotNo)
         {
             try
             {
-                List<HazadousSchema> hazadous = _hazadous.getByLotnoIdAndStatus(body.lotNo, body.status);
-                List<InfectionSchema> infections = _infections.getByStatus(body.status);
-                List<requesterUploadSchema> scraps = _scrapImo.getByLotNoAndStatus(body.lotNo, body.status);
+                List<requesterUploadSchema> data = _requester.getByLotno(lotNo);
 
-                typeItem data = new typeItem();
-                data.hazadousWaste = hazadous.ToArray();
-                data.infectionsWaste = infections.ToArray();
-                data.scrapImo = scraps.ToArray();
-
-                res.success = true;
-                res.message = "Get item success";
-                res.data = data;
-
-                return Ok(res);
+                return Ok(new {
+                    success = true,
+                    message = "Lot no data",
+                    data,
+                });
             }
             catch (Exception e)
             {
@@ -182,7 +175,7 @@ namespace backend.Controllers
             List<requesterUploadSchema> data = action.Upload($"{serverPath}{body.file.FileName}", req_prepare, usertmp);
 
             Console.WriteLine("==================================");
-            _scrapImo.handleUpload(data);
+            _requester.handleUpload(data);
 
             return Ok(new { success = true, message = "Upload data success." });
         }
@@ -194,7 +187,7 @@ namespace backend.Controllers
 
             if (User.FindFirst("dept")?.Value.ToLower() == "imo")
             {
-                List<requesterUploadSchema> data = _scrapImo.getHistory(body.startDate, body.endDate);
+                List<requesterUploadSchema> data = _requester.getHistory(body.startDate, body.endDate);
                 return Ok(new { success = true, message = "Get imo history success", data, });
             }
 
@@ -209,7 +202,7 @@ namespace backend.Controllers
 
                 foreach (string item in body.check)
                 {
-                    _scrapImo.updateRefInvoice(item);
+                    _requester.updateRefInvoice(item);
                 }
 
                 foreach (string item in body.uncheck)

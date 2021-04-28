@@ -6,7 +6,8 @@ using System.Linq;
 
 namespace backend.Services
 {
-    public class CompanyService {
+    public class CompanyService
+    {
         private readonly IMongoCollection<Companies> company;
 
         public CompanyService(ICompanieDatabaseSettings settings)
@@ -19,7 +20,7 @@ namespace backend.Services
 
         public List<Companies> Get()
         {
-            return company.Find(book => true).ToList();
+            return company.Find(item => item.companyName != "-").Project<Companies>("{_id: 1, companyName: 1}").ToList();
         }
 
         public Companies Get(string id)
@@ -31,6 +32,10 @@ namespace backend.Services
         {
             company.InsertOne(book);
             return book;
+        }
+        public Companies getFirst()
+        {
+            return company.Find(item => item.companyName != "-").FirstOrDefault();
         }
 
         public void Update(string id, Companies bookIn)
@@ -48,7 +53,8 @@ namespace backend.Services
             company.DeleteOne(book => book._id == id);
         }
 
-        public void upload(List<Companies> data) {
+        public void upload(List<Companies> data)
+        {
             company.DeleteMany(item => true);
 
             company.InsertMany(data);

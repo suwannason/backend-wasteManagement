@@ -27,7 +27,19 @@ namespace backend.Controllers
         {
             List<Companies> data = _companyService.Get();
 
-            return Ok();
+            List<dynamic> company = new List<dynamic>();
+
+            foreach(Companies item in data) {
+                company.Add(
+                    new {
+                        _id = item._id,
+                        companyName = item.companyName
+                    }
+                );
+            }
+            
+
+            return Ok(new { success = true, message = "Company", data = company, });
         }
 
         [HttpGet("{id}", Name = "GetBook")]

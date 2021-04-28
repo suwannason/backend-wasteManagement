@@ -60,14 +60,7 @@ public class handleUpload
                     else if (col == 4)
                     {
                         string value = sheet.Cells[row, col].Value?.ToString();
-                        Console.WriteLine(value);
-                        int lastIndex = (int)sheet.Cells[row, col].Value?.ToString().IndexOf(" ");
-
-                        if (lastIndex == -1) {
-                            lastIndex = (int)sheet.Cells[row, col].Value?.ToString().Length;
-                        }
-                        Console.WriteLine("lastIndex: " + lastIndex);
-                        rowData.moveOutDate = DateTime.ParseExact(value.Substring(0, lastIndex), "m/d/yyyy", CultureInfo.InvariantCulture).ToString("yyyy/mm/dd");
+                        rowData.moveOutDate = value.Trim();
                     }
                     else if (col == 5)
                     {

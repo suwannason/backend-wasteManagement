@@ -21,10 +21,27 @@ namespace backend.Services
 
         }
 
-        public void replace(List<faeDBschema> items) {
+        public void replace(List<faeDBschema> items)
+        {
             _faedb.DeleteMany(Builders<faeDBschema>.Filter.Empty);
 
             _faedb.InsertMany(items);
+        }
+
+        public List<faeDBschema> getWastename()
+        {
+
+            List<faeDBschema> wastename = _faedb.Find<faeDBschema>(item => true).Project<faeDBschema>("{wasteName: 1, biddingType: 1}").ToList();
+
+            return wastename;
+        }
+        public faeDBschema getByMatcode(string matrialCode)
+        {
+            return _faedb.Find<faeDBschema>(item => item.matrialCode == matrialCode).FirstOrDefault<faeDBschema>();
+        }
+        public faeDBschema getByMatname(string matrialName)
+        {
+            return _faedb.Find<faeDBschema>(item => item.matrialName == matrialName).FirstOrDefault<faeDBschema>();
         }
     }
 }

@@ -68,7 +68,6 @@ namespace backend.Controllers
         public ActionResult<RecycleWesteResponse> UpdateToChecked(updateWasteStatus body)
         {
             // PREMISSION CHECKING
-            string permission = User.FindFirst("permission")?.Value;
             Profile user = new Profile();
 
             user.empNo = User.FindFirst("username")?.Value;
@@ -77,32 +76,6 @@ namespace backend.Controllers
             user.div = User.FindFirst("div")?.Value;
             user.name = User.FindFirst("name")?.Value;
 
-            JObject permissionObj = JObject.Parse(@"{ 'permission': " + permission + "}");
-
-            int allowed = 0;
-            foreach (var record in permissionObj["permission"])
-            {
-                if (body.status == "checked")
-                {
-                    if (record["dept"].ToString() == "FAE" && record["feature"].ToString() == "waste" && record["action"].ToString() == "check")
-                    {
-                        allowed = allowed + 1;
-                        break;
-                    }
-                }
-                if (body.status == "approve")
-                {
-                    if (record["dept"].ToString() == "FAE" && record["feature"].ToString() == "waste" && record["action"].ToString() == "approve")
-                    {
-                        allowed = allowed + 1;
-                        break;
-                    }
-                }
-            }
-            if (allowed == 0)
-            {
-                return Forbid();
-            }
             // PREMISSION CHECKING
 
             foreach (string item in body.body)
@@ -113,17 +86,6 @@ namespace backend.Controllers
             res.message = "Update to " + body.status + " success";
             return Ok(res);
         }
-        [HttpGet("{id}")]
-        public ActionResult<Waste> Get(string id)
-        {
-            Waste book = _recycleService.Get(id);
-
-            if (book == null)
-            {
-                return NotFound();
-            }
-            return book;
-        }
 
         [HttpPost]
         [Consumes("multipart/form-data")]
@@ -132,22 +94,6 @@ namespace backend.Controllers
             try
             {
                 // PREMISSION CHECKING
-                string permission = User.FindFirst("permission")?.Value;
-                JObject permissionObj = JObject.Parse(@"{ 'permission': " + permission + "}");
-
-                int allowed = 0;
-                foreach (var record in permissionObj["permission"])
-                {
-                    if (record["dept"].ToString() == "FAE" && record["feature"].ToString() == "waste" && record["action"].ToString() == "prepare")
-                    {
-                        allowed = allowed + 1;
-                        break;
-                    }
-                }
-                if (allowed == 0)
-                {
-                    return Forbid();
-                }
                 // PREMISSION CHECKING
                 string rootFolder = Directory.GetCurrentDirectory();
 
@@ -225,6 +171,10 @@ namespace backend.Controllers
                 item.department = body.department;
                 item.division = body.division;
                 item.biddingType = body.biddingType;
+                item.biddingNo = "-";
+                item.color = "-";
+                item.unitPrice = "-";
+                item.totalPrice = "-";
 
                 Profile user = new Profile();
                 Profile Emptyuser = new Profile();
@@ -399,26 +349,6 @@ namespace backend.Controllers
         {
 
             // PREMISSION CHECKING
-            string permission = User.FindFirst("permission")?.Value;
-            JObject permissionObj = JObject.Parse(@"{ 'permission': " + permission + "}");
-
-            int allowed = 0;
-            foreach (var item in permissionObj["permission"])
-            {
-                if (item["dept"].ToString() == "FAE")
-                {
-                    allowed = allowed + 1;
-                    break;
-                }
-            }
-            // PREMISSION CHECKING
-
-            if (allowed == 0)
-            {
-                res.success = false;
-                res.message = "Permission denied";
-                return Forbid();
-            }
 
 
 
@@ -437,54 +367,11 @@ namespace backend.Controllers
             return Ok(res);
         }
 
-        [HttpPatch("invoice/all")]
-        public IActionResult getDataToInvoiceAll(RequestInvoiceDataAll body)
-        {
-            // PREMISSION CHECKING
-            string permission = User.FindFirst("permission")?.Value;
-            JObject permissionObj = JObject.Parse(@"{ 'permission': " + permission + "}");
-            int allowed = 0;
-            foreach (var item in permissionObj["permission"])
-            {
-                if (item["dept"].ToString() == "FAE" && item["feature"].ToString() == "invoice" && item["action"].ToString() == "prepare")
-                {
-                    allowed = allowed + 1;
-                    break;
-                }
-            }
-            if (allowed == 0)
-            {
-                return Forbid();
-            }
-            // PREMISSION CHECKING
-
-            List<Waste> data = _recycleService.getToInvoiceAll(body);
-            res.success = true;
-            res.message = "Get data to invoice success";
-            res.data = data.ToArray();
-
-            return Ok(res);
-        }
-
         [HttpPatch("invoice/name")]
         public IActionResult getDataToInvoiceWasteName(RequestInvoiceDataWithName body)
         {
             // PREMISSION CHECKING
-            string permission = User.FindFirst("permission")?.Value;
-            JObject permissionObj = JObject.Parse(@"{ 'permission': " + permission + "}");
-            int allowed = 0;
-            foreach (var item in permissionObj["permission"])
-            {
-                if (item["dept"].ToString() == "FAE" && item["feature"].ToString() == "invoice" && item["action"].ToString() == "prepare")
-                {
-                    allowed = allowed + 1;
-                    break;
-                }
-            }
-            if (allowed == 0)
-            {
-                return Forbid();
-            }
+          
             // PREMISSION CHECKING
 
 

@@ -16,6 +16,7 @@ namespace backend.Models
         public backend.request.Profile fae_checked { get; set; }
         public backend.request.Profile fae_approved { get; set; }
         public backend.request.Profile gm_approved { get; set; }
+        public string form { get; set; }
 
         // HEADER INVOICE MAKING
         public string createDate { get; set; }
@@ -33,5 +34,6 @@ namespace backend.Models
         public string fax { get; set; }
         public string tel { get; set; }
         public string address { get; set; }
+        public string invoiceDate { get; set; }
     }
 }

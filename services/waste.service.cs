@@ -117,21 +117,21 @@ namespace backend.Services
             return recycle.Find(Builders<Waste>.Filter.Or(gte & lte)).ToList();
         }
 
-        public List<Waste> getToInvoiceAll(request.RequestInvoiceDataAll request)
-        {
-            FilterDefinition<Waste> dateFilter = Builders<Waste>.Filter.Eq(item => item.moveOutDate, request.date);
-            FilterDefinition<Waste> lotNoFilter = Builders<Waste>.Filter.Eq(item => item.lotNo, request.lotNo);
-            FilterDefinition<Waste> wasteNameFilter = Builders<Waste>.Filter.Eq(item => item.wasteName, request.wasteName);
+        // public List<Waste> getToInvoiceAll(request.RequestInvoiceDataAll request)
+        // {
+        //     FilterDefinition<Waste> dateFilter = Builders<Waste>.Filter.Eq(item => item.moveOutDate, request.date);
+        //     FilterDefinition<Waste> lotNoFilter = Builders<Waste>.Filter.Eq(item => item.lotNo, request.lotNo);
+        //     FilterDefinition<Waste> wasteNameFilter = Builders<Waste>.Filter.Eq(item => item.wasteName, request.wasteName);
 
-            FilterDefinition<Waste> deletedFilter = Builders<Waste>.Filter.Ne(item => item.status, "deleted");
-            FilterDefinition<Waste> approveFilter = Builders<Waste>.Filter.Eq(item => item.status, "approve");
-            FilterDefinition<Waste> invoiceFilter = Builders<Waste>.Filter.Ne(item => item.status, "toInvoice");
+        //     FilterDefinition<Waste> deletedFilter = Builders<Waste>.Filter.Ne(item => item.status, "deleted");
+        //     FilterDefinition<Waste> approveFilter = Builders<Waste>.Filter.Eq(item => item.status, "approve");
+        //     FilterDefinition<Waste> invoiceFilter = Builders<Waste>.Filter.Ne(item => item.status, "toInvoice");
 
-            FilterDefinition<Waste> andOpration = Builders<Waste>.Filter.And(approveFilter & lotNoFilter & wasteNameFilter & deletedFilter & invoiceFilter);
+        //     FilterDefinition<Waste> andOpration = Builders<Waste>.Filter.And(approveFilter & lotNoFilter & wasteNameFilter & deletedFilter & invoiceFilter);
 
-            return recycle.Find(Builders<Waste>.Filter.Or(dateFilter | andOpration)).ToList();
-            // return recycle.Find(Builders<Waste>.Filter.And(dateFilter & boiFilter & lotNoFilter & deletedFilter & invoiceFilter)).ToList();
-        }
+        //     return recycle.Find(Builders<Waste>.Filter.Or(dateFilter | andOpration)).ToList();
+        //     // return recycle.Find(Builders<Waste>.Filter.And(dateFilter & boiFilter & lotNoFilter & deletedFilter & invoiceFilter)).ToList();
+        // }
 
         public List<Waste> getToInvoiceName(request.RequestInvoiceDataWithName request)
         {
@@ -155,9 +155,23 @@ namespace backend.Services
 
             FilterDefinition<Waste> start = Builders<Waste>.Filter.Gte(item => item.moveOutDate, startDate);
             FilterDefinition<Waste> end = Builders<Waste>.Filter.Lte(item => item.moveOutDate, endDate);
+            FilterDefinition<Waste> nonBoi = Builders<Waste>.Filter.Ne(item => item.boiType, "BOI");
 
-            return recycle.Find<Waste>(start & end).ToList<Waste>();
+            return recycle.Find<Waste>((start & end) & nonBoi).ToList<Waste>();
 
+        }
+        public void setFaeDB(Waste data, string id)
+        {
+            UpdateDefinition<Waste> update = Builders<Waste>.Update
+            // .Set("biddingNo", data.biddingNo)
+            // .Set("biddingType", data.biddingType)
+            .Set("color", data.color)
+            .Set("unitPrice", data.unitPrice)
+            .Set("totalPrice", data.totalPrice);
+
+            FilterDefinition<Waste> filter = Builders<Waste>.Filter.Eq(item => item._id, id);
+
+            recycle.UpdateOne(filter, update);
         }
     }
 }

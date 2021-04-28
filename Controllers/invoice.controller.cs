@@ -22,14 +22,16 @@ namespace backend.Controllers
         private readonly InvoiceService _invoiceService;
         private readonly RecycleService _wasteService;
         private readonly requesterUploadServices _requester;
+        private readonly faeDBservice _faeDB;
 
         InvoiceResponse res = new InvoiceResponse();
 
-        public invoiceController(InvoiceService invoiceService, RecycleService wasteService, requesterUploadServices requester)
+        public invoiceController(InvoiceService invoiceService, RecycleService wasteService, requesterUploadServices requester, faeDBservice fae)
         {
             _invoiceService = invoiceService;
             _wasteService = wasteService;
             _requester = requester;
+            _faeDB = fae;
         }
 
         [HttpPut("{id}")]
@@ -61,25 +63,6 @@ namespace backend.Controllers
             try
             {
                 // PREMISSION CHECKING
-                string permission = User.FindFirst("permission")?.Value;
-                JObject permissionObj = JObject.Parse(@"{ 'permission': " + permission + "}");
-
-                int allowed = 0;
-                foreach (var record in permissionObj["permission"])
-                {
-                    Console.WriteLine(record["dept"]);
-                    if (record["dept"].ToString() == "FAE" && record["feature"].ToString() == "invoice" && record["action"].ToString() == "prepare")
-                    {
-                        allowed = allowed + 1;
-                        break;
-                    }
-                }
-                if (allowed == 0)
-                {
-                    res.success = false;
-                    res.message = "Permission denied";
-                    return Forbid();
-                }
                 // PREMISSION CHECKING
                 Profile user = new Profile();
 
@@ -101,7 +84,7 @@ namespace backend.Controllers
 
                 string currentDate = DateTime.Now.ToString("yyyy/MM/dd");
                 List<Invoices> data = new List<Invoices>();
-                foreach (string lotNo in body.lotNo)
+                foreach (string lotNo in body.requester)
                 {
                     data.Add(new Invoices
                     {
@@ -111,11 +94,90 @@ namespace backend.Controllers
                         fae_checked = user_tmp,
                         fae_approved = user_tmp,
                         gm_approved = user_tmp,
+                        form = "requester",
+                        status = "fae-prepared",
+                        lotNo = lotNo,
+                        year = DateTime.Now.ToString("yyyy"),
+                        month = DateTime.Now.ToString("MM"),
+                    });
+
+                    List<requesterUploadSchema> lotData = _requester.getByLotno(lotNo);
+
+                    foreach (requesterUploadSchema lotRecord in lotData)
+                    {
+                        faeDBschema pricingData = null;
+
+                        faeDBschema matCode = _faeDB.getByMatcode(lotRecord.matrialCode);
+                        if (matCode == null)
+                        {
+                            faeDBschema wasteName = _faeDB.getByMatname(lotRecord.matrialName);
+                            pricingData = wasteName;
+                        }
+                        else
+                        {
+                            pricingData = matCode;
+                        }
+
+                        if (pricingData != null)
+                        {
+                            _requester.setFaeDB(new requesterUploadSchema
+                            {
+                                biddingNo = pricingData.biddingNo,
+                                biddingType = pricingData.biddingType,
+                                color = pricingData.color,
+                                unitPrice = pricingData.pricePerUnit,
+                                totalPrice = (Double.Parse(lotRecord.totalWeight) * Double.Parse(pricingData.pricePerUnit)).ToString(),
+                            }, lotRecord._id);
+                        }
+                    }
+                }
+
+
+                foreach (string lotNo in body.fae)
+                {
+                    data.Add(new Invoices
+                    {
+                        company = body.company,
+                        createDate = currentDate,
+                        fae_prepared = user,
+                        fae_checked = user_tmp,
+                        fae_approved = user_tmp,
+                        gm_approved = user_tmp,
+                        form = "fae",
                         status = "fae-prepared",
                         lotNo = lotNo,
                         year = DateTime.Now.ToString("yyyy"),
                         month = DateTime.Now.ToString("MM")
                     });
+
+                    List<requesterUploadSchema> lotData = _requester.getByLotno(lotNo);
+                    foreach (requesterUploadSchema lotRecord in lotData)
+                    {
+                        faeDBschema pricingData = null;
+
+                        faeDBschema matCode = _faeDB.getByMatcode(lotRecord.matrialCode);
+                        if (matCode == null)
+                        {
+                            faeDBschema wasteName = _faeDB.getByMatname(lotRecord.matrialName);
+                            pricingData = wasteName;
+                        }
+                        else
+                        {
+                            pricingData = matCode;
+                        }
+
+                        if (pricingData != null)
+                        {
+                            _wasteService.setFaeDB(new Waste
+                            {
+                                biddingNo = pricingData.biddingNo,
+                                biddingType = pricingData.biddingType,
+                                color = pricingData.color,
+                                unitPrice = pricingData.pricePerUnit,
+                                totalPrice = (Double.Parse(lotRecord.totalWeight) * Double.Parse(pricingData.pricePerUnit)).ToString(),
+                            }, lotRecord._id);
+                        }
+                    }
                 }
 
                 _invoiceService.Create(data);
@@ -134,44 +196,7 @@ namespace backend.Controllers
             try
             {
                 // PREMISSION CHECKING
-                string permission = User.FindFirst("permission")?.Value;
-                JObject permissionObj = JObject.Parse(@"{ 'permission': " + permission + "}");
-
-                int allowed = 0;
-                foreach (var record in permissionObj["permission"])
-                {
-                    if (body.status == "checked")
-                    {
-                        if (record["dept"].ToString() == "FAE" && record["feature"].ToString() == "invoice" && record["action"].ToString() == "check")
-                        {
-                            allowed = allowed + 1;
-                            break;
-                        }
-                    }
-
-                    if (body.status == "approved")
-                    {
-                        if (record["dept"].ToString() == "FAE" && record["feature"].ToString() == "invoice" && record["action"].ToString() == "approve")
-                        {
-                            allowed = allowed + 1;
-                            break;
-                        }
-                    }
-                    if (body.status == "makingApproved")
-                    {
-                        if (record["dept"].ToString() == "FAE" && record["feature"].ToString() == "invoice" && record["action"].ToString() == "making")
-                        {
-                            allowed = allowed + 1;
-                            break;
-                        }
-                    }
-                }
-                if (allowed == 0)
-                {
-                    res.success = false;
-                    res.message = "Permission denied";
-                    return Forbid();
-                }
+             
                 // PREMISSION CHECKING
 
 
@@ -261,7 +286,8 @@ namespace backend.Controllers
             {
                 success = true,
                 message = "Waste data",
-                data = new {
+                data = new
+                {
                     requester = requester,
                     fae = waste,
                 }

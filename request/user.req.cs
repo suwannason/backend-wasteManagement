@@ -1,16 +1,10 @@
 
 namespace backend.request
 {
-    public class RequestChangePw {
+    public class Login {
         public string username { get; set; }
 
         public string password { get; set; }
-
-        public string newPassword { get; set; }
-
-        public string email { get; set; }
-
-        public string tel { get; set; }
     }
 
     public class uploadFile {

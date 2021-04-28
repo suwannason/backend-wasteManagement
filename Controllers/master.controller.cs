@@ -8,6 +8,10 @@ using System.IO;
 using System;
 using OfficeOpenXml;
 using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Extensions.Configuration;
+using System.Threading.Tasks;
+using System.Net.Http;
 
 namespace backend.Controllers
 {
@@ -20,12 +24,14 @@ namespace backend.Controllers
         private readonly faeDBservice _faedb;
         private readonly itcDBservice _itcdb;
         private readonly CompanyService _company;
+        private IConfiguration _config;
 
-        public masterController(faeDBservice fae, itcDBservice itc, CompanyService company)
+        public masterController(faeDBservice fae, itcDBservice itc, CompanyService company, IConfiguration config)
         {
             _faedb = fae;
             _itcdb = itc;
             _company = company;
+            _config = config;
         }
 
         [HttpPost("pricing"), Consumes("multipart/form-data")]
@@ -64,8 +70,6 @@ namespace backend.Controllers
                 ExcelWorksheet sheet = Workbook.Worksheets[0];
 
                 List<faeDBschema> data = new List<faeDBschema>();
-
-                int colCount = sheet.Dimension.Columns;
 
                 int rowCount = sheet.Dimension.Rows;
 
@@ -191,8 +195,8 @@ namespace backend.Controllers
             {
                 Directory.CreateDirectory(serverPath);
             }
-
-            string filename = serverPath + System.Guid.NewGuid().ToString() + "-" + body.file.FileName;
+            string uuid = System.Guid.NewGuid().ToString();
+            string filename = (serverPath + uuid + "-" + body.file.FileName).Trim();
             using (FileStream strem = System.IO.File.Create(filename))
             {
                 body.file.CopyTo(strem);
@@ -235,6 +239,7 @@ namespace backend.Controllers
                             case 8: item.contractStartDate = value; break;
                             case 9: item.contractEndDate = value; break;
                         }
+                        item.fileName = (uuid + "-" + body.file.FileName).Trim();
                     }
                     data.Add(item);
                 }
@@ -245,39 +250,43 @@ namespace backend.Controllers
             return Ok(new { success = true, message = "Upload Contrator DB success." });
         }
 
-        [HttpGet("company")]
-        public ActionResult companyDownload()
+        [HttpGet("company/download")]
+        public async Task<ActionResult> companyDownload()
         {
 
-            List<Companies> data = _company.Get();
+            Companies data = _company.getFirst();
+            string fileUri = (_config["Endpoint:file_path"] + "/upload/" +data.fileName).Trim();
 
-            string rootFolder = Directory.GetCurrentDirectory();
+            Console.WriteLine(fileUri);
+            string contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            var client = new HttpClient();
 
-            string pathString2 = @"\API site\files\wastemanagement\upload\";
-            string serverPath = rootFolder.Substring(0, rootFolder.LastIndexOf(@"\")) + pathString2;
-
-            string filename = serverPath + System.Guid.NewGuid().ToString() + "-" + "contrator.xlsx";
-
-            if (!System.IO.Directory.Exists(serverPath))
-            {
-                Directory.CreateDirectory(serverPath);
+            HttpResponseMessage response = await client.GetAsync(fileUri);
+            
+            if (response.StatusCode.ToString() == "NotFound") {
+                return NotFound();
             }
-            using (ExcelPackage excel = new ExcelPackage())
+            return File(response.Content.ReadAsStream(), contentType);
+        }
+
+        [HttpGet("wastename")]
+        public ActionResult getWastename()
+        {
+
+            List<faeDBschema> data = _faedb.getWastename();
+
+            List<faeDBschema> distinct = data.GroupBy(x => x.wasteName).Select(x => x.First()).ToList();
+
+            List<dynamic> wastename = new List<dynamic>();
+            foreach (faeDBschema item in distinct)
             {
-                excel.Workbook.Worksheets.Add("sheet1");
-                List<string[]> headerRow = new List<string[]>()
-  {
-    new string[] { "No.", "Counterparty Name", "Counterparty Address", "Phone No.", "FAX", "Contract NO.", "Contract Start", "Contract End" }
-  };
-
-                ExcelWorksheet sheet = excel.Workbook.Worksheets["sheet1"];
-
-                sheet.Cells["B1:I1"].LoadFromArrays(headerRow);
-
-                FileInfo excelFile = new FileInfo(filename);
-                excel.SaveAs(excelFile);
+                wastename.Add(new
+                {
+                    wasteName = item.wasteName,
+                    biddingType = item.biddingType,
+                });
             }
-            return Ok();
+            return Ok(new { success = true, message = "waste name", data = wastename });
         }
     }
 }

@@ -173,8 +173,29 @@ namespace backend.Services
             FilterDefinition<requesterUploadSchema> start = Builders<requesterUploadSchema>.Filter.Gte(item => item.moveOutDate, startDate);
             FilterDefinition<requesterUploadSchema> end = Builders<requesterUploadSchema>.Filter.Lte(item => item.moveOutDate, endDate);
 
-            return _scrapMatrial.Find<requesterUploadSchema>(start & end).ToList<requesterUploadSchema>();
+            FilterDefinition<requesterUploadSchema> nonBoi = Builders<requesterUploadSchema>.Filter.Ne(item => item.boiType, "BOI");
+
+            return _scrapMatrial.Find<requesterUploadSchema>((start & end) & nonBoi).ToList<requesterUploadSchema>();
             
+        }
+    
+        public List<requesterUploadSchema> getByLotno(string lotNo) {
+
+            FilterDefinition<requesterUploadSchema> lotNoFilter = Builders<requesterUploadSchema>.Filter.Eq(item => item.lotNo, lotNo);
+            return _scrapMatrial.Find<requesterUploadSchema>(lotNoFilter).ToList<requesterUploadSchema>();
+        }
+
+        public void setFaeDB(requesterUploadSchema data, string id) {
+            UpdateDefinition<requesterUploadSchema> update = Builders<requesterUploadSchema>.Update
+            .Set("biddingNo", data.biddingNo)
+            .Set("biddingType", data.biddingType)
+            .Set("color", data.color)
+            .Set("unitPrice", data.unitPrice)
+            .Set("totalPrice", data.totalPrice);
+
+            FilterDefinition<requesterUploadSchema> filter = Builders<requesterUploadSchema>.Filter.Eq(item => item._id, id);
+
+            _scrapMatrial.UpdateOne(filter, update);
         }
     }
 }
