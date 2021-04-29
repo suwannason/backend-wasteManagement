@@ -11,7 +11,7 @@ namespace backend.response
         public string message { get; set; }
 
         public string token { get; set; }
-        public User[] data { get; set; }
+        public UserSchema[] data { get; set; }
     }
 
     public class LDAPresponse

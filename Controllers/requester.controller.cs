@@ -161,7 +161,6 @@ namespace backend.Controllers
             {
                 body.file.CopyTo(strem);
             }
-
             Profile usertmp = new Profile();
             usertmp.band = "-";
             usertmp.dept = "-";
