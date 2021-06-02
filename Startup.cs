@@ -92,6 +92,7 @@ namespace backend
                                     identity.AddClaim(new Claim("access_token", accessToken.RawData));
                                     identity.AddClaim(new Claim("username", username.ToString()));
                                     identity.AddClaim(new Claim("name", name.ToString()));
+                                    identity.AddClaim(new Claim("dept", dept.ToString()));
                                     identity.AddClaim(new Claim("permission", permission.ToString()));
                                     // identity.AddClaim(new Claim("position", position.ToString()));
                                 }
@@ -114,6 +115,7 @@ namespace backend
             services.AddSingleton<prepareLotService>();
             services.AddSingleton<faeDBservice>();
             services.AddSingleton<itcDBservice>();
+            services.AddSingleton<SummaryInvoiceService>();
             services.AddControllers();
         }
 

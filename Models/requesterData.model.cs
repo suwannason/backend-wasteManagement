@@ -16,8 +16,11 @@ namespace backend.Models
         public string div { get; set; } // fix
         public string lotNo { get; set; } // 
         public string moveOutDate { get; set; } //
+        public string moveOutMonth { get; set; }
+        public string moveOutYear { get; set; }
         public string no { get; set; } //
-        public string kind { get; set; } //
+        public string wasteName { get; set; } //
+        public string kind { get; set; }
         public string matrialCode { get; set; } //
         public string matrialName { get; set; } //
         public string boiType { get; set; } // from db itc <privilegeType>
@@ -38,6 +41,7 @@ namespace backend.Models
         public Profile pdc_prepared { get; set; }
         public Profile pdc_checked { get; set; }
         public Profile pdc_approved { get; set; }
+        public Profile fae_prepared { get; set; }
         public Profile fae_checked { get; set; }
         public Profile fae_approved { get; set; }
         // APPROVING STEP

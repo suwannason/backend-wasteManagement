@@ -59,5 +59,9 @@ namespace backend.Services
 
             company.InsertMany(data);
         }
+        public Companies getByName(string name) {
+
+            return company.Find<Companies>(item => item.companyName == name).FirstOrDefault();
+        }
     }
 }

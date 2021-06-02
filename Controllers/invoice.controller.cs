@@ -84,23 +84,10 @@ namespace backend.Controllers
 
                 string currentDate = DateTime.Now.ToString("yyyy/MM/dd");
                 List<Invoices> data = new List<Invoices>();
-                foreach (string lotNo in body.requester)
-                {
-                    data.Add(new Invoices
-                    {
-                        company = body.company,
-                        createDate = currentDate,
-                        fae_prepared = user,
-                        fae_checked = user_tmp,
-                        fae_approved = user_tmp,
-                        gm_approved = user_tmp,
-                        form = "requester",
-                        status = "fae-prepared",
-                        lotNo = lotNo,
-                        year = DateTime.Now.ToString("yyyy"),
-                        month = DateTime.Now.ToString("MM"),
-                    });
 
+                // Set pricing DB to requester
+                foreach (string lotNo in body.lotNo)
+                {
                     List<requesterUploadSchema> lotData = _requester.getByLotno(lotNo);
 
                     foreach (requesterUploadSchema lotRecord in lotData)
@@ -131,56 +118,22 @@ namespace backend.Controllers
                         }
                     }
                 }
+                // Set pricing DB to requester
 
-
-                foreach (string lotNo in body.fae)
+                _invoiceService.Create(new Invoices
                 {
-                    data.Add(new Invoices
-                    {
-                        company = body.company,
-                        createDate = currentDate,
-                        fae_prepared = user,
-                        fae_checked = user_tmp,
-                        fae_approved = user_tmp,
-                        gm_approved = user_tmp,
-                        form = "fae",
-                        status = "fae-prepared",
-                        lotNo = lotNo,
-                        year = DateTime.Now.ToString("yyyy"),
-                        month = DateTime.Now.ToString("MM")
-                    });
-
-                    List<requesterUploadSchema> lotData = _requester.getByLotno(lotNo);
-                    foreach (requesterUploadSchema lotRecord in lotData)
-                    {
-                        faeDBschema pricingData = null;
-
-                        faeDBschema matCode = _faeDB.getByMatcode(lotRecord.matrialCode);
-                        if (matCode == null)
-                        {
-                            faeDBschema wasteName = _faeDB.getByMatname(lotRecord.matrialName);
-                            pricingData = wasteName;
-                        }
-                        else
-                        {
-                            pricingData = matCode;
-                        }
-
-                        if (pricingData != null)
-                        {
-                            _wasteService.setFaeDB(new Waste
-                            {
-                                biddingNo = pricingData.biddingNo,
-                                biddingType = pricingData.biddingType,
-                                color = pricingData.color,
-                                unitPrice = pricingData.pricePerUnit,
-                                totalPrice = (Double.Parse(lotRecord.totalWeight) * Double.Parse(pricingData.pricePerUnit)).ToString(),
-                            }, lotRecord._id);
-                        }
-                    }
-                }
-
-                _invoiceService.Create(data);
+                    company = body.company,
+                    lotNo = body.lotNo,
+                    fae_prepared = user,
+                    fae_checked = user_tmp,
+                    fae_approved = user_tmp,
+                    gm_approved = user_tmp,
+                    createDate = body.invoiceDate,
+                    month = DateTime.Now.ToString("MM"),
+                    year = DateTime.Now.ToString("yyyy"),
+                    status = "fae-prepared"
+                    
+                });
                 return Ok(new { success = true, message = "Create invoices success." });
             }
             catch (Exception e)
@@ -196,13 +149,13 @@ namespace backend.Controllers
             try
             {
                 // PREMISSION CHECKING
-             
+
                 // PREMISSION CHECKING
 
 
-                foreach (string item in body.lotNo)
+                foreach (string id in body.id)
                 {
-                    _invoiceService.updateStatus(item, body.status);
+                    _invoiceService.updateStatus(id, body.status);
                 }
                 res.success = true;
                 res.message = "Update to " + body.status + " success";
@@ -268,19 +221,13 @@ namespace backend.Controllers
 
             return Ok(res);
         }
-        [HttpPatch("data")]
-        public ActionResult getRecordTocreateInvoice(RequestgetHistory body)
-        {
-
-            return Ok();
-        }
 
         [HttpPatch("search")]
         public ActionResult getLotOnSearch(startEndDate body)
         {
 
             List<requesterUploadSchema> requester = _requester.searchToInvoice(body.startDate, body.endDate);
-            List<Waste> waste = _wasteService.searchToInvoice(body.startDate, body.endDate);
+            // List<Waste> waste = _wasteService.searchToInvoice(body.startDate, body.endDate);
 
             return Ok(new
             {
@@ -289,9 +236,175 @@ namespace backend.Controllers
                 data = new
                 {
                     requester = requester,
-                    fae = waste,
+                    // fae = waste,
                 }
             });
+        }
+
+        [HttpPatch("print")]
+        public ActionResult print(getInvoice body)
+        {
+
+            List<dynamic> lotDataReturn = new List<dynamic>();
+
+            Invoices invoice = _invoiceService.getById(body.id);
+
+            decimal subTotal = 0; decimal gradTotal = 0; decimal vat = 0;
+
+            // List<requesterUploadSchema> lotData = _requester.getByLotno(body.lotNo);
+
+            List<requesterUploadSchema> lotData = new List<requesterUploadSchema>();
+
+            foreach (string lotNo in invoice.lotNo)
+            {
+                lotData.AddRange(_requester.getByLotno(lotNo));
+            }
+
+            subTotal = 0;
+            foreach (requesterUploadSchema item in lotData)
+            {
+                subTotal = subTotal + decimal.Round(Decimal.Parse(item.totalPrice), 3);
+                lotDataReturn.Add(new
+                {
+                    description = item.biddingType,
+                    quantity = item.totalWeight,
+                    unit = item.unit,
+                    unitPrice = item.unitPrice,
+                    amount = decimal.Round(Decimal.Parse(item.totalPrice), 3).ToString()
+                });
+            }
+            vat = (subTotal * 7) / 100;
+
+            gradTotal = subTotal + vat;
+
+            return Ok(new
+            {
+                success = true,
+                message = "Invoice printing",
+                data = new
+                {
+                    detail = new
+                    {
+                        company = invoice.company,
+                        invoiceNo = "CPT-2021-abc",
+                        invoiceDate = invoice.createDate,
+                        invoiceDue = "Due date"
+                    },
+                    records = lotDataReturn,
+                    summary = new
+                    {
+                        subTotal = subTotal.ToString(),
+                        vat = vat.ToString(),
+                        grandTotal = Decimal.Round(gradTotal, 2).ToString()
+                    },
+                    textMessage = ThaiBahtText((subTotal + vat).ToString())
+                }
+            });
+        }
+
+        [HttpGet("preview")]
+        public ActionResult preview(getInvoice body)
+        {
+
+            return Ok();
+        }
+
+        public static string ThaiBahtText(string strNumber, bool IsTrillion = false)
+        {
+            string BahtText = "";
+            string strTrillion = "";
+            string[] strThaiNumber = { "ศูนย์", "หนึ่ง", "สอง", "สาม", "สี่", "ห้า", "หก", "เจ็ด", "แปด", "เก้า", "สิบ" };
+            string[] strThaiPos = { "", "สิบ", "ร้อย", "พัน", "หมื่น", "แสน", "ล้าน" };
+
+            decimal decNumber = 0;
+            decimal.TryParse(strNumber, out decNumber);
+
+            if (decNumber == 0)
+            {
+                return "ศูนย์บาทถ้วน";
+            }
+
+            strNumber = decNumber.ToString("0.00");
+            string strInteger = strNumber.Split('.')[0];
+            string strSatang = strNumber.Split('.')[1];
+
+            if (strInteger.Length > 13)
+                throw new Exception("รองรับตัวเลขได้เพียง ล้านล้าน เท่านั้น!");
+
+            bool _IsTrillion = strInteger.Length > 7;
+            if (_IsTrillion)
+            {
+                strTrillion = strInteger.Substring(0, strInteger.Length - 6);
+                BahtText = ThaiBahtText(strTrillion, _IsTrillion);
+                strInteger = strInteger.Substring(strTrillion.Length);
+            }
+
+            int strLength = strInteger.Length;
+            for (int i = 0; i < strInteger.Length; i++)
+            {
+                string number = strInteger.Substring(i, 1);
+                if (number != "0")
+                {
+                    if (i == strLength - 1 && number == "1" && strLength != 1)
+                    {
+                        BahtText += "เอ็ด";
+                    }
+                    else if (i == strLength - 2 && number == "2" && strLength != 1)
+                    {
+                        BahtText += "ยี่";
+                    }
+                    else if (i != strLength - 2 || number != "1")
+                    {
+                        BahtText += strThaiNumber[int.Parse(number)];
+                    }
+
+                    BahtText += strThaiPos[(strLength - i) - 1];
+                }
+            }
+
+            if (IsTrillion)
+            {
+                return BahtText + "ล้าน";
+            }
+
+            if (strInteger != "0")
+            {
+                BahtText += "บาท";
+            }
+
+            if (strSatang == "00")
+            {
+                BahtText += "ถ้วน";
+            }
+            else
+            {
+                strLength = strSatang.Length;
+                for (int i = 0; i < strSatang.Length; i++)
+                {
+                    string number = strSatang.Substring(i, 1);
+                    if (number != "0")
+                    {
+                        if (i == strLength - 1 && number == "1" && strSatang[0].ToString() != "0")
+                        {
+                            BahtText += "เอ็ด";
+                        }
+                        else if (i == strLength - 2 && number == "2" && strSatang[0].ToString() != "0")
+                        {
+                            BahtText += "ยี่";
+                        }
+                        else if (i != strLength - 2 || number != "1")
+                        {
+                            BahtText += strThaiNumber[int.Parse(number)];
+                        }
+
+                        BahtText += strThaiPos[(strLength - i) - 1];
+                    }
+                }
+
+                BahtText += "สตางค์";
+            }
+
+            return BahtText;
         }
     }
 }

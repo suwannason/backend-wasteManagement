@@ -26,6 +26,7 @@ namespace backend.Models
         public string companyApprove { get; set; }
         public string wasteGroup { get; set; }
         public string wasteName { get; set; }
+        public string unit { get; set; }
         public string totalWeight { get; set; }
         public string containerWeight { get; set; }
         public string containerType { get; set; }
@@ -53,5 +54,11 @@ namespace backend.Models
         public string unitPrice { get; set; }
         public string totalPrice { get; set; }
         // pricing
+
+        //company
+        public string contractStartDate { get; set; }
+        public string contractEndDate { get; set; }
+        public string contractNo { get; set; }
+        //company
     }
 }

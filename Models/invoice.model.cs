@@ -10,13 +10,12 @@ namespace backend.Models
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string _id { get; set; }
-        public string lotNo { get; set; }
+        public string[] lotNo { get; set; }
         public company company { get; set; }
         public backend.request.Profile fae_prepared { get; set; }
         public backend.request.Profile fae_checked { get; set; }
         public backend.request.Profile fae_approved { get; set; }
         public backend.request.Profile gm_approved { get; set; }
-        public string form { get; set; }
 
         // HEADER INVOICE MAKING
         public string createDate { get; set; }

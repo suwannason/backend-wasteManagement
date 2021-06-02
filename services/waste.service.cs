@@ -30,6 +30,10 @@ namespace backend.Services
         {
             return recycle.Find<Waste>(recycle => recycle.year == DateTime.Now.Year.ToString() && recycle.status == "checked").ToList();
         }
+        public List<Waste> GetCheck()
+        {
+            return recycle.Find<Waste>(recycle => recycle.year == DateTime.Now.Year.ToString() && recycle.status == "open").ToList();
+        }
 
         public Waste Get(string id)
         {
@@ -77,17 +81,21 @@ namespace backend.Services
             recycle.UpdateOne(filter, update);
         }
 
-        public void updateStatus(string id, string status, Profile profile)
+        public void updateStatus(string id, string status, Profile profile = null)
         {
+            Console.WriteLine(id + " " + status);
             FilterDefinition<Waste> filter = Builders<Waste>.Filter.Eq(item => item._id, id);
 
             Profile user = new Profile();
 
-            user.band = profile.band;
-            user.dept = profile.dept;
-            user.div = profile.div;
-            user.empNo = profile.empNo;
-            user.name = profile.name;
+            if (profile != null)
+            {
+                user.band = profile.band;
+                user.dept = profile.dept;
+                user.div = profile.div;
+                user.empNo = profile.empNo;
+                user.name = profile.name;
+            }
             if (status == "checked")
             {
                 UpdateDefinition<Waste> update = Builders<Waste>.Update.Set("status", status).Set("checkBy", user);
@@ -102,6 +110,11 @@ namespace backend.Services
             else if (status == "toInvoice")
             {
                 UpdateDefinition<Waste> update = Builders<Waste>.Update.Set("status", status).Set("makingBy", user);
+                recycle.UpdateOne(filter, update);
+            }
+            else
+            {
+                UpdateDefinition<Waste> update = Builders<Waste>.Update.Set("status", status);
                 recycle.UpdateOne(filter, update);
             }
         }
@@ -165,6 +178,7 @@ namespace backend.Services
             UpdateDefinition<Waste> update = Builders<Waste>.Update
             // .Set("biddingNo", data.biddingNo)
             // .Set("biddingType", data.biddingType)
+            .Set("unit", data.unit)
             .Set("color", data.color)
             .Set("unitPrice", data.unitPrice)
             .Set("totalPrice", data.totalPrice);
@@ -172,6 +186,24 @@ namespace backend.Services
             FilterDefinition<Waste> filter = Builders<Waste>.Filter.Eq(item => item._id, id);
 
             recycle.UpdateOne(filter, update);
+        }
+
+        public Waste getByLotNo(string lotNo)
+        {
+            return recycle.Find<Waste>(item => item.lotNo == lotNo).FirstOrDefault();
+        }
+        public List<Waste> faeSummary(string month, string year, string wasteName, string phase)
+        {
+            if (month == "" && year == "" && wasteName == "" && phase == "")
+            {
+                return recycle.Find<Waste>(item => item.status == "approved").ToList();
+            }
+            return recycle.Find<Waste>(item =>
+            // item.status == "fae-approved" &&
+            item.wasteName == wasteName &&
+            item.phase == phase &&
+            (item.month == month && item.year == year && item.status == "approved")
+            ).ToList();
         }
     }
 }

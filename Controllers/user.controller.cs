@@ -50,7 +50,7 @@ namespace backend.Controllers
             {
                 return Unauthorized(new { success = false, message = "Please contact FAE assign this username" });
             }
-
+            string token = "";
             if (body.username != "admin")
             {
                 using (HttpClient client = new HttpClient())
@@ -62,11 +62,15 @@ namespace backend.Controllers
                     HttpResponseMessage response = await client.PostAsync(LDAP_AUTH + "/authentication/ldap", content);
 
                     res = JsonConvert.DeserializeObject<AD_API>(response.Content.ReadAsStringAsync().Result);
-
-                    return Ok();
+                    if (res.success == false) {
+                        return Unauthorized(new { success = false, message = "username or password incorrect."});
+                    }
+                    token = GenerateJSONWebToken(user);
+                    // return Ok(res);
+                    return Ok(new { success = true, token, data = user });
                 }
             }
-            string token = GenerateJSONWebToken(user);
+            token = GenerateJSONWebToken(user);
 
             return Ok(new { success = true, token, data = user });
         }

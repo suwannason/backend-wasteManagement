@@ -12,10 +12,12 @@ public class handleUpload
 {
 
     private readonly itcDBservice _itcdb;
+    private readonly faeDBservice _faeDB;
 
-    public handleUpload(itcDBservice itcdb)
+    public handleUpload(itcDBservice itcdb, faeDBservice fae)
     {
         _itcdb = itcdb;
+        _faeDB = fae;
     }
 
     public List<requesterUploadSchema> Upload(string pathFile, Profile prepare, Profile emptyUser)
@@ -30,7 +32,6 @@ public class handleUpload
 
             int colCount = sheet.Dimension.Columns;
             int rowCount = sheet.Dimension.Rows;
-            Console.WriteLine("rowCount: " + rowCount);
 
             bool isEmptyRow = false;
             string matrialCode = ""; string matrialName = "";
@@ -60,7 +61,11 @@ public class handleUpload
                     else if (col == 4)
                     {
                         string value = sheet.Cells[row, col].Value?.ToString();
-                        rowData.moveOutDate = value.Trim();
+                        // rowData.moveOutDate = value.Trim();
+                        DateTime parsed = DateTime.ParseExact(value, "M/d/yyyy hh:mm:ss tt", CultureInfo.InvariantCulture);
+                        rowData.moveOutDate = parsed.ToString("yyyy/MM/dd");
+                        rowData.moveOutMonth = parsed.ToString("MMMM");
+                        rowData.moveOutYear = parsed.ToString("yyyy");
                     }
                     else if (col == 5)
                     {
@@ -82,7 +87,7 @@ public class handleUpload
                     }
                     else if (col == 9)
                     {
-                        rowData.containerWeight = sheet.Cells[row, col].Value?.ToString();
+                        rowData.containerWeight = Math.Round(Double.Parse(sheet.Cells[row, col].Value?.ToString()), 2).ToString();
                     }
                     else if (col == 10)
                     {
@@ -96,7 +101,7 @@ public class handleUpload
                     {
                         rowData.unit = sheet.Cells[row, col].Value?.ToString();
 
-                        ITCDB itc = _itcdb.matCode_name(matrialCode, matrialName);
+                        ITCDB itc = _itcdb.matCode_name(matrialCode);
 
                         // ITC
                         if (itc != null)
@@ -108,7 +113,7 @@ public class handleUpload
                         }
                         else
                         {
-                            Console.WriteLine("DATA NULL");
+                            Console.WriteLine("DATA NULL: " + matrialCode);
                             rowData.boiType = "-";
                             rowData.groupBoiNo = "-";
                             rowData.groupBoiName = "-";
@@ -118,11 +123,30 @@ public class handleUpload
 
                     rowData.invoiceRef = false;
                     // FAE
-                    rowData.biddingType = "-";
-                    rowData.biddingNo = "-";
-                    rowData.color = "-";
-                    rowData.unitPrice = "-";
-                    rowData.totalPrice = "-"; // ??
+                    // Console.WriteLine(row + " --> " + sheet.Cells[row, 1].Value?.ToString());
+                    if (col == 11)
+                    {
+                        faeDBschema faeDB = _faeDB.getByWasteName(rowData.matrialCode, rowData.kind);
+                        if (faeDB != null)
+                        {
+                            rowData.biddingType = faeDB.biddingType;
+                            rowData.wasteName = faeDB.wasteName;
+                            rowData.biddingNo = faeDB.biddingNo;
+                            rowData.wasteName = faeDB.wasteName;
+                            rowData.color = faeDB.color;
+                            rowData.unitPrice = faeDB.pricePerUnit;
+                            rowData.totalPrice = Math.Round(Double.Parse(faeDB.pricePerUnit) * Double.Parse(rowData.netWasteWeight), 2).ToString(); // ??
+                        }
+                        else
+                        {
+                            rowData.biddingType = "-";
+                            rowData.wasteName = "-";
+                            rowData.biddingNo = "-";
+                            rowData.color = "-";
+                            rowData.unitPrice = "-";
+                            rowData.totalPrice = "-";
+                        }
+                    }
                     // FAE
 
 

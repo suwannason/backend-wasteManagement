@@ -22,9 +22,9 @@ namespace backend.Services {
             _itcdb.InsertMany(items);
         }
 
-        public ITCDB matCode_name(string matrialCode, string matrialName) {
+        public ITCDB matCode_name(string matrialCode) {
 
-            return _itcdb.Find<ITCDB>(item => item.matrialCode == matrialCode && item.matrialName == matrialName).FirstOrDefault();
+            return _itcdb.Find<ITCDB>(item => item.matrialCode == matrialCode).FirstOrDefault();
         }
     }
 }

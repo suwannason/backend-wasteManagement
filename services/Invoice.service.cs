@@ -30,9 +30,9 @@ namespace backend.Services
             return invoice.Find<Invoices>(invoice => invoice._id == id).FirstOrDefault();
         }
 
-        public void Create(List<Invoices> data)
+        public void Create(Invoices data)
         {
-            invoice.InsertMany(data);
+            invoice.InsertOne(data);
         }
 
         public void Update(string id, Invoices bookIn)
@@ -43,9 +43,9 @@ namespace backend.Services
         }
 
         // prepared --> checked --> approved --> makingApproved
-        public void updateStatus(string lotNo, string status)
+        public void updateStatus(string id, string status)
         {
-            var filter = Builders<Invoices>.Filter.Eq(item => item.lotNo, lotNo);
+            var filter = Builders<Invoices>.Filter.Eq(item => item._id, id);
             var update = Builders<Invoices>.Update.Set("status", status);
 
             invoice.UpdateMany(filter, update);
@@ -63,6 +63,10 @@ namespace backend.Services
             var update = Builders<Invoices>.Update.Set("status", "deleted");
 
             invoice.UpdateOne(filter, update);
+        }
+
+        public Invoices getById(string id) {
+            return invoice.Find<Invoices>(item => item._id == id).FirstOrDefault();
         }
     }
 }

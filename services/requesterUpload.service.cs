@@ -148,7 +148,18 @@ namespace backend.Services
 
         public List<requesterUploadSchema> getByStatus_fae(string status)
         {
-            return _scrapMatrial.Find<requesterUploadSchema>(item => item.status == status).ToList<requesterUploadSchema>();
+            Console.WriteLine(status);
+            try
+            {
+                List<requesterUploadSchema> data = _scrapMatrial.Find<requesterUploadSchema>(item => item.status == status).ToList();
+                return data;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return new List<requesterUploadSchema>();
+            }
+            // Console.WriteLine(_scrapMatrial.Count<requesterUploadSchema>(item => item.status == status));
         }
 
         public List<requesterUploadSchema> getHistory(string startDate, string endDate)
@@ -168,7 +179,8 @@ namespace backend.Services
 
             _scrapMatrial.UpdateMany(filter, update);
         }
-        public List<requesterUploadSchema> searchToInvoice(string startDate, string endDate) {
+        public List<requesterUploadSchema> searchToInvoice(string startDate, string endDate)
+        {
 
             FilterDefinition<requesterUploadSchema> start = Builders<requesterUploadSchema>.Filter.Gte(item => item.moveOutDate, startDate);
             FilterDefinition<requesterUploadSchema> end = Builders<requesterUploadSchema>.Filter.Lte(item => item.moveOutDate, endDate);
@@ -176,16 +188,18 @@ namespace backend.Services
             FilterDefinition<requesterUploadSchema> nonBoi = Builders<requesterUploadSchema>.Filter.Ne(item => item.boiType, "BOI");
 
             return _scrapMatrial.Find<requesterUploadSchema>((start & end) & nonBoi).ToList<requesterUploadSchema>();
-            
+
         }
-    
-        public List<requesterUploadSchema> getByLotno(string lotNo) {
+
+        public List<requesterUploadSchema> getByLotno(string lotNo)
+        {
 
             FilterDefinition<requesterUploadSchema> lotNoFilter = Builders<requesterUploadSchema>.Filter.Eq(item => item.lotNo, lotNo);
             return _scrapMatrial.Find<requesterUploadSchema>(lotNoFilter).ToList<requesterUploadSchema>();
         }
 
-        public void setFaeDB(requesterUploadSchema data, string id) {
+        public void setFaeDB(requesterUploadSchema data, string id)
+        {
             UpdateDefinition<requesterUploadSchema> update = Builders<requesterUploadSchema>.Update
             .Set("biddingNo", data.biddingNo)
             .Set("biddingType", data.biddingType)
@@ -196,6 +210,25 @@ namespace backend.Services
             FilterDefinition<requesterUploadSchema> filter = Builders<requesterUploadSchema>.Filter.Eq(item => item._id, id);
 
             _scrapMatrial.UpdateOne(filter, update);
+        }
+
+        public List<requesterUploadSchema> faeSummarySearch(string month, string year, string wastename, string lotNo)
+        {
+
+            if (month == "" && year == "" && wastename == "" && lotNo == "")
+            {
+                return _scrapMatrial.Find<requesterUploadSchema>(item => item.status == "fae-approved").ToList();
+            }
+            return _scrapMatrial.Find<requesterUploadSchema>(item =>
+            item.lotNo == lotNo ||
+            item.status == "fae-approved" &&
+            item.invoiceRef == true &&
+            item.wasteName == wastename || (item.moveOutMonth == month && item.moveOutYear == year)).ToList();
+        }
+
+        public List<requesterUploadSchema> getLotNo()
+        {
+            return _scrapMatrial.Find<requesterUploadSchema>(item => item.status == "fae-approved").Project<requesterUploadSchema>("{lotNo: 1, }").ToList();
         }
     }
 }

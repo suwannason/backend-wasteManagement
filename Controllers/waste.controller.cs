@@ -9,7 +9,7 @@ using backend.Services;
 using backend.response;
 using backend.Models;
 using backend.request;
-using Newtonsoft.Json.Linq;
+using System.Globalization;
 
 namespace backend.Controllers
 {
@@ -21,12 +21,16 @@ namespace backend.Controllers
     public class wasteController : ControllerBase
     {
         private readonly RecycleService _recycleService;
+        private readonly CompanyService _company;
+        private readonly faeDBservice _faeDB;
 
         RecycleWesteResponse res = new RecycleWesteResponse();
 
-        public wasteController(RecycleService recycleService)
+        public wasteController(RecycleService recycleService, CompanyService company, faeDBservice fae)
         {
             _recycleService = recycleService;
+            _company = company;
+            _faeDB = fae;
         }
 
         [HttpGet("open")]
@@ -44,8 +48,6 @@ namespace backend.Controllers
             }
             res.message = "Get data success";
             return Ok(res);
-
-
         }
 
         [HttpGet("approve")]
@@ -108,7 +110,9 @@ namespace backend.Controllers
                 item.contractorCompany = body.contractorCompany;
                 item.productionType = body.productionType;
                 item.partNormalType = body.partNormalType;
-                item.moveOutDate = body.date;
+
+                DateTime parsed = DateTime.ParseExact(body.date, "yyyy/MM/dd", CultureInfo.InvariantCulture);
+                item.moveOutDate = parsed.ToString("dd-MMMM-yyyy");
                 item.invoiceRef = false;
 
                 int numberOfList = 0;
@@ -166,15 +170,24 @@ namespace backend.Controllers
                 item.totalWeight = body.totalWeight;
                 item.wasteGroup = body.wasteGroup;
                 item.wasteName = body.wasteName;
-                item.year = DateTime.Now.ToString("yyyy");
-                item.month = DateTime.Now.ToString("MMM");
+                item.year = parsed.ToString("yyyy");
+                item.month = parsed.ToString("MMMM");
                 item.department = body.department;
                 item.division = body.division;
                 item.biddingType = body.biddingType;
-                item.biddingNo = "-";
-                item.color = "-";
-                item.unitPrice = "-";
-                item.totalPrice = "-";
+
+                Companies contrator = _company.getByName(body.contractorCompany);
+
+                item.contractEndDate = contrator.contractEndDate.Substring(0, contrator.contractEndDate.IndexOf(" "));
+                item.contractStartDate =  contrator.contractStartDate.Substring(0, contrator.contractStartDate.IndexOf(" "));
+                item.contractNo = contrator.contractNo;
+
+                faeDBschema faeData = _faeDB.getByWasteName(null, item.wasteName);
+                item.biddingNo = faeData.biddingNo;
+                item.color = faeData.color;
+                item.unitPrice = faeData.pricePerUnit;
+                item.totalPrice = (Double.Parse(item.netWasteWeight) * Double.Parse(faeData.pricePerUnit)).ToString();
+                item.unit = faeData.unit;
 
                 Profile user = new Profile();
                 Profile Emptyuser = new Profile();
@@ -371,7 +384,7 @@ namespace backend.Controllers
         public IActionResult getDataToInvoiceWasteName(RequestInvoiceDataWithName body)
         {
             // PREMISSION CHECKING
-          
+
             // PREMISSION CHECKING
 
 
