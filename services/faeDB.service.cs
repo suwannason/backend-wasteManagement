@@ -48,17 +48,28 @@ namespace backend.Services
         {
             // System.Console.WriteLine("matrialCode: " + matrialCode + " kind: " + kind);
             faeDBschema response = null;
-            if (matrialCode.IndexOf("-") != -1) {
+            if (matrialCode == null)
+            {
+                response = _faedb.Find<faeDBschema>(item => item.wasteName == kind).FirstOrDefault();
+            }
+            else if (matrialCode.IndexOf("-") != -1)
+            {
                 response = _faedb.Find<faeDBschema>(item => item.matrialCode == matrialCode && item.kind == kind).FirstOrDefault();
-            } else {
+            }
+            else
+            {
                 response = _faedb.Find<faeDBschema>(item => item.biddingType == matrialCode).FirstOrDefault();
             }
             return response;
         }
-
-        public faeDBschema getTosummaryCondition(string biddingType)
+        public faeDBschema getByBiddingType(string biddingType)
         {
-            
+            return _faedb.Find<faeDBschema>(item => item.biddingType == biddingType).FirstOrDefault();
+        }
+
+        public faeDBschema getByKind(string kind)
+        {
+            return _faedb.Find<faeDBschema>(item => item.kind == kind).FirstOrDefault();
         }
     }
 }

@@ -38,7 +38,7 @@ namespace backend.Controllers
             try
             {
                 List<requesterUploadSchema> requester = _requester.faeSummarySearch(body.moveOutMonth, body.moveOutYear, body.wasteName, body.lotNo);
-                List<Waste> waste = _recycle.faeSummary(body.moveOutMonth, body.moveOutYear, body.wasteName, body.phase);
+                List<Waste> waste = _recycle.faeSummary(body.lotNo, body.moveOutMonth, body.moveOutYear, body.wasteName, body.phase);
                 return Ok(new
                 {
                     success = true,
@@ -147,21 +147,119 @@ namespace backend.Controllers
                 SummaryInvoiceSchema data = _services.getById(id);
                 List<requesterUploadSchema> distinct = data.requester.GroupBy(x => x.kind).Select(x => x.First()).ToList();
 
-                List<requesterUploadSchema> kind = new List<requesterUploadSchema>();
-
+                // Requester items
+                List<dynamic> requesterReturn = new List<dynamic>();
+                int i = 1;
+                foreach (requesterUploadSchema requester in data.requester)
+                {
+                    requesterReturn.Add(new
+                    {
+                        id = i,
+                        matrialCode = requester.matrialCode,
+                        matrialName = requester.matrialName,
+                        privilege = requester.boiType,
+                        group = requester.groupBoiNo,
+                        common = requester.groupBoiName,
+                        unit = requester.unit,
+                        qtyOfContainer = requester.qtyOfContainer,
+                        netWasteWeight = requester.netWasteWeight,
+                        grossWeight = requester.totalWeight,
+                        bagWeight = requester.containerWeight,
+                        wasteType = requester.biddingType,
+                        color = requester.color,
+                        unitPrice = requester.unitPrice,
+                        totalPrice = requester.totalPrice
+                    });
+                    i += 1;
+                }
+                // Requester items
+                // FAE items
+                List<dynamic> faeReturn = new List<dynamic>();
                 foreach (requesterUploadSchema item in distinct)
                 {
-                    kind.Add(new requesterUploadSchema
+                    List<requesterUploadSchema> filtered = data.requester.ToList().FindAll(row => row.kind == item.kind);
+                    double sum = 0.0; double weight = 0.0;
+
+                    foreach (requesterUploadSchema req in filtered)
                     {
-                        kind = item.kind,
-                        matrialCode = item.matrialCode
-                    });
+                        // Console.WriteLine(req.totalPrice);
+                        if (req.totalPrice != "-")
+                        {
+                            sum += Double.Parse(req.totalPrice);
+                            weight += Double.Parse(req.netWasteWeight);
+                        }
+                        else
+                        {
+                            sum += 0.0;
+                        }
+                    }
+                    
+                    faeDBschema faeDB = _faeDB.getByBiddingType(item.kind);
+                    if (faeDB != null)
+                    {
+                        faeReturn.Add(new
+                        {
+                            biddingNo = faeDB.biddingNo,
+                            kind = faeDB.kind,
+                            color = faeDB.color,
+                            weight = weight,
+                            unitPrice = faeDB.pricePerUnit,
+                            totalPrice = Math.Round(sum, 2)
+                        });
+                    }
+                    else
+                    {
+                        faeDBschema faeDB_kind = _faeDB.getByKind(item.kind);
+                        if (faeDB_kind != null)
+                        {
+                            faeReturn.Add(new
+                            {
+                                biddingNo = faeDB_kind.biddingNo,
+                                kind = faeDB_kind.kind,
+                                color = faeDB_kind.color,
+                                weight = weight,
+                                unitPrice = faeDB_kind.pricePerUnit,
+                                totalPrice = Math.Round(sum, 2)
+                            });
+                        } else {
+                            Console.WriteLine(item.kind);
+                        }
+                        
+                    }
                 }
+                // FAE items
+                return Ok(new
+                {
+                    success = true,
+                    message = "IMO data.",
+                    data = new
+                    { requester = requesterReturn, fae = faeReturn }
+                });
+            }
+            catch (Exception e)
+            {
+                return Problem(e.StackTrace);
+            }
+        }
 
-                foreach (requesterUploadSchema item in kind) {
+        [HttpPut("status")]
+        public ActionResult updateStatus(updateStatus body)
+        {
+            try
+            {
+                Profile user = new Profile
+                {
+                    empNo = User.FindFirst("username")?.Value,
+                    name = User.FindFirst("name")?.Value,
+                    dept = User.FindFirst("dept")?.Value,
+                    date = DateTime.Now.ToString("yyyy/MM/dd")
+                };
 
+                foreach (string id in body.id)
+                {
+                    _services.updateStatus(id, body.status, user);
                 }
-                return Ok(new { success = true, message = "IMO data.", data = kind });
+                return Ok(new { success = true, message = "Update status success." });
             }
             catch (Exception e)
             {

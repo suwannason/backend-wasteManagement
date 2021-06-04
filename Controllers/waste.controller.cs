@@ -228,7 +228,7 @@ namespace backend.Controllers
             catch (Exception err)
             {
                 Console.WriteLine(err.StackTrace);
-                return StatusCode(500);
+                return BadRequest(new { error = err.StackTrace, body });
             }
         }
 

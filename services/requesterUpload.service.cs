@@ -215,7 +215,7 @@ namespace backend.Services
         public List<requesterUploadSchema> faeSummarySearch(string month, string year, string wastename, string lotNo)
         {
 
-            if (month == "" && year == "" && wastename == "" && lotNo == "")
+            if (month == "" && year == "" && wastename == "" && lotNo == "-")
             {
                 return _scrapMatrial.Find<requesterUploadSchema>(item => item.status == "fae-approved").ToList();
             }

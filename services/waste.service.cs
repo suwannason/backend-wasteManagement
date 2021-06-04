@@ -83,7 +83,6 @@ namespace backend.Services
 
         public void updateStatus(string id, string status, Profile profile = null)
         {
-            Console.WriteLine(id + " " + status);
             FilterDefinition<Waste> filter = Builders<Waste>.Filter.Eq(item => item._id, id);
 
             Profile user = new Profile();
@@ -192,17 +191,24 @@ namespace backend.Services
         {
             return recycle.Find<Waste>(item => item.lotNo == lotNo).FirstOrDefault();
         }
-        public List<Waste> faeSummary(string month, string year, string wasteName, string phase)
+        public List<Waste> faeSummary(string lotNo, string month, string year, string wasteName, string phase)
         {
             if (month == "" && year == "" && wasteName == "" && phase == "")
             {
                 return recycle.Find<Waste>(item => item.status == "approved").ToList();
             }
+            if (lotNo != "-")
+            {
+                return recycle.Find<Waste>(item =>
+                    item.wasteName == wasteName && item.status == "approved" && item.lotNo == lotNo ||
+                    item.phase == phase &&
+                    (item.month == month && item.year == year)).ToList();
+            }
             return recycle.Find<Waste>(item =>
             // item.status == "fae-approved" &&
-            item.wasteName == wasteName &&
+            item.wasteName == wasteName && item.status == "approved" ||
             item.phase == phase &&
-            (item.month == month && item.year == year && item.status == "approved")
+            (item.month == month && item.year == year)
             ).ToList();
         }
     }

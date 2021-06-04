@@ -21,4 +21,9 @@ namespace backend.request {
          public string[] requester { get; set; }
          public string[] recycle { get; set; }
      }
+     public class updateStatus {
+
+         public string[] id { get; set; }
+         public string status { get; set; }
+     }
 }
