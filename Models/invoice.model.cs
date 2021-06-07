@@ -10,7 +10,7 @@ namespace backend.Models
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string _id { get; set; }
-        public string[] lotNo { get; set; }
+        public string[] summaryId { get; set; }
         public company company { get; set; }
         public backend.request.Profile fae_prepared { get; set; }
         public backend.request.Profile fae_checked { get; set; }

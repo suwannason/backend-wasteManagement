@@ -26,4 +26,9 @@ namespace backend.request {
          public string[] id { get; set; }
          public string status { get; set; }
      }
+     public class updateTotal {
+         public string id { get; set; }
+         public string totalPrice { get; set; }
+         public string totalWeight { get; set; }
+     }
 }

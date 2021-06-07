@@ -5,10 +5,14 @@ using Microsoft.AspNetCore.Mvc;
 using System.IO;
 using Microsoft.AspNetCore.Authorization;
 
+using OfficeOpenXml;
 using backend.Services;
 using backend.Models;
 using backend.request;
 using System.Linq;
+using System.Drawing;
+using OfficeOpenXml.Drawing;
+using System.Net;
 
 namespace backend.Controllers
 {
@@ -77,13 +81,13 @@ namespace backend.Controllers
                 double sumRequester = 0;
                 foreach (requesterUploadSchema item in requesterItems)
                 {
-                    Console.WriteLine(item.totalWeight + " ==> " + Double.Parse(item.totalWeight).ToString());
-                    sumRequester += Double.Parse(item.totalWeight);
+                    // Console.WriteLine(item.totalWeight + " ==> " + Double.Parse(item.totalWeight).ToString());
+                    sumRequester += Double.Parse(item.netWasteWeight);
                 }
                 double sumRecycle = 0;
                 foreach (Waste item in wasteItems)
                 {
-                    sumRecycle += Double.Parse(item.totalWeight);
+                    sumRecycle += Double.Parse(item.netWasteWeight);
                 }
                 createItem.approve = new Profile { band = "-", date = "-", dept = "-", div = "-", empNo = "-", name = "-", tel = "-" };
                 createItem.check = new Profile { band = "-", date = "-", dept = "-", div = "-", empNo = "-", name = "-", tel = "-" };
@@ -130,7 +134,29 @@ namespace backend.Controllers
             {
                 SummaryInvoiceSchema data = _services.getById(id);
 
-                return Ok(new { success = true, message = "Data on this route.", data, });
+                double totalWeight = 0.0; double totalPrice = 0.0;
+
+                foreach (requesterUploadSchema item in data.requester)
+                {
+                    totalWeight += Double.Parse(item.netWasteWeight);
+
+                    if (item.totalPrice != "-")
+                    {
+                        totalPrice += Double.Parse(item.totalPrice);
+                    }
+                }
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Data on this route.",
+                    data,
+                    total = new
+                    {
+                        totalWeight = totalWeight.ToString("#,##0.00"),
+                        totalPrice = totalPrice.ToString("#,##0.00"),
+                    }
+                });
             }
             catch (Exception e)
             {
@@ -145,7 +171,7 @@ namespace backend.Controllers
             try
             {
                 SummaryInvoiceSchema data = _services.getById(id);
-                List<requesterUploadSchema> distinct = data.requester.GroupBy(x => x.kind).Select(x => x.First()).ToList();
+                List<requesterUploadSchema> distinct = data.requester.GroupBy(x => x.biddingType).Select(x => x.First()).ToList();
 
                 // Requester items
                 List<dynamic> requesterReturn = new List<dynamic>();
@@ -175,14 +201,16 @@ namespace backend.Controllers
                 // Requester items
                 // FAE items
                 List<dynamic> faeReturn = new List<dynamic>();
+                int j = 1;
+
+                double totalWeight = 0.0; double totalPrice = 0.0;
                 foreach (requesterUploadSchema item in distinct)
                 {
-                    List<requesterUploadSchema> filtered = data.requester.ToList().FindAll(row => row.kind == item.kind);
+                    List<requesterUploadSchema> filtered = data.requester.ToList().FindAll(row => row.biddingType == item.biddingType);
                     double sum = 0.0; double weight = 0.0;
 
                     foreach (requesterUploadSchema req in filtered)
                     {
-                        // Console.WriteLine(req.totalPrice);
                         if (req.totalPrice != "-")
                         {
                             sum += Double.Parse(req.totalPrice);
@@ -193,39 +221,47 @@ namespace backend.Controllers
                             sum += 0.0;
                         }
                     }
-                    
-                    faeDBschema faeDB = _faeDB.getByBiddingType(item.kind);
+
+                    faeDBschema faeDB = _faeDB.getByBiddingType(item.biddingType);
                     if (faeDB != null)
                     {
+                        // Console.WriteLine("Add by getByBiddingType");
                         faeReturn.Add(new
                         {
+                            id = j,
                             biddingNo = faeDB.biddingNo,
-                            kind = faeDB.kind,
+                            biddingType = faeDB.biddingType,
                             color = faeDB.color,
-                            weight = weight,
+                            weight = weight.ToString("#,##0.00"),
                             unitPrice = faeDB.pricePerUnit,
-                            totalPrice = Math.Round(sum, 2)
+                            totalPrice = (Math.Round(sum, 2)).ToString("#,##0.00")
                         });
                     }
-                    else
-                    {
-                        faeDBschema faeDB_kind = _faeDB.getByKind(item.kind);
-                        if (faeDB_kind != null)
-                        {
-                            faeReturn.Add(new
-                            {
-                                biddingNo = faeDB_kind.biddingNo,
-                                kind = faeDB_kind.kind,
-                                color = faeDB_kind.color,
-                                weight = weight,
-                                unitPrice = faeDB_kind.pricePerUnit,
-                                totalPrice = Math.Round(sum, 2)
-                            });
-                        } else {
-                            Console.WriteLine(item.kind);
-                        }
-                        
-                    }
+                    // else
+                    // {
+                    //     faeDBschema faeDB_kind = _faeDB.getByKind(item.kind);
+                    //     if (faeDB_kind != null)
+                    //     {
+                    //         Console.WriteLine("Add by getByKind");
+                    //         faeReturn.Add(new
+                    //         {
+                    //             id = j,
+                    //             biddingNo = faeDB_kind.biddingNo,
+                    //             kind = faeDB_kind.kind,
+                    //             color = faeDB_kind.color,
+                    //             weight = weight.ToString("#,##0.00"),
+                    //             unitPrice = faeDB_kind.pricePerUnit,
+                    //             totalPrice = (Math.Round(sum, 2)).ToString("#,##0.00")
+                    //         });
+                    //     }
+                    //     else
+                    //     {
+                    //         Console.WriteLine("Not found: " + item.kind);
+                    //     }
+
+                    // }
+                    j += 1;
+                    totalWeight += weight; totalPrice += Math.Round(sum, 2);
                 }
                 // FAE items
                 return Ok(new
@@ -233,7 +269,7 @@ namespace backend.Controllers
                     success = true,
                     message = "IMO data.",
                     data = new
-                    { requester = requesterReturn, fae = faeReturn }
+                    { requester = requesterReturn, fae = faeReturn, total = new { totalWeight = totalWeight.ToString("#,##0.00"), totalPrice = totalPrice.ToString("#,##0.00"), } }
                 });
             }
             catch (Exception e)
@@ -242,6 +278,365 @@ namespace backend.Controllers
             }
         }
 
+        [HttpGet("recycle/{id}")]
+
+        [HttpGet("boi/{id}")]
+        public ActionResult getBOI_non(string id)
+        {
+            try
+            {
+                SummaryInvoiceSchema data = _services.getById(id);
+
+                List<dynamic> returnData = new List<dynamic>();
+
+                int no = 1;
+                double totalWeight = 0.0; double totalPrice = 0.0;
+                foreach (requesterUploadSchema item in data.requester)
+                {
+                    returnData.Add(new
+                    {
+                        id = no,
+                        biddingType = item.biddingType,
+                        color = item.color,
+                        weight = item.netWasteWeight,
+                        unitPrice = item.unitPrice,
+                        totalPrice = item.totalPrice
+                    });
+
+                    totalWeight += Double.Parse(item.netWasteWeight);
+                    if (item.totalPrice == "-")
+                    {
+                        totalPrice += 0;
+                    }
+                    else
+                    {
+                        totalPrice += Double.Parse(item.totalPrice);
+                    }
+                    no += 1;
+                }
+                _services.updateTotal(id, totalPrice.ToString("#,##0.00"), totalWeight.ToString("#,##0.00"));
+                return Ok(new
+                {
+                    success = true,
+                    message = "Summary BOI/NON BOI",
+                    data = returnData,
+                    total = new
+                    {
+                        lotNo = data.requester[0].lotNo,
+                        totalWeight = totalWeight.ToString("#,##0.00"),
+                        totalPrice = totalPrice.ToString("#,##0.00")
+                    },
+                });
+            }
+            catch (Exception e)
+            {
+
+                return Problem(e.StackTrace);
+            }
+        }
+
+        [HttpGet("boi/print/{id}")]
+        public ActionResult getBOI_non_print(string id)
+        {
+            try
+            {
+                string rootFolder = Directory.GetCurrentDirectory();
+                string pathString2 = @"\API site\files\wastemanagement\download\";
+                string serverPath = rootFolder.Substring(0, rootFolder.LastIndexOf(@"\")) + pathString2;
+
+                if (!Directory.Exists(serverPath))
+                {
+                    Directory.CreateDirectory(serverPath);
+                }
+
+                string uuid = System.Guid.NewGuid().ToString();
+                string filePath = serverPath + uuid + ".xlsx";
+
+                MemoryStream stream = new MemoryStream();
+
+                using (ExcelPackage excel = new ExcelPackage(stream))
+                {
+                    excel.Workbook.Worksheets.Add("Data");
+
+                    ExcelWorksheet sheet = excel.Workbook.Worksheets["Data"];
+
+                    FileInfo file = new FileInfo(filePath);
+
+                    sheet.Cells["A1:H1"].Merge = true;
+                    sheet.Cells["A1:H80"].Style.Font.Name = "CordiaUPC";
+                    sheet.Cells["A1"].Value = "สรุปปริมาณน้ำหนักของเสีย BOI";
+                    sheet.Cells["A1"].Style.Font.Bold = true;
+                    sheet.Cells["A1"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    sheet.Cells["A1"].Style.Font.Size = 18;
+
+                    sheet.Cells["A2:H2"].Merge = true;
+                    sheet.Cells["A2"].Value = "Summary  of weight  BOI";
+                    sheet.Cells["A2"].Style.Font.Bold = true;
+                    sheet.Cells["A2"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    sheet.Cells["A2"].Style.Font.Size = 18;
+
+                    sheet.Cells["A3:H3"].Merge = true;
+                    sheet.Cells["A3"].Value = "ส่วนที่ 1 บริษัทแคนนอน ปราจีนบุรี (ประเทศไทย) จำกัด";
+                    sheet.Cells["A3"].Style.Font.Bold = true;
+                    sheet.Cells["A3"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    sheet.Cells["A3"].Style.Font.Size = 16;
+                    sheet.Cells["A3"].Style.Fill.SetBackground(ColorTranslator.FromHtml("#C0C0C0"));
+
+                    sheet.Cells["A4:B4"].Merge = true;
+                    sheet.Cells["A4"].Value = "Case : ";
+                    sheet.Cells["A4"].Style.Font.Bold = true;
+                    sheet.Cells["A4"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    sheet.Cells["A4"].Style.Font.Size = 16;
+                    sheet.Cells["A4"].Style.Fill.SetBackground(ColorTranslator.FromHtml("#C0C0C0"));
+
+                    sheet.Cells["C4:D4"].Merge = true;
+                    sheet.Cells["C4"].Value = "BOI";
+                    sheet.Cells["C4"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    sheet.Cells["C4"].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
+
+                    sheet.Cells["E4:F4"].Merge = true;
+                    sheet.Cells["E4"].Value = "NON BOI";
+                    sheet.Cells["E4"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    sheet.Cells["E4"].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
+
+                    sheet.Cells["A5"].Value = "Lot No.";
+                    sheet.Cells["A5"].Style.Font.Bold = true;
+                    sheet.Cells["A5"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    sheet.Cells["A5"].Style.Font.Size = 16;
+                    sheet.Cells["A5"].Style.Fill.SetBackground(ColorTranslator.FromHtml("#C0C0C0"));
+
+                    sheet.Cells["B5:C5"].Merge = true;
+
+                    sheet.Cells["E5"].Value = "Date move out";
+                    sheet.Cells["E5"].Style.Font.Bold = true;
+                    sheet.Cells["E5"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    sheet.Cells["E5"].Style.Font.Size = 16;
+                    sheet.Cells["E5"].Style.Fill.SetBackground(ColorTranslator.FromHtml("#C0C0C0"));
+
+                    sheet.Cells["A6"].Value = "Contract no.";
+                    sheet.Cells["A6"].Style.Font.Bold = true;
+                    sheet.Cells["A6"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    sheet.Cells["A6"].Style.Font.Size = 16;
+                    sheet.Cells["A6"].Style.Fill.SetBackground(ColorTranslator.FromHtml("#C0C0C0"));
+
+                    sheet.Cells["C6"].Value = "Contract Start  :";
+                    sheet.Cells["C6"].Style.Font.Bold = true;
+                    sheet.Cells["C6"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    sheet.Cells["C6"].Style.Font.Size = 16;
+                    sheet.Cells["C6"].Style.Fill.SetBackground(ColorTranslator.FromHtml("#C0C0C0"));
+
+                    sheet.Cells["E6"].Value = "Contract End : ";
+                    sheet.Cells["E6"].Style.Font.Bold = true;
+                    sheet.Cells["E6"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    sheet.Cells["E6"].Style.Font.Size = 16;
+                    sheet.Cells["E6"].Style.Fill.SetBackground(ColorTranslator.FromHtml("#C0C0C0"));
+
+                    sheet.Cells["A7"].Value = "ลำดับ";
+                    sheet.Cells["A7"].Style.Font.Bold = true;
+                    sheet.Cells["A7"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    sheet.Cells["A7"].Style.Font.Size = 14;
+                    sheet.Cells["A8"].Value = "No.";
+                    sheet.Cells["A8"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    sheet.Cells["A8"].Style.Font.Size = 14;
+
+                    sheet.Cells["B7"].Value = "ประเภทของเสีย";
+                    sheet.Cells["B7:C7"].Merge = true;
+                    sheet.Cells["B7"].Style.Font.Bold = true;
+                    sheet.Cells["B7"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    sheet.Cells["B7"].Style.Font.Size = 14;
+                    sheet.Cells["B8"].Value = "(type of waste)";
+                    sheet.Cells["B8:C8"].Merge = true;
+                    sheet.Cells["B8"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    sheet.Cells["B8"].Style.Font.Size = 14;
+
+                    sheet.Cells["D7"].Value = "สี";
+                    sheet.Cells["D7"].Style.Font.Bold = true;
+                    sheet.Cells["D7"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    sheet.Cells["D7"].Style.Font.Size = 14;
+                    sheet.Cells["D8"].Value = "Color";
+                    sheet.Cells["D8"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    sheet.Cells["D8"].Style.Font.Size = 14;
+
+                    sheet.Cells["E7"].Value = "น้ำหนัก(Kg.)";
+                    sheet.Cells["E7"].Style.Font.Bold = true;
+                    sheet.Cells["E7"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    sheet.Cells["E7"].Style.Font.Size = 14;
+                    sheet.Cells["E8"].Value = "Weight (Kg.)";
+                    sheet.Cells["E8"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    sheet.Cells["E8"].Style.Font.Size = 14;
+
+                    sheet.Cells["F7:F8"].Merge = true;
+                    sheet.Cells["F7"].Value = "ราคา/หน่วย";
+                    sheet.Cells["F7"].Style.Font.Size = 14;
+                    sheet.Cells["F7"].Style.Font.Bold = true;
+                    sheet.Cells["F7"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    sheet.Cells["F7"].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
+
+                    sheet.Cells["G4:G8"].Merge = true;
+                    sheet.Cells["G4"].Value = "รวมราคา";
+                    sheet.Cells["G4"].Style.Font.Size = 14;
+                    sheet.Cells["G4"].Style.Fill.SetBackground(ColorTranslator.FromHtml("#C0C0C0"));
+                    sheet.Cells["G4"].Style.Font.Bold = true;
+                    sheet.Cells["G4"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    sheet.Cells["G4"].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
+
+                    sheet.Cells["H4:H8"].Merge = true;
+                    sheet.Cells["H4"].Value = "FAE (J3 up)\nConfirmation Status\nConsistent = OK\nNot consistent = NG\nwith EF-FAE-ENV-056";
+                    sheet.Cells["H4"].Style.WrapText = true;
+                    sheet.Cells["H4"].Style.Fill.SetBackground(ColorTranslator.FromHtml("#C0C0C0"));
+                    sheet.Cells["H4"].Style.Font.Size = 14;
+                    sheet.Cells["H4"].Style.Font.Bold = true;
+                    sheet.Cells["H4"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    sheet.Cells["H4"].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
+
+                    sheet.Column(1).Width = 15;
+                    sheet.Column(3).Width = 17;
+                    sheet.Column(5).Width = 17;
+                    sheet.Column(6).Width = 17;
+                    sheet.Column(7).Width = 18;
+                    sheet.Column(8).Width = 18;
+
+                    SummaryInvoiceSchema data = _services.getById(id);
+
+                    int rowItem = 9; int no = 1;
+                    foreach (requesterUploadSchema item in data.requester)
+                    {
+                        sheet.Cells["A" + rowItem].Value = no;
+                        sheet.Cells["B" + rowItem + ":C" + rowItem].Merge = true;
+                        sheet.Cells["B" + rowItem].Value = item.biddingType;
+                        sheet.Cells["D" + rowItem].Value = item.color;
+                        sheet.Cells["E" + rowItem].Value = item.netWasteWeight;
+                        sheet.Cells["F" + rowItem].Value = item.unitPrice;
+                        sheet.Cells["G" + rowItem].Value = item.totalPrice;
+
+                        sheet.Cells["A" + rowItem + ":H" + rowItem].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                        sheet.Cells["A" + rowItem + ":H" + rowItem].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                        sheet.Cells["A" + rowItem + ":H" + rowItem].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                        sheet.Cells["A" + rowItem + ":H" + rowItem].Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+
+                        no += 1; rowItem += 1;
+                    }
+                    sheet.Cells["A9:H" + rowItem].Style.Font.Size = 14;
+                    sheet.Cells["A9:H" + rowItem].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    sheet.Cells["A9:H" + rowItem].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
+
+                    sheet.Cells["A3:H8"].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    sheet.Cells["A3:H8"].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    sheet.Cells["A3:H8"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    sheet.Cells["A3:H8"].Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+
+                    sheet.Cells["C" + rowItem + ":D" + rowItem].Merge = true;
+                    sheet.Cells["C" + rowItem].Value = "รวมทั้งหมด";
+                    sheet.Cells["C" + rowItem].Style.Font.Bold = true;
+                    sheet.Cells["E" + rowItem].Value = data.totalWeight;
+
+                    sheet.Cells["C" + rowItem + ":D" + rowItem].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    sheet.Cells["C" + rowItem + ":D" + rowItem].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    sheet.Cells["C" + rowItem + ":D" + rowItem].Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+
+                    sheet.Cells["E" + rowItem].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    sheet.Cells["E" + rowItem].Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    sheet.Cells["G" + rowItem].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    sheet.Cells["G" + rowItem].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    sheet.Cells["G" + rowItem].Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    sheet.Cells["G" + rowItem].Value = data.totalPrice;
+
+                    WebClient client = new WebClient();
+                    Stream stream_img = client.OpenRead("http://cptsvs531:5000/files/middleware_img/signingBox.png");
+                    Bitmap bitmap = new Bitmap(stream_img);
+
+                    ExcelPicture picture = sheet.Drawings.AddPicture("image", bitmap);
+                    // picture.To.Column = 3;
+                    // picture.To.Row = rowItem + 2;
+                    picture.SetSize(500, 150);
+                    picture.SetPosition(rowItem + 1, 0, 2, 0);
+
+                    // ส่วนที่ 2
+                    rowItem += 10;
+
+                    sheet.Cells["A" + rowItem + ":H" + rowItem].Merge = true;
+                    sheet.Cells["A" + rowItem + ":H" + rowItem].Style.Fill.SetBackground(ColorTranslator.FromHtml("#C0C0C0"));
+                    sheet.Cells["A" + rowItem].Value = "ส่วนที่ 2 ผู้รับกำจัด/บำบัด ของเสีย";
+                    sheet.Cells["A" + rowItem].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    sheet.Cells["A" + rowItem].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
+                    sheet.Cells["A" + rowItem].Style.Font.Size = 16;
+                    sheet.Cells["A" + rowItem].Style.Font.Bold = true;
+                    sheet.Row(rowItem).Height = 23;
+
+                    sheet.Cells["A" + (rowItem + 1) + ":H" + (rowItem + 1)].Merge = true;
+                    sheet.Cells["A" + (rowItem + 1)].Value = "ข้าพเจ้าขอยืนยันน้ำหนักที่ระบุตามรายการดังกล่าว I would like to confirm the weight as above-mantioned.";
+                    sheet.Cells["A" + (rowItem + 1)].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    sheet.Cells["A" + (rowItem + 1)].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
+                    sheet.Cells["A" + (rowItem + 1)].Style.Font.Size = 14;
+
+                    sheet.Cells["D" + (rowItem + 3)].Value = "บริษัท ……………………………………";
+                    sheet.Cells["D" + (rowItem + 3)].Style.Font.Size = 14;
+
+                    sheet.Cells["D" + (rowItem + 4)].Value = "Contracter disposal / treatment ";
+                    sheet.Cells["D" + (rowItem + 4)].Style.Font.Size = 14;
+
+                    sheet.Cells["D" + (rowItem + 6)].Value = "ลงชื่อ (Sign)...................................................";
+                    sheet.Cells["D" + (rowItem + 6)].Style.Font.Size = 14;
+                    sheet.Cells["D" + (rowItem + 7)].Value = "             (                                                             )";
+                    sheet.Cells["D" + (rowItem + 7)].Style.Font.Size = 14;
+                    sheet.Cells["D" + (rowItem + 8)].Value = "ตำแหน่ง (Position) ..................................................";
+                    sheet.Cells["D" + (rowItem + 8)].Style.Font.Size = 14;
+
+                    excel.SaveAs(file);
+                    stream.Position = 0;
+
+                   return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", filePath);
+                }
+                // return Ok(new { success = true });
+            }
+            catch (Exception e)
+            {
+                return Problem(e.StackTrace);
+            }
+        }
+        public ActionResult getRecycleData(string id)
+        {
+            try
+            {
+                SummaryInvoiceSchema data = _services.getById(id);
+
+                List<dynamic> returnItems = new List<dynamic>();
+
+                int i = 1; double totalWeight = 0.0; double totalPrice = 0.0;
+                foreach (Waste item in data.recycle)
+                {
+                    returnItems.Add(new
+                    {
+                        id = i,
+                        date = item.moveOutDate,
+                        wasteName = item.wasteName,
+                        weight = item.netWasteWeight,
+                        remark = ""
+                    });
+                    totalWeight += Double.Parse(item.netWasteWeight);
+                    if (item.totalPrice != "-")
+                    {
+                        totalPrice += Double.Parse(item.totalPrice);
+                    }
+                    i += 1;
+                }
+                return Ok(new
+                {
+                    success = true,
+                    message = "Recycle item",
+                    data = returnItems,
+                    total = new
+                    {
+                        totalWeight = totalWeight.ToString("#,##0.00"),
+                        totalPrice = totalPrice.ToString("#,##0.00")
+                    }
+                });
+            }
+            catch (Exception e)
+            {
+                return Problem(e.StackTrace);
+            }
+        }
         [HttpPut("status")]
         public ActionResult updateStatus(updateStatus body)
         {
@@ -257,12 +652,32 @@ namespace backend.Controllers
 
                 foreach (string id in body.id)
                 {
-                    _services.updateStatus(id, body.status, user);
+                    SummaryInvoiceSchema data = _services.getById(id);
+                    if (data.totalPrice != null)
+                    {
+                        _services.updateStatus(id, body.status, user);
+                    }
+
                 }
                 return Ok(new { success = true, message = "Update status success." });
             }
             catch (Exception e)
             {
+                return Problem(e.StackTrace);
+            }
+        }
+
+        [HttpPut("total")]
+        public ActionResult updateTotal(updateTotal body)
+        {
+            try
+            {
+                _services.updateTotal(body.id, body.totalPrice, body.totalWeight);
+                return Ok(new { success = true, message = "Update total success." });
+            }
+            catch (Exception e)
+            {
+
                 return Problem(e.StackTrace);
             }
         }

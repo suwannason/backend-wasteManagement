@@ -83,57 +83,10 @@ namespace backend.Controllers
                 user_tmp.date = "-";
 
                 string currentDate = DateTime.Now.ToString("yyyy/MM/dd");
-                List<Invoices> data = new List<Invoices>();
+                
+
 
                 // Set pricing DB to requester
-                foreach (string lotNo in body.lotNo)
-                {
-                    List<requesterUploadSchema> lotData = _requester.getByLotno(lotNo);
-
-                    foreach (requesterUploadSchema lotRecord in lotData)
-                    {
-                        faeDBschema pricingData = null;
-
-                        faeDBschema matCode = _faeDB.getByMatcode(lotRecord.matrialCode);
-                        if (matCode == null)
-                        {
-                            faeDBschema wasteName = _faeDB.getByMatname(lotRecord.matrialName);
-                            pricingData = wasteName;
-                        }
-                        else
-                        {
-                            pricingData = matCode;
-                        }
-
-                        if (pricingData != null)
-                        {
-                            _requester.setFaeDB(new requesterUploadSchema
-                            {
-                                biddingNo = pricingData.biddingNo,
-                                biddingType = pricingData.biddingType,
-                                color = pricingData.color,
-                                unitPrice = pricingData.pricePerUnit,
-                                totalPrice = (Double.Parse(lotRecord.totalWeight) * Double.Parse(pricingData.pricePerUnit)).ToString(),
-                            }, lotRecord._id);
-                        }
-                    }
-                }
-                // Set pricing DB to requester
-
-                _invoiceService.Create(new Invoices
-                {
-                    company = body.company,
-                    lotNo = body.lotNo,
-                    fae_prepared = user,
-                    fae_checked = user_tmp,
-                    fae_approved = user_tmp,
-                    gm_approved = user_tmp,
-                    createDate = body.invoiceDate,
-                    month = DateTime.Now.ToString("MM"),
-                    year = DateTime.Now.ToString("yyyy"),
-                    status = "fae-prepared"
-                    
-                });
                 return Ok(new { success = true, message = "Create invoices success." });
             }
             catch (Exception e)
@@ -255,7 +208,7 @@ namespace backend.Controllers
 
             List<requesterUploadSchema> lotData = new List<requesterUploadSchema>();
 
-            foreach (string lotNo in invoice.lotNo)
+            foreach (string lotNo in invoice.summaryId)
             {
                 lotData.AddRange(_requester.getByLotno(lotNo));
             }
