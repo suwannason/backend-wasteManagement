@@ -72,7 +72,7 @@ namespace backend.Controllers
         {
             try
             {
-                
+
                 string dept = User.FindFirst("dept")?.Value;
                 List<requesterUploadSchema> data = new List<requesterUploadSchema>();
                 if (dept.ToUpper() == "FAE" || dept.ToUpper() == "ITC" || dept.ToUpper() == "PDC")
@@ -117,54 +117,78 @@ namespace backend.Controllers
         [Consumes("multipart/form-data")]
         public ActionResult uploadData([FromForm] uploadData body)
         {
-            try {
-            string rootFolder = Directory.GetCurrentDirectory();
-
-            string pathString2 = @"\API site\files\wastemanagement\upload\";
-            string serverPath = rootFolder.Substring(0, rootFolder.LastIndexOf(@"\")) + pathString2;
-
-            Console.WriteLine(serverPath);
-            if (!System.IO.Directory.Exists(serverPath))
+            try
             {
-                Directory.CreateDirectory(serverPath);
+                string rootFolder = Directory.GetCurrentDirectory();
+
+                string pathString2 = @"\API site\files\wastemanagement\upload\";
+                string serverPath = rootFolder.Substring(0, rootFolder.LastIndexOf(@"\")) + pathString2;
+
+                Console.WriteLine(serverPath);
+                if (!System.IO.Directory.Exists(serverPath))
+                {
+                    Directory.CreateDirectory(serverPath);
+                }
+                Profile req_prepare = new Profile();
+
+                req_prepare.empNo = User.FindFirst("username")?.Value;
+                req_prepare.band = User.FindFirst("band")?.Value;
+                req_prepare.dept = User.FindFirst("dept")?.Value;
+                req_prepare.div = User.FindFirst("div")?.Value;
+                req_prepare.name = User.FindFirst("name")?.Value;
+                req_prepare.tel = User.FindFirst("tel")?.Value;
+                req_prepare.date = DateTime.Now.ToString("yyyy/MM/dd");
+
+                // if (req_prepare.dept.ToUpper() != body.form.ToUpper() || req_prepare.dept.ToUpper() == "fae")
+                // {
+                //     return Forbid();
+                // }
+
+                string filename = serverPath + System.Guid.NewGuid().ToString() + "-" + body.file.FileName;
+                using (FileStream strem = System.IO.File.Create(filename))
+                {
+                    body.file.CopyTo(strem);
+                }
+                Profile usertmp = new Profile();
+                usertmp.band = "-";
+                usertmp.dept = "-";
+                usertmp.empNo = "-";
+                usertmp.name = "-";
+                usertmp.div = "-";
+                usertmp.tel = "-";
+
+                handleUpload action = new handleUpload(_itcDB, _faeDB);
+
+                List<requesterUploadSchema> data = action.Upload(filename, req_prepare, usertmp);
+
+                List<requesterUploadSchema> errrorItems = data.FindAll(item => item.totalPrice == "-");
+
+                if (errrorItems.Count > 0)
+                {
+                    List<dynamic> returnError = new List<dynamic>();
+
+                    foreach(requesterUploadSchema item in errrorItems) {
+                        returnError.Add(new {
+                            kind = item.kind,
+                            moveOutDate = item.moveOutDate,
+                            lotNo = item.lotNo,
+                            matrialCode = item.matrialCode,
+                            matrialName = item.matrialName,
+                            totalWeight = item.totalWeight,
+                            containerWeight = item.containerWeight,
+                            qtyOfContainer = item.qtyOfContainer,
+                            netWasteWeight = item.netWasteWeight,
+                            unit = item.unit
+                        });
+                    }
+                    return BadRequest(new { success = false, message = "Upload Error please check data.", data = returnError });
+                }
+                _requester.handleUpload(data);
+
+                return Ok(new { success = true, message = "Upload data success." });
             }
-            Profile req_prepare = new Profile();
-
-            req_prepare.empNo = User.FindFirst("username")?.Value;
-            req_prepare.band = User.FindFirst("band")?.Value;
-            req_prepare.dept = User.FindFirst("dept")?.Value;
-            req_prepare.div = User.FindFirst("div")?.Value;
-            req_prepare.name = User.FindFirst("name")?.Value;
-            req_prepare.tel = User.FindFirst("tel")?.Value;
-            req_prepare.date = DateTime.Now.ToString("yyyy/MM/dd");
-
-            // if (req_prepare.dept.ToUpper() != body.form.ToUpper() || req_prepare.dept.ToUpper() == "fae")
-            // {
-            //     return Forbid();
-            // }
-
-            string filename = serverPath + System.Guid.NewGuid().ToString() + "-" + body.file.FileName;
-            using (FileStream strem = System.IO.File.Create(filename))
+            catch (Exception e)
             {
-                body.file.CopyTo(strem);
-            }
-            Profile usertmp = new Profile();
-            usertmp.band = "-";
-            usertmp.dept = "-";
-            usertmp.empNo = "-";
-            usertmp.name = "-";
-            usertmp.div = "-";
-            usertmp.tel = "-";
-
-            handleUpload action = new handleUpload(_itcDB, _faeDB);
-
-            List<requesterUploadSchema> data = action.Upload(filename, req_prepare, usertmp);
-
-            Console.WriteLine("==================================");
-            _requester.handleUpload(data);
-
-            return Ok(new { success = true, message = "Upload data success." });
-            } catch (Exception e) {
                 return Problem(e.StackTrace);
             }
         }
@@ -206,22 +230,27 @@ namespace backend.Controllers
                 return Problem(e.StackTrace);
             }
         }
-    
+
         [HttpGet("lotApproved")]
-        public ActionResult getLotNoOnApproved() {
-            try {
+        public ActionResult getLotNoOnApproved()
+        {
+            try
+            {
 
                 List<requesterUploadSchema> data = _requester.getLotNo();
-                
-                 List<requesterUploadSchema> distinct = data.GroupBy(x => x.lotNo).Select(x => x.First()).ToList();
-                
+
+                List<requesterUploadSchema> distinct = data.GroupBy(x => x.lotNo).Select(x => x.First()).ToList();
+
                 List<string> returnData = new List<string>();
 
-                foreach (requesterUploadSchema item in distinct) {
+                foreach (requesterUploadSchema item in distinct)
+                {
                     returnData.Add(item.lotNo);
                 }
                 return Ok(new { success = true, data = returnData });
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 return Problem(e.StackTrace);
             }
         }

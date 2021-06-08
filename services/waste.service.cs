@@ -195,18 +195,18 @@ namespace backend.Services
         {
             if (month == "" && year == "" && wasteName == "" && phase == "")
             {
-                return recycle.Find<Waste>(item => item.status == "approved").ToList();
+                return recycle.Find<Waste>(item => item.status == "approve").ToList();
             }
             if (lotNo != "-")
             {
                 return recycle.Find<Waste>(item =>
-                    item.wasteName == wasteName && item.status == "approved" && item.lotNo == lotNo ||
+                    item.wasteName == wasteName && item.status == "approve" && item.lotNo == lotNo ||
                     item.phase == phase &&
                     (item.month == month && item.year == year)).ToList();
             }
             return recycle.Find<Waste>(item =>
             // item.status == "fae-approved" &&
-            item.wasteName == wasteName && item.status == "approved" ||
+            item.wasteName == wasteName && item.status == "approve" ||
             item.phase == phase &&
             (item.month == month && item.year == year)
             ).ToList();

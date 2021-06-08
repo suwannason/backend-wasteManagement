@@ -69,7 +69,7 @@ public class handleUpload
                     }
                     else if (col == 5)
                     {
-                        rowData.lotNo = sheet.Cells[row, col].Value?.ToString();
+                        rowData.lotNo = prepare.dept.ToUpper() + "-" + sheet.Cells[row, col].Value?.ToString();
                     }
                     else if (col == 6)
                     {
