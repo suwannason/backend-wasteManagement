@@ -681,5 +681,21 @@ namespace backend.Controllers
                 return Problem(e.StackTrace);
             }
         }
+    
+        [HttpGet("type/{id}")]
+        public ActionResult getSummaryType(string id) {
+             try
+             {
+                 SummaryInvoiceSchema data = _services.getById(id);
+
+                 return Ok(
+                     new { success = true, message = "Summary item", data = new { type = data.type, id = data._id } }
+                 );
+             }
+             catch (Exception e)
+             {
+                 return Problem(e.StackTrace);
+             }
+        }
     }
 }

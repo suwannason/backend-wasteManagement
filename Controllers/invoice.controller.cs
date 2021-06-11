@@ -8,6 +8,9 @@ using backend.Models;
 using backend.request;
 using Microsoft.AspNetCore.Authorization;
 using Newtonsoft.Json.Linq;
+using System.Globalization;
+using System.IO;
+using System.Linq;
 
 namespace backend.Controllers
 {
@@ -22,16 +25,18 @@ namespace backend.Controllers
         private readonly InvoiceService _invoiceService;
         private readonly RecycleService _wasteService;
         private readonly requesterUploadServices _requester;
+        private readonly SummaryInvoiceService _summary;
         private readonly faeDBservice _faeDB;
 
         InvoiceResponse res = new InvoiceResponse();
 
-        public invoiceController(InvoiceService invoiceService, RecycleService wasteService, requesterUploadServices requester, faeDBservice fae)
+        public invoiceController(InvoiceService invoiceService, RecycleService wasteService, requesterUploadServices requester, faeDBservice fae, SummaryInvoiceService summary)
         {
             _invoiceService = invoiceService;
             _wasteService = wasteService;
             _requester = requester;
             _faeDB = fae;
+            _summary = summary;
         }
 
         [HttpPut("{id}")]
@@ -83,8 +88,42 @@ namespace backend.Controllers
                 user_tmp.date = "-";
 
                 string currentDate = DateTime.Now.ToString("yyyy/MM/dd");
-                
 
+                Invoices data = new Invoices();
+
+                data.fae_prepared = user;
+                data.fae_checked = user_tmp;
+                data.fae_approved = user_tmp;
+                data.gm_approved = user_tmp;
+                data.acc_check = user_tmp;
+                data.acc_prepare = user_tmp;
+                data.acc_approve = user_tmp;
+                data.summaryId = body.summaryId;
+                data.status = "fae-prepared";
+                data.month = DateTime.Now.ToString("MMM");
+                data.year = DateTime.Now.ToString("yyyy");
+                data.invoiceDate = DateTime.ParseExact(body.invoiceDate, "yyyy/MM/dd", CultureInfo.InvariantCulture).ToString("dd-MMM-yyyy");
+                data.company = body.company;
+                data.createDate = DateTime.Now.ToString("yyyy/MM/dd");
+
+                double totalPrice = 0.0;
+                foreach (string item in body.summaryId)
+                {
+                    _summary.updateToInvoice(item);
+
+                    SummaryInvoiceSchema summary = _summary.getById(item);
+
+                    totalPrice += Double.Parse(summary.totalPrice);
+
+                }
+                data.invoiceNo = "-";
+                data.termsOfPayment = "-";
+                data.dueDate = "-";
+                data.customerCode = "-";
+                data.poNo = "-";
+                data.attnRef = "-";
+                data.totalPrice = totalPrice.ToString("#,##0.00");
+                _invoiceService.Create(data);
 
                 // Set pricing DB to requester
                 return Ok(new { success = true, message = "Create invoices success." });
@@ -104,11 +143,18 @@ namespace backend.Controllers
                 // PREMISSION CHECKING
 
                 // PREMISSION CHECKING
+                Profile user = new Profile();
 
+                user.empNo = User.FindFirst("username")?.Value;
+                user.band = User.FindFirst("band")?.Value;
+                user.dept = User.FindFirst("dept")?.Value;
+                user.div = User.FindFirst("div")?.Value;
+                user.name = User.FindFirst("name")?.Value;
+                user.date = DateTime.Now.ToString("yyyy/MM/dd");
 
                 foreach (string id in body.id)
                 {
-                    _invoiceService.updateStatus(id, body.status);
+                    _invoiceService.updateStatus(id, body.status, user);
                 }
                 res.success = true;
                 res.message = "Update to " + body.status + " success";
@@ -255,13 +301,6 @@ namespace backend.Controllers
             });
         }
 
-        [HttpGet("preview")]
-        public ActionResult preview(getInvoice body)
-        {
-
-            return Ok();
-        }
-
         public static string ThaiBahtText(string strNumber, bool IsTrillion = false)
         {
             string BahtText = "";
@@ -358,6 +397,131 @@ namespace backend.Controllers
             }
 
             return BahtText;
+        }
+
+        [HttpGet("acc/print/{id}")]
+        public ActionResult getById(string id)
+        {
+            try
+            {
+                string rootFolder = Directory.GetCurrentDirectory();
+                string pathString2 = @"\API site\files\wastemanagement\download\";
+                string serverPath = rootFolder.Substring(0, rootFolder.LastIndexOf(@"\")) + pathString2;
+
+                if (!Directory.Exists(serverPath))
+                {
+                    Directory.CreateDirectory(serverPath);
+                }
+
+                string uuid = System.Guid.NewGuid().ToString();
+                string filePath = serverPath + uuid + ".xlsx";
+
+                // preparing acc record
+                Invoices data = _invoiceService.getById(id);
+
+                List<SummaryInvoiceSchema> summary = new List<SummaryInvoiceSchema>();
+
+                foreach (string summaryId in data.summaryId)
+                {
+                    summary.Add(_summary.getById(summaryId));
+                }
+
+                List<Waste> wasteData = new List<Waste>();
+
+                // merge all recycle data summary
+                foreach (SummaryInvoiceSchema item in summary)
+                {
+                    wasteData.AddRange(item.recycle);
+                }
+                // merge all recycle data summary
+
+                List<Waste> distinct = wasteData.GroupBy(x => x.wasteName).Select(x => x.First()).ToList();
+                // preparing acc record
+
+
+                List<dynamic> dataItems = new List<dynamic>();
+
+                double subTotal = 0.0;
+
+                foreach (Waste wastename in distinct)
+                {
+                    string name = wastename.wasteName;
+                    double totalWeight = 0.0; double totalPrice = 0.0;
+                    int no = 1;
+                    List<Waste> searchBywasteName = wasteData.FindAll(item => item.wasteName == name);
+                    foreach (Waste item in searchBywasteName)
+                    {
+                        totalWeight += Double.Parse(item.netWasteWeight);
+                        totalPrice += Double.Parse(item.totalPrice);
+                    }
+                    dataItems.Add(new
+                    {
+                        no,
+                        wastename = wastename.wasteName,
+                        quantity = totalWeight.ToString("#,###.00"),
+                        unit = wastename.unit,
+                        unitPrice = wastename.unitPrice,
+                        totalPrice = totalPrice.ToString("#,###.00")
+                    });
+                    no += 1;
+
+                    subTotal += totalPrice;
+                }
+                double vat = Math.Round(((subTotal * 7) / 100), 2);
+
+                string bathString = ThaiBahtText((subTotal + vat).ToString("#,###,###.00"));
+                // Console.WriteLine(vat);
+                return Ok(new
+                {
+                    success = true,
+                    message = "Invoice detail",
+                    data = new
+                    {
+                        company = data.company,
+                        invoice = new
+                        {
+                            invoiceNo = data.invoiceNo,
+                            invoiceDate = data.invoiceDate,
+                            termOfPayment = data.termsOfPayment,
+                            dueDate = data.dueDate,
+                            customerCode = data.customerCode,
+                            poNo = data.poNo
+                        },
+                        detail = dataItems
+                    },
+                    total = new
+                    {
+                        subTotal = Math.Round(subTotal, 2).ToString("#,###,###.00"),
+                        vat = vat.ToString("#,###,###.00"),
+                        grandTotal = (subTotal + vat).ToString("#,###,###.00"),
+                        bathString,
+                    }
+                });
+            }
+            catch (Exception e)
+            {
+
+                return Problem(e.StackTrace);
+            }
+        }
+
+        [HttpPut("acc/prepare")]
+        public ActionResult AccPrepare(AccPrepareInvoice body)
+        {
+
+            foreach (string id in body.id)
+            {
+                _invoiceService.accPrepare(
+                    id,
+                    body.attnRef,
+                    body.customerCode,
+                    body.dueDate,
+                    body.invoiceNo,
+                    body.poNo,
+                    body.termsOfPayment
+                );
+            }
+            return Ok(new { success = true, message = "Prepared success." });
         }
     }
 }

@@ -16,12 +16,26 @@ namespace backend.Models
         public backend.request.Profile fae_checked { get; set; }
         public backend.request.Profile fae_approved { get; set; }
         public backend.request.Profile gm_approved { get; set; }
+        public backend.request.Profile acc_prepare { get; set; }
+        public backend.request.Profile acc_check { get; set; }
+        public backend.request.Profile acc_approve { get; set; }
 
         // HEADER INVOICE MAKING
         public string createDate { get; set; }
+        public string invoiceDate { get; set; }
         public string year { get; set; }
         public string month { get; set; }
         public string status { get; set; }
+        public string totalPrice { get; set; }
+
+        // ACC INPUT
+        public string invoiceNo { get; set; }
+        public string termsOfPayment { get; set; }
+        public string dueDate { get; set; }
+        public string customerCode { get; set; }
+        public string poNo { get; set; }
+        public string attnRef { get; set; }
+        // ACC INPUT
     }
     public class company
     {
@@ -33,6 +47,5 @@ namespace backend.Models
         public string fax { get; set; }
         public string tel { get; set; }
         public string address { get; set; }
-        public string invoiceDate { get; set; }
     }
 }

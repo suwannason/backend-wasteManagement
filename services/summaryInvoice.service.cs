@@ -51,12 +51,21 @@ namespace backend.Services
             }
         }
 
-        public void updateTotal(string id, string totalPrice, string totalWeight) {
+        public void updateTotal(string id, string totalPrice, string totalWeight)
+        {
             FilterDefinition<SummaryInvoiceSchema> filter = Builders<SummaryInvoiceSchema>.Filter.Eq(item => item._id, id);
             UpdateDefinition<SummaryInvoiceSchema> update = Builders<SummaryInvoiceSchema>.Update.Set("totalWeight", totalWeight).Set("totalPrice", totalPrice);
 
             _tb.UpdateOne(filter, update);
 
+        }
+
+        public void updateToInvoice(string id)
+        {
+            FilterDefinition<SummaryInvoiceSchema> filter = Builders<SummaryInvoiceSchema>.Filter.Eq(item => item._id, id);
+            UpdateDefinition<SummaryInvoiceSchema> update = Builders<SummaryInvoiceSchema>.Update.Set("status", "toInvoice");
+
+            _tb.UpdateOne(filter, update);
         }
     }
 }

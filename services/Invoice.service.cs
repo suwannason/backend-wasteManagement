@@ -5,7 +5,7 @@ using MongoDB.Driver;
 using System.Collections.Generic;
 using System.Linq;
 using System;
-
+using backend.request;
 
 namespace backend.Services
 {
@@ -43,11 +43,30 @@ namespace backend.Services
         }
 
         // prepared --> checked --> approved --> makingApproved
-        public void updateStatus(string id, string status)
+        public void updateStatus(string id, string status, Profile user)
         {
             var filter = Builders<Invoices>.Filter.Eq(item => item._id, id);
-            var update = Builders<Invoices>.Update.Set("status", status);
-
+            UpdateDefinition<Invoices> update = null;
+            if (status == "fae-checked")
+            {
+                update = Builders<Invoices>.Update.Set("status", status).Set("fae_checked", user);
+            }
+            else if (status == "fae-approved")
+            {
+                update = Builders<Invoices>.Update.Set("status", status).Set("fae_approved", user);
+            }
+            else if (status == "makingApproved")
+            {
+                update = Builders<Invoices>.Update.Set("status", status).Set("gm_approved", user);
+            }
+            else if (status == "acc-checked")
+            {
+                update = Builders<Invoices>.Update.Set("status", status).Set("acc_check", user);
+            }
+            else if (status == "acc-approved")
+            {
+                update = Builders<Invoices>.Update.Set("status", status).Set("acc_approve", user);
+            }
             invoice.UpdateMany(filter, update);
         }
 
@@ -65,8 +84,23 @@ namespace backend.Services
             invoice.UpdateOne(filter, update);
         }
 
-        public Invoices getById(string id) {
+        public Invoices getById(string id)
+        {
             return invoice.Find<Invoices>(item => item._id == id).FirstOrDefault();
+        }
+
+        public void accPrepare(string id, string attnRef, string customerCode, string dueDate, string invoiceNo, string poNo, string termsOfPayment)
+        {
+            FilterDefinition<Invoices> filter = Builders<Invoices>.Filter.Eq(item => item._id, id);
+            UpdateDefinition<Invoices> update = Builders<Invoices>.Update.Set("status", "acc-prepared")
+                                                .Set("termsOfPayment", termsOfPayment)
+                                                .Set("dueDate", dueDate)
+                                                .Set("customerCode", customerCode)
+                                                .Set("poNo", poNo)
+                                                .Set("invoiceNo", invoiceNo)
+                                                .Set("attnRef", attnRef);
+
+            invoice.UpdateOne(filter, update);
         }
     }
 }

@@ -166,9 +166,10 @@ namespace backend.Controllers
                 if (errrorItems.Count > 0)
                 {
                     List<dynamic> returnError = new List<dynamic>();
-
+                    int id = 1;
                     foreach(requesterUploadSchema item in errrorItems) {
                         returnError.Add(new {
+                            id,
                             kind = item.kind,
                             moveOutDate = item.moveOutDate,
                             lotNo = item.lotNo,
@@ -180,6 +181,7 @@ namespace backend.Controllers
                             netWasteWeight = item.netWasteWeight,
                             unit = item.unit
                         });
+                        id += 1;
                     }
                     return BadRequest(new { success = false, message = "Upload Error please check data.", data = returnError });
                 }
