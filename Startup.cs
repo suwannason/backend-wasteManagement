@@ -116,6 +116,7 @@ namespace backend
             services.AddSingleton<faeDBservice>();
             services.AddSingleton<itcDBservice>();
             services.AddSingleton<SummaryInvoiceService>();
+            services.AddSingleton<InvoicePrintedService>();
             services.AddControllers();
         }
 
