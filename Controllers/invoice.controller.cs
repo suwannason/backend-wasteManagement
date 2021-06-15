@@ -7,7 +7,6 @@ using backend.response;
 using backend.Models;
 using backend.request;
 using Microsoft.AspNetCore.Authorization;
-using Newtonsoft.Json.Linq;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -15,7 +14,6 @@ using System.Net;
 using System.Drawing;
 using OfficeOpenXml;
 using OfficeOpenXml.Drawing;
-using OfficeOpenXml.Style;
 
 namespace backend.Controllers
 {
@@ -507,26 +505,26 @@ namespace backend.Controllers
                         name = User.FindFirst("name")?.Value,
                         dept = User.FindFirst("dept")?.Value,
                         date = DateTime.Now.ToString("yyyy/MM/dd")
-                    }
-
+                    },
+                    invoiceId = id
                 };
-                accCreatePrintFile();
-                return Ok(new
-                {
-                    success = true,
-                    message = "Invoice detail",
-                    data = printingData
-                });
+                _invoicePrinting.create(printingData);
+
+                string filePathcreated = accCreatePrintFile(printingData);
+                string filename = System.IO.Path.GetFileName(filePathcreated);
+                string mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+                FileStream stream = System.IO.File.OpenRead(filePathcreated);
+                return new FileStreamResult(stream, mimeType) { FileDownloadName = filename };
             }
             catch (Exception e)
             {
 
-                return Problem(e.StackTrace);
+                return Problem(e.Message);
             }
         }
 
 
-        private void accCreatePrintFile()
+        private string accCreatePrintFile(InvoicePrintedSchema data)
         {
 
             Console.WriteLine("accCreatePrintFile");
@@ -542,18 +540,17 @@ namespace backend.Controllers
             string uuid = System.Guid.NewGuid().ToString();
             string filePath = serverPath + uuid + ".xlsx";
 
-            MemoryStream stream = new MemoryStream();
-
             WebClient client = new WebClient();
             Stream canon_img = client.OpenRead("http://cptsvs531:5000/files/middleware_img/canon.png");
             Bitmap bitmap = new Bitmap(canon_img);
 
-            using (ExcelPackage excel = new ExcelPackage(stream))
+            using (ExcelPackage excel = new ExcelPackage())
             {
                 Console.WriteLine(filePath);
                 excel.Workbook.Worksheets.Add("Data");
 
                 ExcelWorksheet sheet = excel.Workbook.Worksheets["Data"];
+                sheet.View.ShowGridLines = false;
 
                 FileInfo file = new FileInfo(filePath);
 
@@ -562,8 +559,14 @@ namespace backend.Controllers
                 picture.SetPosition(0, 0, 1, 0);
 
                 sheet.Row(3).Height = 9;
-                sheet.Column(1).Width = 1;
+                sheet.Column(1).Width = 2;
+                sheet.Column(3).Width = 18;
                 sheet.Column(4).Width = 30;
+                sheet.Column(7).Width = 12;
+                sheet.Column(8).Width = 8;
+                sheet.Column(9).Width = 20;
+                sheet.Column(11).Width = 20;
+
                 sheet.Cells["B4"].Value = "บริษัท แคนนอน ปราจีนบุรี (ประเทศไทย) จำกัด";
                 sheet.Cells["B5"].Value = "Canon Prachinburi (Thailand) Ltd.";
                 sheet.Cells["B6"].Value = "550  Moo  7  T.Thatoom A.Srimahaphote";
@@ -598,19 +601,59 @@ namespace backend.Controllers
                 sheet.Cells["I15:I26"].Style.Font.Size = 9;
 
                 sheet.Cells["B24"].Value = "CUSTOMER CODE / รหัสลูกค้า";
+                sheet.Cells["D24"].Value = data.invoice.customerCode;
+                sheet.Cells["D24"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+
                 sheet.Cells["B26"].Value = "P/O No. / เลขที่ใบสั่งซื้อของลูกค้า";
+                sheet.Cells["D26"].Value = data.invoice.invoiceNo;
+                sheet.Cells["D26"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+
+                sheet.Cells["D15:D26"].Style.Font.Bold = true;
+                sheet.Cells["D15:D26"].Style.Font.Size = 10;
+                sheet.Cells["D15:D26"].Style.Font.Color.SetColor(Color.Black);
 
                 sheet.Cells["B15"].Value = "ชื่อลูกค้า CUSTOMER NAME:";
+                sheet.Cells["D15"].Value = data.company.companyName;
+
                 sheet.Cells["B16"].Value = "ที่อยู่ ADDRESS:";
+                sheet.Cells["D16"].Value = data.company.address;
+                sheet.Cells["D16"].Style.WrapText = true;
+
                 sheet.Cells["B21"].Value = "อ้างอิง ATTN:";
+                sheet.Cells["D21"].Value = data.invoice.attnRef;
+
                 sheet.Cells["I15"].Value = "INVOICE NO:";
+                sheet.Cells["J15:K16"].Merge = true;
+                sheet.Cells["J15"].Value = data.invoice.invoiceNo;
+                sheet.Cells["J15:K16"].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
+                sheet.Cells["J15:K16"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+
                 sheet.Cells["I16"].Value = "เลขที่ใบกำกับภาษี";
                 sheet.Cells["I17"].Value = "INVOICE DATE:";
                 sheet.Cells["I18"].Value = "วันที่";
+                sheet.Cells["J17:K18"].Merge = true;
+                sheet.Cells["J17"].Value = data.invoice.invoiceDate;
+                sheet.Cells["J17:K18"].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
+                sheet.Cells["J17:K18"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+
                 sheet.Cells["I21"].Value = "TERMS OF PAYMENT:";
                 sheet.Cells["I22"].Value = "เงื่อนไขการชำระเงิน";
+                sheet.Cells["J21:K22"].Merge = true;
+                sheet.Cells["J23"].Value = data.invoice.dueDate;
+                sheet.Cells["J21:K22"].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
+                sheet.Cells["J21:K22"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+
                 sheet.Cells["I23"].Value = "DUE DATE:";
                 sheet.Cells["I24"].Value = "วันครบกำหนด";
+                sheet.Cells["J23:K24"].Merge = true;
+                sheet.Cells["J21"].Value = data.invoice.invoiceDate;
+                sheet.Cells["J23:K24"].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
+                sheet.Cells["J23:K24"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+
+                sheet.Cells["J15:K24"].Style.Font.Bold = true;
+                sheet.Cells["J15:K24"].Style.Font.Size = 9;
+                sheet.Cells["J15:K24"].Style.Font.Name = "Century";
+
 
                 ExcelShape shape = sheet.Drawings.AddShape("customer shape", eShapeStyle.RoundRect);
                 shape.Fill.Color = Color.White;
@@ -631,14 +674,124 @@ namespace backend.Controllers
                 sheet.Cells["I29"].Value = "ราคาต่อหน่วย (บาท)";
                 sheet.Cells["J28"].Value = "Amount (THB)";
                 sheet.Cells["J29"].Value = "จำนวนเงิน (บาท)";
-                
-                shape.SetPosition(13, 0, 1, 0);
+                sheet.Cells["J28:K28"].Merge = true;
+                sheet.Cells["J29:K29"].Merge = true;
+
+                sheet.Cells["B28:K29"].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
+                sheet.Cells["B28:K29"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                sheet.Cells["B28:K52"].Style.Font.Name = "HGP創英角ｺﾞｼｯｸUB";
+                sheet.Cells["B28:K29"].Style.Font.Size = 9;
+                sheet.Cells["B28:K29"].Style.Fill.SetBackground(ColorTranslator.FromHtml("#C2C2C2"));
+                sheet.Cells["B28:K52"].Style.Font.Bold = true;
+
+                sheet.Cells["B28:K28"].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                sheet.Cells["B29:K29"].Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+
+                int startRow = 30;
+
+                foreach (InvoiceprintingItems item in data.detail)
+                {
+                    sheet.Cells["B" + startRow].Value = item.no;
+                    sheet.Cells["C" + startRow].Value = item.wastename;
+                    sheet.Cells["G" + startRow].Value = item.quantity;
+                    sheet.Cells["H" + startRow].Value = item.unit;
+                    sheet.Cells["I" + startRow].Value = item.unitPrice;
+                    sheet.Cells["K" + startRow].Value = item.totalPrice;
+
+                    startRow += 1;
+                }
+                sheet.Cells["B30:B" + startRow].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                sheet.Cells["H30:H" + startRow].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                sheet.Cells["G30:G" + startRow].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Right;
+                sheet.Cells["I30:I" + startRow].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Right;
+                sheet.Cells["K30:K51"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Right;
+
+                sheet.Cells["B" + startRow + ":K" + startRow].Style.Font.Size = 10;
+
+                sheet.Cells["B52:C52"].Merge = true;
+                sheet.Cells["B52"].Value = "AMOUNT จำนวนเงินตัวอักษร";
+                sheet.Cells["B52"].Style.Font.Size = 9;
+
+                sheet.Cells["I48"].Value = "SUB TOTAL จำนวนเงิน";
+                sheet.Cells["I49"].Value = "VAT 7% ภาษีมูลค่าเพิ่ม";
+                sheet.Cells["I50"].Value = "GRAND TOTAL";
+                sheet.Cells["I51"].Value = "จำนวนเงินรวมทั้งสิ้น";
+                sheet.Cells["B51"].Style.Font.Size = 9;
+
+                sheet.Cells["I48:I51"].Style.Font.Size = 9;
+                sheet.Cells["K48:K51"].Style.Font.Size = 10;
+                sheet.Cells["I48:I50"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                sheet.Cells["K48"].Value = data.total.subTotal;
+                sheet.Cells["K49"].Value = data.total.vat;
+                sheet.Cells["K51"].Value = data.total.grandTotal;
+
+                sheet.Cells["D52:K52"].Merge = true;
+                // sheet.Cells["I50:I51"].Merge = true;
+                sheet.Row(52).Height = 13;
+                sheet.Cells["D52"].Value = data.total.bathString;
+                sheet.Cells["D52"].Style.Font.Size = 9;
+                sheet.Cells["D52"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+
+                // vertical line
+                sheet.Cells["A28:A52"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                sheet.Cells["B28:B51"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                sheet.Cells["F28:F51"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                sheet.Cells["G28:G51"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                sheet.Cells["H28:H51"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                sheet.Cells["I28:I51"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                sheet.Cells["K28:K52"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                sheet.Cells["C52"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+
+                // Horizontal line
+                sheet.Cells["I48:K48"].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                sheet.Cells["I49:K49"].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                sheet.Cells["I50:K50"].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                sheet.Cells["I51"].Style.WrapText = true;
+                sheet.Cells["I51"].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
+                sheet.Cells["I51"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+
+                sheet.Cells["B52:K52"].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                sheet.Cells["B52:K52"].Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Double;
+
+                // green color space
+                sheet.Cells["I48:K49"].Style.Fill.SetBackground(ColorTranslator.FromHtml("#CFF7AC"));
+                sheet.Cells["I50:K51"].Style.Fill.SetBackground(ColorTranslator.FromHtml("#A4E769"));
+                sheet.Cells["D52:K52"].Style.Fill.SetBackground(ColorTranslator.FromHtml("#CFF7AC"));
+                sheet.Cells["B52:C52"].Style.Fill.SetBackground(ColorTranslator.FromHtml("#A4E769"));
+
+                // Remark space
+                sheet.Cells["B54"].Value = "REMARK / หมายเหตุ : ";
+                sheet.Cells["B56"].Value = "IMPORTANT CONDITION / เงื่อนไข";
+                sheet.Cells["B57"].Value = "1. PAY BY CHEQUE OR DRAFT. PLEASE ISSUE PAYEE ONLY TO \"CANON PRACHINBURI (THAILAND) LTD.\"";
+                sheet.Cells["B58"].Value = "2. PAY BY TRANSFER BANK \"SIAM COMMERCIAL BANK\"  Account No.849-2482662";
+                sheet.Cells["B59"].Value = "1.เมื่อชำระด้วยเช็ค ดร๊าฟ โปรดสั่งจ่ายในนาม บริษัท แคนนอน ปราจีนบุรี (ประเทศไทย) จำกัด ขีดฆ่าคำว่า \"หรือผู้ถือ\" และขีดคร่อมเช็คด้วย";
+                sheet.Cells["B60"].Value = "2.เมื่อชำระด้วยการโอนเงิน โปรดโอนผ่านธนาคารไทยพาณิชย์ เลขที่บัญชี 849-2482662";
+                sheet.Cells["B54:B60"].Style.Font.Size = 8;
+                sheet.Cells["B54:B60"].Style.Font.Name = "HGP創英角ｺﾞｼｯｸUB";
+                sheet.Cells["B54:B60"].Style.Font.Color.SetColor(ColorTranslator.FromHtml("#939393"));
+                // Signature space
+                sheet.Cells["I65"].Value = "___________________________";
+                sheet.Cells["I66"].Value = "                          Sign / ลงชื่อ";
+                sheet.Cells["I67"].Value = "DATE/วันที่______________________";
+                sheet.Cells["I69"].Value = "HIDEAKI  TAKATORI";
+                sheet.Cells["I70"].Value = "            General Manager";
+                sheet.Cells["I71"].Value = "  Personnel & General Affairs Div.";
+                sheet.Cells["I72"].Value = " Canon Prachinburi (Thailand) Ltd.";
+                sheet.Cells["I65:I72"].Style.Font.Size = 10;
+                sheet.Cells["I65:I72"].Style.Font.Name = "HGP創英角ｺﾞｼｯｸUB";
+                sheet.Cells["I65:I72"].Style.Font.Color.SetColor(ColorTranslator.FromHtml("#939393"));
+
+
+                shape.Border.Fill.Color = Color.Black;
+                shape.SetPosition(13, 0, 1, 1);
                 shape.SetSize(590, 168);
+
                 excel.SaveAs(file);
-                stream.Position = 0;
+
+
+                return filePath;
             }
             // return file path when gennerated
-            // return "";
         }
         [HttpPut("acc/prepare")]
         public ActionResult AccPrepare(AccPrepareInvoice body)

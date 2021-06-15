@@ -67,5 +67,9 @@ namespace backend.Services
 
             _tb.UpdateOne(filter, update);
         }
+    
+        public List<SummaryInvoiceSchema> ITC_getsummary_approved() {
+            return _tb.Find<SummaryInvoiceSchema>(item => item.status == "approved" && item.type == "Summary BOI/Non-BOI").ToList();
+        }
     }
 }

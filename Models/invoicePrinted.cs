@@ -1,10 +1,15 @@
 
 
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+
 namespace backend.Models
 {
 
     public class InvoicePrintedSchema
     {
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
         public string _id { get; set; }
         public company company { get; set; }
         public InvoiceprintingDetail invoice { get; set; }

@@ -7,6 +7,7 @@ using System;
 using backend.Models;
 using Microsoft.AspNetCore.Authorization;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace backend.Controllers
 {
@@ -22,20 +23,29 @@ namespace backend.Controllers
 
         private readonly prepareLotService _prepareLot;
 
-        public routingController(HazadousService req, InfectionsService infect, requesterUploadServices scrapImo, prepareLotService prepareLot)
+        private readonly SummaryInvoiceService _summaryInvoice;
+
+        public routingController(HazadousService req, InfectionsService infect, requesterUploadServices scrapImo, prepareLotService prepareLot, SummaryInvoiceService summary)
         {
             _hazadous = req;
             _infections = infect;
             _scrapImo = scrapImo;
             _prepareLot = prepareLot;
+            _summaryInvoice = summary;
         }
 
-        [HttpGet("itc/{status}")]
-        public ActionResult dataItcByStatus(string status)
+        [HttpGet("itc/summary/approved")]
+        public ActionResult dataItcByStatus()
         {
             try
             {
-                return Ok(status);
+                List<SummaryInvoiceSchema> data = _summaryInvoice.ITC_getsummary_approved();
+                return Ok(new
+                {
+                    success = true,
+                    message = "Data for ITC Download.",
+                    data,
+                });
             }
             catch (Exception e)
             {
@@ -171,7 +181,8 @@ namespace backend.Controllers
                 _scrapImo.updateStatus(item, "pdc-approved");
                 _scrapImo.signedProfile(item, "pdc-prepared", user);
             });
-            return Ok(new {
+            return Ok(new
+            {
                 success = true,
                 message = "Prepare data success"
             });
