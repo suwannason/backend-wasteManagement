@@ -30,4 +30,8 @@ namespace backend.request
         public string attnRef { get; set; }
 
     }
+    public class ITCapproveInvoice {
+        public string[] id { get; set; }
+        public string status { get; set; }
+    }
 }

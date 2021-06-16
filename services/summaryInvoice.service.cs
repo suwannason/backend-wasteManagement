@@ -49,6 +49,11 @@ namespace backend.Services
                 UpdateDefinition<SummaryInvoiceSchema> update = Builders<SummaryInvoiceSchema>.Update.Set("status", status).Set("approve", profile);
                 _tb.UpdateOne(filter, update);
             }
+            else if (status == "toInvoice")
+            {
+                UpdateDefinition<SummaryInvoiceSchema> update = Builders<SummaryInvoiceSchema>.Update.Set("status", status);
+                _tb.UpdateOne(filter, update);
+            }
         }
 
         public void updateTotal(string id, string totalPrice, string totalWeight)
@@ -67,8 +72,9 @@ namespace backend.Services
 
             _tb.UpdateOne(filter, update);
         }
-    
-        public List<SummaryInvoiceSchema> ITC_getsummary_approved() {
+
+        public List<SummaryInvoiceSchema> ITC_getsummary_approved()
+        {
             return _tb.Find<SummaryInvoiceSchema>(item => item.status == "approved" && item.type == "Summary BOI/Non-BOI").ToList();
         }
     }

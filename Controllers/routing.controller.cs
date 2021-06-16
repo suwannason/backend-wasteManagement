@@ -113,47 +113,15 @@ namespace backend.Controllers
 
             return Ok(new { success = true, message = "Invoice ITC", data, });
         }
-        [HttpPatch("itc/checked")]
-        public ActionResult updateToChecked(routingLotUpdate body)
+
+        [HttpPatch("itc/invoice/status")]
+        public ActionResult itcUpdateStatusInvoice(ITCapproveInvoice body)
         {
-            try
-            {
-                Profile user = new Profile();
-                user.empNo = User.FindFirst("username")?.Value;
-                user.band = User.FindFirst("band")?.Value;
-                user.dept = User.FindFirst("dept")?.Value;
-                user.div = User.FindFirst("div")?.Value;
-                user.name = User.FindFirst("name")?.Value;
-                user.tel = User.FindFirst("tel")?.Value;
-                return Ok("checked");
+            foreach (string id in body.id) {
+                _itc_invoice.updateStatus(id, body.status);
             }
-            catch (Exception e)
-            {
-                return Problem(e.StackTrace);
-            }
+            return Ok();
         }
-
-        [HttpPatch("itc/approved")]
-        public ActionResult updateToApproved(routingLotUpdate body)
-        {
-            try
-            {
-                Profile user = new Profile();
-                user.empNo = User.FindFirst("username")?.Value;
-                user.band = User.FindFirst("band")?.Value;
-                user.dept = User.FindFirst("dept")?.Value;
-                user.div = User.FindFirst("div")?.Value;
-                user.name = User.FindFirst("name")?.Value;
-                user.tel = User.FindFirst("tel")?.Value;
-
-                return Ok("approved");
-            }
-            catch (Exception e)
-            {
-                return Problem(e.StackTrace);
-            }
-        }
-
         [HttpDelete("reject/{lotNo}")]
         public ActionResult reject(string lotNo)
         {
