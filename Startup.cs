@@ -117,6 +117,7 @@ namespace backend
             services.AddSingleton<itcDBservice>();
             services.AddSingleton<SummaryInvoiceService>();
             services.AddSingleton<InvoicePrintedService>();
+            services.AddSingleton<ITC_invoiceService>();
             services.AddControllers();
         }
 

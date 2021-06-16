@@ -8,6 +8,7 @@ using backend.Models;
 using Microsoft.AspNetCore.Authorization;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.IO;
 
 namespace backend.Controllers
 {
@@ -24,17 +25,19 @@ namespace backend.Controllers
         private readonly prepareLotService _prepareLot;
 
         private readonly SummaryInvoiceService _summaryInvoice;
+        private readonly ITC_invoiceService _itc_invoice;
 
-        public routingController(HazadousService req, InfectionsService infect, requesterUploadServices scrapImo, prepareLotService prepareLot, SummaryInvoiceService summary)
+        public routingController(HazadousService req, InfectionsService infect, requesterUploadServices scrapImo, prepareLotService prepareLot, SummaryInvoiceService summary, ITC_invoiceService itcInvoice)
         {
             _hazadous = req;
             _infections = infect;
             _scrapImo = scrapImo;
             _prepareLot = prepareLot;
             _summaryInvoice = summary;
+            _itc_invoice = itcInvoice;
         }
 
-        [HttpGet("itc/summary/approved")]
+        [HttpGet("itc/summary/approved")] // get summary BOI for itc
         public ActionResult dataItcByStatus()
         {
             try
@@ -53,12 +56,49 @@ namespace backend.Controllers
             }
         }
 
-        [HttpGet("fae/{status}")]
-        public ActionResult dataFaeByStatus(string status)
+        [HttpPost("itc/invoice/{id}")]
+        public ActionResult itcUploadInvoice(string id, [FromForm] uploadFile body)
         {
             try
             {
-                return Ok(status);
+                string rootFolder = Directory.GetCurrentDirectory();
+
+                string pathString2 = @"\API site\files\wastemanagement\";
+
+                string serverPath = rootFolder.Substring(0, rootFolder.LastIndexOf(@"\")) + pathString2;
+
+                if (!System.IO.Directory.Exists(serverPath))
+                {
+                    Directory.CreateDirectory(serverPath);
+                }
+
+                string g = Guid.NewGuid().ToString();
+
+                using (FileStream strem = System.IO.File.Create($"{serverPath}{g}-{body.file.FileName}"))
+                {
+                    body.file.CopyTo(strem);
+                }
+                Profile req_prepare = new Profile();
+
+                req_prepare.empNo = User.FindFirst("username")?.Value;
+                req_prepare.band = User.FindFirst("band")?.Value;
+                req_prepare.dept = User.FindFirst("dept")?.Value;
+                req_prepare.name = User.FindFirst("name")?.Value;
+                req_prepare.date = DateTime.Now.ToString("yyyy/MM/dd");
+
+                // Console.WriteLine($"{serverPath}{g}-{body.file.FileName}");
+                // Console.WriteLine(id);
+                _itc_invoice.create(new ITCinvoiceSchema
+                {
+                    files = g + body.file.FileName,
+                    summaryId = id,
+                    createDate = DateTime.Now.ToString("yyyy/MM/dd"),
+                    prepare = req_prepare,
+                    status = "prepare"
+                });
+                _summaryInvoice.updateStatus(id, "toInvoice", req_prepare);
+
+                return Ok(new { success = true, message = "Upload ITC invoice success", });
             }
             catch (Exception e)
             {
@@ -66,6 +106,13 @@ namespace backend.Controllers
             }
         }
 
+        [HttpGet("itc/invoice/{status}")]
+        public ActionResult getByStatus(string status)
+        {
+            List<ITCinvoiceSchema> data = _itc_invoice.getByStatus(status);
+
+            return Ok(new { success = true, message = "Invoice ITC", data, });
+        }
         [HttpPatch("itc/checked")]
         public ActionResult updateToChecked(routingLotUpdate body)
         {
