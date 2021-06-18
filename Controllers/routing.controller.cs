@@ -120,7 +120,7 @@ namespace backend.Controllers
             foreach (string id in body.id) {
                 _itc_invoice.updateStatus(id, body.status);
             }
-            return Ok();
+            return Ok(new { success = true, message = "Update ststus success."});
         }
         [HttpDelete("reject/{lotNo}")]
         public ActionResult reject(string lotNo)

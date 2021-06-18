@@ -114,6 +114,12 @@ namespace backend.Controllers
             }
         }
 
+        [HttpGet("fae/prepared")]
+        public ActionResult getStatusPrepareAndReject()
+        {
+            List<SummaryInvoiceSchema> data = _services.getPrepareandReject();
+            return Ok(new { success = true, message = "Data for FAE prepare summary", data, });
+        }
         [HttpGet("{status}")]
         public ActionResult getByStatus(string status)
         {
@@ -292,16 +298,16 @@ namespace backend.Controllers
 
                 int no = 1;
                 double totalWeight = 0.0; double totalPrice = 0.0;
-                foreach (requesterUploadSchema item in data.requester)
+                foreach (Waste item in data.recycle)
                 {
                     returnData.Add(new
                     {
                         id = no,
                         biddingType = item.biddingType,
                         color = item.color,
-                        weight = item.netWasteWeight,
+                        weight = Double.Parse(item.netWasteWeight).ToString("#,###.00"),
                         unitPrice = item.unitPrice,
-                        totalPrice = item.totalPrice
+                        totalPrice = Double.Parse(item.totalPrice).ToString("#,###.00")
                     });
 
                     totalWeight += Double.Parse(item.netWasteWeight);
@@ -323,7 +329,7 @@ namespace backend.Controllers
                     data = returnData,
                     total = new
                     {
-                        lotNo = data.requester[0].lotNo,
+                        lotNo = data.recycle[0].lotNo,
                         totalWeight = totalWeight.ToString("#,##0.00"),
                         totalPrice = totalPrice.ToString("#,##0.00")
                     },
@@ -331,6 +337,7 @@ namespace backend.Controllers
             }
             catch (Exception e)
             {
+                Console.WriteLine(e.Message);
 
                 return Problem(e.StackTrace);
             }

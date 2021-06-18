@@ -80,5 +80,9 @@ namespace backend.Services
         {
             return _tb.Find<SummaryInvoiceSchema>(item => item.status == "approved" && item.type == "Summary BOI/Non-BOI").ToList();
         }
+        public List<SummaryInvoiceSchema> getPrepareandReject() {
+
+            return _tb.Find<SummaryInvoiceSchema>(item => item.status == "prepared" || item.status == "reject").ToList();
+        }
     }
 }
