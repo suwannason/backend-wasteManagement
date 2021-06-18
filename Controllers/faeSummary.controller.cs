@@ -507,15 +507,15 @@ namespace backend.Controllers
                     SummaryInvoiceSchema data = _services.getById(id);
 
                     int rowItem = 9; int no = 1;
-                    foreach (requesterUploadSchema item in data.requester)
+                    foreach (Waste item in data.recycle)
                     {
                         sheet.Cells["A" + rowItem].Value = no;
                         sheet.Cells["B" + rowItem + ":C" + rowItem].Merge = true;
                         sheet.Cells["B" + rowItem].Value = item.biddingType;
                         sheet.Cells["D" + rowItem].Value = item.color;
-                        sheet.Cells["E" + rowItem].Value = item.netWasteWeight;
+                        sheet.Cells["E" + rowItem].Value = Double.Parse(item.netWasteWeight).ToString("##,###.00");
                         sheet.Cells["F" + rowItem].Value = item.unitPrice;
-                        sheet.Cells["G" + rowItem].Value = item.totalPrice;
+                        sheet.Cells["G" + rowItem].Value = Double.Parse(item.totalPrice).ToString("##,###.00");
 
                         sheet.Cells["A" + rowItem + ":H" + rowItem].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
                         sheet.Cells["A" + rowItem + ":H" + rowItem].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
