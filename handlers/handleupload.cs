@@ -63,7 +63,7 @@ public class handleUpload
                         string value = sheet.Cells[row, col].Value?.ToString();
                         // rowData.moveOutDate = value.Trim();
                         DateTime parsed = DateTime.ParseExact(value, "M/d/yyyy hh:mm:ss tt", CultureInfo.InvariantCulture);
-                        rowData.moveOutDate = parsed.ToString("yyyy/MM/dd");
+                        rowData.moveOutDate = parsed.ToString("dd-MMMM-yyyy");
                         rowData.moveOutMonth = parsed.ToString("MMMM");
                         rowData.moveOutYear = parsed.ToString("yyyy");
                     }

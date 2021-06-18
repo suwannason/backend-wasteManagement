@@ -10,6 +10,7 @@ using backend.response;
 using backend.Models;
 using backend.request;
 using System.Globalization;
+using System.Linq;
 
 namespace backend.Controllers
 {
@@ -37,33 +38,97 @@ namespace backend.Controllers
         public ActionResult<RecycleWesteResponse> GetForCheck()
         {
             // string username = User.FindFirst("username")?.Value;
-
             List<Waste> data = _recycleService.GetOpen();
-            res.success = true;
-            res.data = data.ToArray();
+
+            List<Waste> grouped = data.GroupBy(x => new { x.moveOutDate, x.phase, x.boiType }).Select(y => new Waste
+            {
+                boiType = y.Key.boiType,
+                moveOutDate = y.Key.moveOutDate,
+                phase = y.Key.phase
+            }).ToList();
+
+            List<wasteGroupedRecord> returnData = new List<wasteGroupedRecord>();
+
+            foreach (Waste item in grouped)
+            {
+                List<Waste> itemInGroup = _recycleService.getGroupingItems(item.moveOutDate, item.phase, item.boiType, "open");
+
+                double totalNetweight = 0;
+
+                foreach (Waste gItem in itemInGroup)
+                {
+                    totalNetweight += Double.Parse(gItem.netWasteWeight);
+                }
+                returnData.Add(new wasteGroupedRecord
+                {
+                    moveOutDate = item.moveOutDate,
+                    boiType = item.boiType,
+                    companyApprove = itemInGroup[0].companyApprove,
+                    cptMainType = itemInGroup[0].cptMainType,
+                    lotNo = itemInGroup[0].lotNo,
+                    netWasteWeight = totalNetweight.ToString("##,###.00"),
+                    phase = item.phase,
+                    wasteGroup = itemInGroup[0].wasteGroup
+                });
+            }
             if (data.Count == 0)
             {
-                res.message = "Notfound Data.";
-                return NotFound(res);
+                return NotFound(new { success = true, message = "Data not found." });
             }
             res.message = "Get data success";
-            return Ok(res);
+            return Ok(new { success = true, message = "Data record.", data = returnData });
         }
 
         [HttpGet("approve")]
         public ActionResult<RecycleWesteResponse> GetForApprove()
         {
-
-            List<Waste> data = _recycleService.GetApprove();
-            res.success = true;
-            res.data = data.ToArray();
-            if (data.Count == 0)
+            try
             {
-                res.message = "Notfound Data.";
-                return NotFound(res);
+                List<Waste> data = _recycleService.GetApprove();
+                if (data.Count == 0)
+                {
+                    return NotFound(new { success = true, message = "Data not found." });
+                }
+                List<Waste> grouped = data.GroupBy(x => new { x.moveOutDate, x.phase, x.boiType }).Select(y => new Waste
+                {
+                    boiType = y.Key.boiType,
+                    moveOutDate = y.Key.moveOutDate,
+                    phase = y.Key.phase
+                }).ToList();
+                List<wasteGroupedRecord> returnData = new List<wasteGroupedRecord>();
+
+                foreach (Waste item in grouped)
+                {
+                    List<Waste> itemInGroup = _recycleService.getGroupingItems(item.moveOutDate, item.phase, item.boiType, "checked");
+
+                    // return Ok(itemInGroup);
+                    double totalNetweight = 0;
+
+                    foreach (Waste gItem in itemInGroup)
+                    {
+                        totalNetweight += Double.Parse(gItem.netWasteWeight);
+                    }
+                    returnData.Add(new wasteGroupedRecord
+                    {
+                        moveOutDate = item.moveOutDate,
+                        boiType = item.boiType,
+                        companyApprove = itemInGroup[0].companyApprove,
+                        cptMainType = itemInGroup[0].cptMainType,
+                        lotNo = itemInGroup[0].lotNo,
+                        netWasteWeight = totalNetweight.ToString("##,###.00"),
+                        phase = item.phase,
+                        wasteGroup = itemInGroup[0].wasteGroup
+                    });
+                }
+      
+                res.message = "Get data success";
+                return Ok(new { success = true, message = "Data record.", data = returnData });
             }
-            res.message = "Get data success";
-            return Ok(res);
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return Problem(e.StackTrace);
+            }
         }
 
         [HttpPut("status")]
@@ -179,7 +244,7 @@ namespace backend.Controllers
                 Companies contrator = _company.getByName(body.contractorCompany);
 
                 item.contractEndDate = contrator.contractEndDate.Substring(0, contrator.contractEndDate.IndexOf(" "));
-                item.contractStartDate =  contrator.contractStartDate.Substring(0, contrator.contractStartDate.IndexOf(" "));
+                item.contractStartDate = contrator.contractStartDate.Substring(0, contrator.contractStartDate.IndexOf(" "));
                 item.contractNo = contrator.contractNo;
 
                 faeDBschema faeData = _faeDB.getByWasteName(null, item.wasteName);
@@ -395,6 +460,16 @@ namespace backend.Controllers
             res.data = data.ToArray();
 
             return Ok(res);
+        }
+
+        [HttpPatch("detail")]
+        public ActionResult getDataDetail(RequestGetDetail body)
+        {
+            // for prepare and check page status = open
+            // for prepare and approve = checked
+            List<Waste> data = _recycleService.getGroupingItems(body.moveOutDate, body.phase, body.boiType, body.status);
+
+            return Ok(new { success = true, message = "Data record", data, });
         }
     }
 }

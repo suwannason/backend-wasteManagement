@@ -45,4 +45,11 @@ namespace backend.request {
     public class RequestInvoiceDataWithName {
         public string wasteName { get; set; }
     }
+
+    public class RequestGetDetail {
+        public string moveOutDate { get; set; }
+        public string phase { get; set; }
+        public string boiType { get; set; }
+        public string status { get; set; }
+    }
 }

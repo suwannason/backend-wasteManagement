@@ -23,12 +23,12 @@ namespace backend.Services
         public List<Waste> GetOpen()
         {
             // return recycle.Find(book => true).ToList();
-            return recycle.Find<Waste>(recycle => recycle.year == DateTime.Now.Year.ToString() && recycle.status == "open").ToList();
+            return recycle.Find<Waste>(recycle => recycle.status == "open").ToList();
         }
 
         public List<Waste> GetApprove()
         {
-            return recycle.Find<Waste>(recycle => recycle.year == DateTime.Now.Year.ToString() && recycle.status == "checked").ToList();
+            return recycle.Find<Waste>(recycle => recycle.status == "checked").ToList();
         }
         public List<Waste> GetCheck()
         {
@@ -191,25 +191,46 @@ namespace backend.Services
         {
             return recycle.Find<Waste>(item => item.lotNo == lotNo).FirstOrDefault();
         }
-        public List<Waste> faeSummary(string lotNo, string month, string year, string wasteName, string phase)
+        public List<Waste> faeSummary(string lotNo, string startDate, string endDate, string wasteName, string phase)
         {
-            if (month == "" && year == "" && wasteName == "" && phase == "")
+            // string startConver = DateTime.ParseExact(startDate, "yyyy/MMM/dd", System.Globalization.CultureInfo.InvariantCulture).ToString("yyyy/MM/dd");
+
+            List<Waste> data = recycle.Find(item => item.status == "approve").ToList();
+
+            if (lotNo != "-" && lotNo != "")
             {
-                return recycle.Find<Waste>(item => item.status == "approve").ToList();
+                data = data.FindAll(e => e.lotNo == lotNo);
             }
-            if (lotNo != "-")
+            if (wasteName != "-" && wasteName != "")
             {
-                return recycle.Find<Waste>(item =>
-                    item.wasteName == wasteName && item.status == "approve" && item.lotNo == lotNo ||
-                    item.phase == phase &&
-                    (item.month == month && item.year == year)).ToList();
+                data = data.FindAll(e => e.wasteName == wasteName);
             }
-            return recycle.Find<Waste>(item =>
-            // item.status == "fae-approved" &&
-            item.wasteName == wasteName && item.status == "approve" ||
-            item.phase == phase &&
-            (item.month == month && item.year == year)
-            ).ToList();
+
+            if (phase != "-" && phase != "")
+            {
+                data = data.FindAll(e => e.phase == phase);
+            }
+
+            if (startDate != "-" && startDate != "")
+            {
+                foreach (Waste item in data)
+                {
+
+                    string startDateConvert = DateTime.ParseExact(item.moveOutDate, "dd-MMMM-yyyy", System.Globalization.CultureInfo.InvariantCulture).ToString("yyyy/MM/dd");
+                    item.moveOutDate = startDateConvert;
+
+                }
+                data = data.FindAll(e => startDate.CompareTo(e.moveOutDate) <= 0);
+                data = data.FindAll(e => endDate.CompareTo(e.moveOutDate) >= 0);
+            }
+            return data;
+
+        }
+
+        public List<Waste> getGroupingItems(string moveOutDate, string phase, string boiType, string status)
+        {
+
+            return recycle.Find<Waste>(item => item.moveOutDate == moveOutDate && item.phase == phase && item.boiType == boiType && item.status == status).ToList();
         }
     }
 }

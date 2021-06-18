@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using System.IO;
-using Microsoft.AspNetCore.Authorization;
 
 using OfficeOpenXml;
 using backend.Services;
@@ -41,11 +40,13 @@ namespace backend.Controllers
         {
             try
             {
-                List<requesterUploadSchema> requester = _requester.faeSummarySearch(body.moveOutMonth, body.moveOutYear, body.wasteName, body.lotNo);
-                List<Waste> waste = _recycle.faeSummary(body.lotNo, body.moveOutMonth, body.moveOutYear, body.wasteName, body.phase);
+
+                List<requesterUploadSchema> requester = _requester.faeSummarySearch(body.lotNo, body.startDate, body.endDate, body.wasteName, body.phase);
+                List<Waste> waste = _recycle.faeSummary(body.lotNo, body.startDate, body.endDate, body.wasteName, body.phase);
                 return Ok(new
                 {
                     success = true,
+                    // data = new { waste, }
                     data = new { requester, waste, }
                 });
             }
@@ -89,6 +90,7 @@ namespace backend.Controllers
                 {
                     sumRecycle += Double.Parse(item.netWasteWeight);
                 }
+
                 createItem.approve = new Profile { band = "-", date = "-", dept = "-", div = "-", empNo = "-", name = "-", tel = "-" };
                 createItem.check = new Profile { band = "-", date = "-", dept = "-", div = "-", empNo = "-", name = "-", tel = "-" };
                 createItem.exportRef = true;
@@ -99,6 +101,7 @@ namespace backend.Controllers
                 createItem.type = body.type;
                 createItem.recycleWeight = sumRecycle;
                 createItem.requesterWeight = sumRequester;
+                createItem.createDate = DateTime.Now.ToString("yyyy/MM/dd");
 
                 _services.create(createItem);
 
@@ -136,7 +139,7 @@ namespace backend.Controllers
 
                 double totalWeight = 0.0; double totalPrice = 0.0;
 
-                foreach (requesterUploadSchema item in data.requester)
+                foreach (Waste item in data.recycle)
                 {
                     totalWeight += Double.Parse(item.netWasteWeight);
 
@@ -277,8 +280,6 @@ namespace backend.Controllers
                 return Problem(e.StackTrace);
             }
         }
-
-        [HttpGet("recycle/{id}")]
 
         [HttpGet("boi/{id}")]
         public ActionResult getBOI_non(string id)
@@ -585,7 +586,7 @@ namespace backend.Controllers
                     excel.SaveAs(file);
                     stream.Position = 0;
 
-                   return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", filePath);
+                    return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", filePath);
                 }
                 // return Ok(new { success = true });
             }
@@ -594,6 +595,8 @@ namespace backend.Controllers
                 return Problem(e.StackTrace);
             }
         }
+
+        [HttpGet("recycle/{id}")]
         public ActionResult getRecycleData(string id)
         {
             try
@@ -681,21 +684,47 @@ namespace backend.Controllers
                 return Problem(e.StackTrace);
             }
         }
-    
-        [HttpGet("type/{id}")]
-        public ActionResult getSummaryType(string id) {
-             try
-             {
-                 SummaryInvoiceSchema data = _services.getById(id);
 
-                 return Ok(
-                     new { success = true, message = "Summary item", data = new { type = data.type, id = data._id } }
-                 );
-             }
-             catch (Exception e)
-             {
-                 return Problem(e.StackTrace);
-             }
+        [HttpGet("type/{id}")]
+        public ActionResult getSummaryType(string id)
+        {
+            try
+            {
+                SummaryInvoiceSchema data = _services.getById(id);
+
+                return Ok(
+                    new { success = true, message = "Summary item", data = new { type = data.type, id = data._id } }
+                );
+            }
+            catch (Exception e)
+            {
+                return Problem(e.StackTrace);
+            }
+        }
+
+        [HttpGet("reset/{id}")]
+        public ActionResult resetToApprove(string id)
+        {
+            try
+            {
+                SummaryInvoiceSchema data = _services.getById(id);
+
+                foreach (Waste item in data.recycle)
+                {
+                    _recycle.updateStatus(item._id, "approve");
+                }
+                foreach (requesterUploadSchema item in data.requester)
+                {
+                    _requester.updateStatusById(item._id, "fae-approved");
+                }
+
+                _services.updateStatus(id, "reject", null);
+                return Ok(new { success = true, message = "Reset data success. " });
+            }
+            catch (Exception e)
+            {
+                return Problem(e.StackTrace);
+            }
         }
     }
 }

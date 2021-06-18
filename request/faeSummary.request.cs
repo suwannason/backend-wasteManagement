@@ -8,9 +8,9 @@ namespace backend.request {
          public string wasteName { get; set; }
          public string phase { get; set; }
         //  [Required]
-         public string moveOutMonth { get; set; }
+         public string startDate { get; set; }
         //  [Required]
-         public string moveOutYear { get; set; }
+         public string endDate { get; set; }
 
      }
 

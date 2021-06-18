@@ -61,4 +61,15 @@ namespace backend.Models
         public string contractNo { get; set; }
         //company
     }
+
+    public class wasteGroupedRecord {
+        public string moveOutDate { get; set; }
+        public string phase { get; set; }
+        public string boiType { get; set; }
+        public string netWasteWeight { get; set; }
+        public string cptMainType { get; set; }
+        public string lotNo { get; set; }
+        public string companyApprove { get; set; }
+        public string wasteGroup { get; set; }
+    }
 }

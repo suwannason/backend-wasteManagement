@@ -193,7 +193,6 @@ namespace backend.Services
 
         public List<requesterUploadSchema> getByLotno(string lotNo)
         {
-
             FilterDefinition<requesterUploadSchema> lotNoFilter = Builders<requesterUploadSchema>.Filter.Eq(item => item.lotNo, lotNo);
             return _scrapMatrial.Find<requesterUploadSchema>(lotNoFilter).ToList<requesterUploadSchema>();
         }
@@ -212,23 +211,46 @@ namespace backend.Services
             _scrapMatrial.UpdateOne(filter, update);
         }
 
-        public List<requesterUploadSchema> faeSummarySearch(string month, string year, string wastename, string lotNo)
+        public List<requesterUploadSchema> faeSummarySearch(string lotNo, string startDate, string endDate, string wasteName, string phase)
         {
 
-            if (month == "" && year == "" && wastename == "" && lotNo == "-")
+            List<requesterUploadSchema> data = _scrapMatrial.Find(item => item.status == "fae-approved").ToList();
+
+            if (lotNo != "-" && lotNo != "")
             {
-                return _scrapMatrial.Find<requesterUploadSchema>(item => item.status == "fae-approved").ToList();
+                data = data.FindAll(e => e.lotNo == lotNo);
             }
-            return _scrapMatrial.Find<requesterUploadSchema>(item =>
-            item.lotNo == lotNo ||
-            item.status == "fae-approved" &&
-            item.invoiceRef == true &&
-            item.wasteName == wastename || (item.moveOutMonth == month && item.moveOutYear == year)).ToList();
+            if (wasteName != "-" && wasteName != "")
+            {
+                data = data.FindAll(e => e.wasteName == wasteName);
+            }
+
+            if (startDate != "-" && startDate != "")
+            {
+                foreach (requesterUploadSchema item in data)
+                {
+
+                    string startDateConvert = DateTime.ParseExact(item.moveOutDate, "dd-MMMM-yyyy", System.Globalization.CultureInfo.InvariantCulture).ToString("yyyy/MM/dd");
+                    item.moveOutDate = startDateConvert;
+
+                }
+                data = data.FindAll(e => startDate.CompareTo(e.moveOutDate) <= 0);
+                data = data.FindAll(e => endDate.CompareTo(e.moveOutDate) >= 0);
+            }
+            return data;
         }
 
         public List<requesterUploadSchema> getLotNo()
         {
             return _scrapMatrial.Find<requesterUploadSchema>(item => item.status == "fae-approved").Project<requesterUploadSchema>("{lotNo: 1, }").ToList();
+        }
+
+        public void updateStatusById(string id, string status)
+        {
+            FilterDefinition<requesterUploadSchema> filter = Builders<requesterUploadSchema>.Filter.Eq(item => item._id, id);
+            UpdateDefinition<requesterUploadSchema> update = Builders<requesterUploadSchema>.Update.Set("status", status);
+
+            _scrapMatrial.UpdateOne(filter, update);
         }
     }
 }

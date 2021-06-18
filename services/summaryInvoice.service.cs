@@ -53,6 +53,9 @@ namespace backend.Services
             {
                 UpdateDefinition<SummaryInvoiceSchema> update = Builders<SummaryInvoiceSchema>.Update.Set("status", status);
                 _tb.UpdateOne(filter, update);
+            } else if (status == "reject") {
+                UpdateDefinition<SummaryInvoiceSchema> update = Builders<SummaryInvoiceSchema>.Update.Set("status", status);
+                _tb.UpdateOne(filter, update);
             }
         }
 
