@@ -53,11 +53,13 @@ namespace backend.Controllers
             {
                 List<Waste> itemInGroup = _recycleService.getGroupingItems(item.moveOutDate, item.phase, item.boiType, "open");
 
+                List<string> id = new List<string>();
                 double totalNetweight = 0;
 
                 foreach (Waste gItem in itemInGroup)
                 {
                     totalNetweight += Double.Parse(gItem.netWasteWeight);
+                    id.Add(gItem._id);
                 }
                 returnData.Add(new wasteGroupedRecord
                 {
@@ -68,7 +70,8 @@ namespace backend.Controllers
                     lotNo = itemInGroup[0].lotNo,
                     netWasteWeight = totalNetweight.ToString("##,###.00"),
                     phase = item.phase,
-                    wasteGroup = itemInGroup[0].wasteGroup
+                    wasteGroup = itemInGroup[0].wasteGroup,
+                    id = id.ToArray(),
                 });
             }
             if (data.Count == 0)
@@ -103,10 +106,12 @@ namespace backend.Controllers
 
                     // return Ok(itemInGroup);
                     double totalNetweight = 0;
+                    List<string> id = new List<string>();
 
                     foreach (Waste gItem in itemInGroup)
                     {
                         totalNetweight += Double.Parse(gItem.netWasteWeight);
+                        id.Add(gItem._id);
                     }
                     returnData.Add(new wasteGroupedRecord
                     {
@@ -117,7 +122,8 @@ namespace backend.Controllers
                         lotNo = itemInGroup[0].lotNo,
                         netWasteWeight = totalNetweight.ToString("##,###.00"),
                         phase = item.phase,
-                        wasteGroup = itemInGroup[0].wasteGroup
+                        wasteGroup = itemInGroup[0].wasteGroup,
+                        id = id.ToArray(),
                     });
                 }
       

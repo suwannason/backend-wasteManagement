@@ -67,37 +67,40 @@ public class handleUpload
                         rowData.moveOutMonth = parsed.ToString("MMMM");
                         rowData.moveOutYear = parsed.ToString("yyyy");
                     }
-                    else if (col == 5)
+                    else if (col == 5) {
+                        rowData.phase = sheet.Cells[row, col].Value?.ToString();
+                    }
+                    else if (col == 6)
                     {
                         rowData.lotNo = prepare.dept.ToUpper() + "-" + sheet.Cells[row, col].Value?.ToString();
                     }
-                    else if (col == 6)
+                    else if (col == 7)
                     {
                         matrialCode = sheet.Cells[row, col].Value?.ToString();
                         rowData.matrialCode = sheet.Cells[row, col].Value?.ToString();
                     }
-                    else if (col == 7)
+                    else if (col == 8)
                     {
                         matrialName = sheet.Cells[row, col].Value?.ToString();
                         rowData.matrialName = sheet.Cells[row, col].Value?.ToString();
                     }
-                    else if (col == 8)
+                    else if (col == 9)
                     {
                         rowData.totalWeight = sheet.Cells[row, col].Value?.ToString();
                     }
-                    else if (col == 9)
+                    else if (col == 10)
                     {
                         rowData.containerWeight = Math.Round(Double.Parse(sheet.Cells[row, col].Value?.ToString()), 2).ToString();
                     }
-                    else if (col == 10)
+                    else if (col == 11)
                     {
                         rowData.qtyOfContainer = sheet.Cells[row, col].Value?.ToString();
                     }
-                    else if (col == 11)
+                    else if (col == 12)
                     {
                         rowData.netWasteWeight = sheet.Cells[row, col].Value?.ToString();
                     }
-                    else if (col == 12)
+                    else if (col == 13)
                     {
                         rowData.unit = sheet.Cells[row, col].Value?.ToString();
 
@@ -124,9 +127,10 @@ public class handleUpload
                     rowData.invoiceRef = false;
                     // FAE
                     // Console.WriteLine(row + " --> " + sheet.Cells[row, 1].Value?.ToString());
-                    if (col == 11)
+                    if (col == 12)
                     {
                         faeDBschema faeDB = _faeDB.getByWasteName(rowData.matrialCode, rowData.kind);
+
                         if (faeDB != null)
                         {
                             rowData.biddingType = faeDB.biddingType;
@@ -161,6 +165,7 @@ public class handleUpload
                     rowData.req_approved = emptyUser;
                     rowData.itc_checked = emptyUser;
                     rowData.itc_approved = emptyUser;
+                    rowData.fae_prepared = emptyUser;
                     rowData.fae_checked = emptyUser;
                     rowData.fae_approved = emptyUser;
                     rowData.pdc_prepared = emptyUser;

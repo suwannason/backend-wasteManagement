@@ -160,15 +160,17 @@ namespace backend.Controllers
                 handleUpload action = new handleUpload(_itcDB, _faeDB);
 
                 List<requesterUploadSchema> data = action.Upload(filename, req_prepare, usertmp);
-
+                
                 List<requesterUploadSchema> errrorItems = data.FindAll(item => item.totalPrice == "-");
 
                 if (errrorItems.Count > 0)
                 {
                     List<dynamic> returnError = new List<dynamic>();
                     int id = 1;
-                    foreach(requesterUploadSchema item in errrorItems) {
-                        returnError.Add(new {
+                    foreach (requesterUploadSchema item in errrorItems)
+                    {
+                        returnError.Add(new
+                        {
                             id,
                             kind = item.kind,
                             moveOutDate = item.moveOutDate,
@@ -255,6 +257,47 @@ namespace backend.Controllers
             {
                 return Problem(e.StackTrace);
             }
+        }
+
+        [HttpGet("fae/tracking")]
+        public ActionResult tracking()
+        {
+            List<requesterUploadSchema> data = _requester.getTracking();
+
+            foreach (requesterUploadSchema item in data)
+            {
+                if (item.status == "req-prepared")
+                {
+                    item.status = "Waiting for requester checking";
+                }
+                else if (item.status == "req-checked")
+                {
+                    item.status = "Waiting for requester approving";
+                }
+                else if (item.status == "req-approved")
+                {
+                    item.status = "Waiting for PDC prepare data";
+                }
+                else if (item.status == "pdc-prepared")
+                {
+                    item.status = "Waiting for PDC checking";
+                }
+                else if (item.status == "pdc-checked")
+                {
+                    item.status = "Waiting for ITC prepare data";
+                }
+                else if (item.status == "itc-checked")
+                {
+                    item.status = "Waiting for ITC approving";
+                }
+            }
+            return Ok(
+                new {
+                    success = true,
+                    message = "All requester tracking data.",
+                    data,
+                }
+            );
         }
     }
 

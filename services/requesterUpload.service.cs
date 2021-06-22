@@ -252,5 +252,10 @@ namespace backend.Services
 
             _scrapMatrial.UpdateOne(filter, update);
         }
+
+        public List<requesterUploadSchema> getTracking()
+        {
+            return _scrapMatrial.Find<requesterUploadSchema>(item => item.status != "itc-approved" && item.status != "fae-prepared" && item.status != "fae-checked" && item.status != "fae-approved" && item.status != "toInvoice" && item.status != "toSummary").ToList();
+        }
     }
 }

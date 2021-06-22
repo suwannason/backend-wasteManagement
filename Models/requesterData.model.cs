@@ -18,6 +18,7 @@ namespace backend.Models
         public string moveOutDate { get; set; } //
         public string moveOutMonth { get; set; }
         public string moveOutYear { get; set; }
+        public string phase { get; set; }
         public string no { get; set; } //
         public string wasteName { get; set; } //
         public string kind { get; set; }

@@ -31,10 +31,11 @@ namespace backend.Controllers
         private readonly SummaryInvoiceService _summary;
         private readonly InvoicePrintedService _invoicePrinting;
         private readonly faeDBservice _faeDB;
+        private readonly ITC_invoiceService _itc_invoice;
 
         InvoiceResponse res = new InvoiceResponse();
 
-        public invoiceController(InvoiceService invoiceService, RecycleService wasteService, requesterUploadServices requester, faeDBservice fae, SummaryInvoiceService summary, InvoicePrintedService invoicePrinting)
+        public invoiceController(InvoiceService invoiceService, RecycleService wasteService, requesterUploadServices requester, faeDBservice fae, SummaryInvoiceService summary, InvoicePrintedService invoicePrinting, ITC_invoiceService itcInvoice)
         {
             _invoiceService = invoiceService;
             _wasteService = wasteService;
@@ -42,6 +43,7 @@ namespace backend.Controllers
             _faeDB = fae;
             _summary = summary;
             _invoicePrinting = invoicePrinting;
+            _itc_invoice = itcInvoice;
         }
 
         [HttpPut("{id}")]
@@ -177,18 +179,56 @@ namespace backend.Controllers
         {
             try
             {
-                Console.WriteLine(status);
-                List<Invoices> data = _invoiceService.getByStatus(status);
-                res.success = true;
-                res.data = data.ToArray();
+                List<dynamic> ITCdata = new List<dynamic>();
+                List<ITCinvoiceSchema> itc_invoice = new List<ITCinvoiceSchema>();
+                List<Invoices> invoice = new List<Invoices>();
 
-                if (res.data.Length == 0)
+                if (status == "acc-prepared")
                 {
-                    res.message = "No data.";
-                    return NotFound(res);
+                    invoice = _invoiceService.getByStatus(status);
+                    itc_invoice = _itc_invoice.getByStatus("prepared");
                 }
-                res.message = "Get invoice success";
-                return Ok(res);
+                else if (status == "acc-checked")
+                {
+                    invoice = _invoiceService.getByStatus(status);
+                    itc_invoice = _itc_invoice.getByStatus("checked");
+                }
+                else if (status == "fae-approved")
+                {
+                    invoice = _invoiceService.getByStatus(status);
+                    // itc_invoice = _itc_invoice.getByStatus("checked");
+                }
+
+                int i = 1;
+                foreach (ITCinvoiceSchema item in itc_invoice)
+                {
+                    SummaryInvoiceSchema summary = _summary.getById(item.summaryId);
+                    ITCdata.Add(
+                        new
+                        {
+                            id = item._id,
+                            no = i,
+                            summaryId = item.summaryId,
+                            faeCreateBy = summary.prepare.name,
+                            itcPrepareBy = item.prepare.name,
+                            fileName = item.files,
+                            createDate = item.createDate
+                        }
+                    );
+                    i += 1;
+                }
+                return Ok(
+                    new
+                    {
+                        success = true,
+                        message = "ACC data for approve",
+                        data = new
+                        {
+                            invoiceFAE = invoice,
+                            invoiceITC = ITCdata,
+                        }
+                    }
+                );
             }
             catch (Exception e)
             {

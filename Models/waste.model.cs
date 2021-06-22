@@ -71,5 +71,6 @@ namespace backend.Models
         public string lotNo { get; set; }
         public string companyApprove { get; set; }
         public string wasteGroup { get; set; }
+        public string[] id { get; set; }
     }
 }

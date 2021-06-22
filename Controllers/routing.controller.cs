@@ -43,6 +43,17 @@ namespace backend.Controllers
             try
             {
                 List<SummaryInvoiceSchema> data = _summaryInvoice.ITC_getsummary_approved();
+                List<ITCinvoiceSchema> itcReject = _itc_invoice.getByStatus("reject");
+
+                foreach (ITCinvoiceSchema item in itcReject)
+                {
+                    SummaryInvoiceSchema summaryItem = _summaryInvoice.getById(item.summaryId);
+                    if (summaryItem != null)
+                    {
+                        summaryItem.status = "reject";
+                        data.Add(summaryItem);
+                    }
+                }
                 return Ok(new
                 {
                     success = true,
@@ -94,7 +105,7 @@ namespace backend.Controllers
                     summaryId = id,
                     createDate = DateTime.Now.ToString("yyyy/MM/dd"),
                     prepare = req_prepare,
-                    status = "prepare"
+                    status = "prepared"
                 });
                 _summaryInvoice.updateStatus(id, "toInvoice", req_prepare);
 
@@ -108,19 +119,40 @@ namespace backend.Controllers
 
         [HttpGet("itc/invoice/{status}")]
         public ActionResult getByStatus(string status)
-        {
+        { // prepared, checked, approved
             List<ITCinvoiceSchema> data = _itc_invoice.getByStatus(status);
 
-            return Ok(new { success = true, message = "Invoice ITC", data, });
+            List<dynamic> returnData = new List<dynamic>();
+
+            int i = 1;
+            foreach (ITCinvoiceSchema item in data)
+            {
+                SummaryInvoiceSchema summary = _summaryInvoice.getById(item.summaryId);
+                returnData.Add(
+                    new
+                    {
+                        id = item._id,
+                        no = i,
+                        summaryId = item.summaryId,
+                        faeCreateBy = summary.prepare.name,
+                        itcPrepareBy = item.prepare.name,
+                        fileName = item.files,
+                        createDate = item.createDate
+                    }
+                );
+                i += 1;
+            }
+            return Ok(new { success = true, message = "Invoice ITC", data = returnData, });
         }
 
         [HttpPatch("itc/invoice/status")]
         public ActionResult itcUpdateStatusInvoice(ITCapproveInvoice body)
         {
-            foreach (string id in body.id) {
+            foreach (string id in body.id)
+            {
                 _itc_invoice.updateStatus(id, body.status);
             }
-            return Ok(new { success = true, message = "Update ststus success."});
+            return Ok(new { success = true, message = "Update status success." });
         }
         [HttpDelete("reject/{lotNo}")]
         public ActionResult reject(string lotNo)

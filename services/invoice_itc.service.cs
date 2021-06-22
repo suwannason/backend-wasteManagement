@@ -22,7 +22,20 @@ namespace backend.Services
 
         public void create(ITCinvoiceSchema data)
         {
-            _tb.InsertOne(data);
+            ITCinvoiceSchema invoice = _tb.Find(item => item.summaryId == data.summaryId).FirstOrDefault();
+
+            if (invoice != null) {
+                FilterDefinition<ITCinvoiceSchema> filter = Builders<ITCinvoiceSchema>.Filter.Eq(item => item._id, invoice._id);
+                invoice.files = data.files;
+                invoice.status = "prepared";
+                invoice.createDate = System.DateTime.Now.ToString("yyyy/MM/dd");
+                invoice.prepare = invoice.prepare;
+
+                _tb.ReplaceOne(filter, invoice);
+            } else {
+                _tb.InsertOne(data);
+            }
+            
         }
         public List<ITCinvoiceSchema> getByStatus(string status)
         {
