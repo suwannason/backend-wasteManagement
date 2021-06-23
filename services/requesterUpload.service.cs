@@ -20,6 +20,11 @@ namespace backend.Services
             _scrapMatrial = database.GetCollection<requesterUploadSchema>("Requester");
         }
 
+        public requesterUploadSchema getById(string id)
+        {
+
+            return _scrapMatrial.Find(item => item._id == id).FirstOrDefault();
+        }
         public void create(ReuqesterREQ body, Profile req_prepare)
         {
             List<requesterUploadSchema> data = new List<requesterUploadSchema>();
@@ -252,6 +257,19 @@ namespace backend.Services
 
             _scrapMatrial.UpdateOne(filter, update);
         }
+
+        public List<requesterUploadSchema> getGroupingItems(string moveOutDate, string phase, string boiType, string status)
+        {
+
+            return _scrapMatrial.Find<requesterUploadSchema>(item => item.moveOutDate == moveOutDate && item.phase == phase && item.boiType == boiType && item.status == status).ToList();
+        }
+
+        public List<requesterUploadSchema> getGroupingTracking(string moveOutDate, string phase, string boiType)
+        {
+
+            return _scrapMatrial.Find<requesterUploadSchema>(item => item.moveOutDate == moveOutDate && item.phase == phase && item.boiType == boiType).ToList();
+        }
+
 
         public List<requesterUploadSchema> getTracking()
         {

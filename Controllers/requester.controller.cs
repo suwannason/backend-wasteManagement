@@ -40,6 +40,13 @@ namespace backend.Controllers
             _faeDB = fae;
         }
 
+        [HttpGet("getById/{id}")]
+        public ActionResult getById(string id)
+        {
+            requesterUploadSchema data = _requester.getById(id);
+            return Ok(new { success = true, message = "item by ID.", data, });
+        }
+
         [HttpPut("status")]
         public ActionResult<RequesterResponse> updateStatus(UpdateStatusFormRequester body)
         {
@@ -83,7 +90,42 @@ namespace backend.Controllers
                 {
                     data = _requester.getByStatus(status, dept);
                 }
-                return Ok(new { success = true, message = "Requester data.", data });
+
+                List<requesterUploadSchema> grouped = data.GroupBy(x => new { x.moveOutDate, x.phase, x.boiType }).Select(y => new requesterUploadSchema
+                {
+                    boiType = y.Key.boiType,
+                    moveOutDate = y.Key.moveOutDate,
+                    phase = y.Key.phase
+                }).ToList();
+
+                // return Ok(grouped);
+                List<requesterGroupedRecord> returnData = new List<requesterGroupedRecord>();
+
+                foreach (requesterUploadSchema item in grouped)
+                {
+                    List<requesterUploadSchema> itemInGroup = _requester.getGroupingItems(item.moveOutDate, item.phase, item.boiType, status);
+
+                    // return Ok(itemInGroup);
+                    double totalNetweight = 0;
+                    List<string> id = new List<string>();
+
+                    foreach (requesterUploadSchema gItem in itemInGroup)
+                    {
+                        totalNetweight += Double.Parse(gItem.netWasteWeight);
+                        id.Add(gItem._id);
+                    }
+                    returnData.Add(new requesterGroupedRecord
+                    {
+                        moveOutDate = item.moveOutDate,
+                        boiType = item.boiType,
+                        // lotNo = itemInGroup[0].lotNo,
+                        netWasteWeight = totalNetweight.ToString("##,###.00"),
+                        phase = item.phase,
+                        id = id.ToArray(),
+                    });
+                }
+
+                return Ok(new { success = true, message = "Requester data.", data = returnData });
             }
             catch (Exception e)
             {
@@ -92,6 +134,12 @@ namespace backend.Controllers
             }
         }
 
+        [HttpGet("group/detail")]
+        public ActionResult getExpandDetail(RequestGetDetail body)
+        {
+            List<requesterUploadSchema> data = _requester.getGroupingItems(body.moveOutDate, body.phase, body.boiType, body.status);
+            return Ok(new { success = true, message = "Data record", data, });
+        }
         [HttpGet("invoice/{lotNo}")]
         public ActionResult getByLotNo(string lotNo)
         {
@@ -160,7 +208,7 @@ namespace backend.Controllers
                 handleUpload action = new handleUpload(_itcDB, _faeDB);
 
                 List<requesterUploadSchema> data = action.Upload(filename, req_prepare, usertmp);
-                
+
                 List<requesterUploadSchema> errrorItems = data.FindAll(item => item.totalPrice == "-");
 
                 if (errrorItems.Count > 0)
@@ -264,38 +312,73 @@ namespace backend.Controllers
         {
             List<requesterUploadSchema> data = _requester.getTracking();
 
-            foreach (requesterUploadSchema item in data)
+            List<requesterUploadSchema> grouped = data.GroupBy(x => new { x.moveOutDate, x.phase, x.boiType }).Select(y => new requesterUploadSchema
             {
-                if (item.status == "req-prepared")
-                {
-                    item.status = "Waiting for requester checking";
+                boiType = y.Key.boiType,
+                moveOutDate = y.Key.moveOutDate,
+                phase = y.Key.phase
+            }).ToList();
+
+            List<dynamic> returnData = new List<dynamic>();
+
+            foreach (requesterUploadSchema item in grouped)
+            {
+                List<requesterUploadSchema> itemInGroup = _requester.getGroupingTracking(item.moveOutDate, item.phase, item.boiType);
+
+                // return Ok(itemInGroup);
+                double totalNetweight = 0;
+                List<string> id = new List<string>();
+
+                foreach (requesterUploadSchema gItem in itemInGroup)
+                { // this loop for sum total and add id to return data
+                    totalNetweight += Double.Parse(gItem.netWasteWeight);
+                    id.Add(gItem._id);
                 }
-                else if (item.status == "req-checked")
+
+                requesterUploadSchema dataItem = _requester.getById(id[0]);
+                string status = "";
+                if (dataItem.status == "req-prepared")
                 {
-                    item.status = "Waiting for requester approving";
+                    status = "Waiting for requester checking";
                 }
-                else if (item.status == "req-approved")
+                else if (dataItem.status == "req-checked")
                 {
-                    item.status = "Waiting for PDC prepare data";
+                    status = "Waiting for requester approving";
                 }
-                else if (item.status == "pdc-prepared")
+                else if (dataItem.status == "req-approved")
                 {
-                    item.status = "Waiting for PDC checking";
+                    status = "Waiting for PDC prepare data";
                 }
-                else if (item.status == "pdc-checked")
+                else if (dataItem.status == "pdc-prepared")
                 {
-                    item.status = "Waiting for ITC prepare data";
+                    status = "Waiting for PDC checking";
                 }
-                else if (item.status == "itc-checked")
+                else if (dataItem.status == "pdc-checked")
                 {
-                    item.status = "Waiting for ITC approving";
+                    status = "Waiting for ITC checking data";
                 }
+                else if (dataItem.status == "itc-checked")
+                {
+                    status = "Waiting for ITC approving";
+                }
+                returnData.Add(new
+                {
+                    dept = dataItem.dept,
+                    moveOutDate = item.moveOutDate,
+                    boiType = item.boiType,
+                    netWasteWeight = totalNetweight.ToString("##,###.00"),
+                    phase = item.phase,
+                    status,
+                    id = id.ToArray(),
+                });
             }
+
             return Ok(
-                new {
+                new
+                {
                     success = true,
                     message = "All requester tracking data.",
-                    data,
+                    data = returnData,
                 }
             );
         }

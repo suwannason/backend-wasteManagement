@@ -59,4 +59,12 @@ namespace backend.Models
 
         public bool invoiceRef { get; set; } // true = invoice , false = refferance
     }
+
+    public class requesterGroupedRecord {
+        public string moveOutDate { get; set; }
+        public string phase { get; set; }
+        public string boiType { get; set; }
+        public string netWasteWeight { get; set; }
+        public string[] id { get; set; }
+    }
 }
