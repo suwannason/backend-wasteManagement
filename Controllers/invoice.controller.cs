@@ -186,14 +186,29 @@ namespace backend.Controllers
                 if (status == "acc-prepared")
                 {
                     invoice = _invoiceService.getByStatus(status);
-                    itc_invoice = _itc_invoice.getByStatus("prepared");
+                    itc_invoice = _itc_invoice.getByStatus("approved");
                 }
                 else if (status == "acc-checked")
                 {
                     invoice = _invoiceService.getByStatus(status);
-                    itc_invoice = _itc_invoice.getByStatus("checked");
+                    itc_invoice = _itc_invoice.getByStatus("acc-checked");
                 }
                 else if (status == "fae-approved")
+                {
+                    invoice = _invoiceService.getByStatus(status);
+                    // itc_invoice = _itc_invoice.getByStatus("checked");
+                }
+                else if (status == "fae-prepared")
+                {
+                    invoice = _invoiceService.getByStatus(status);
+                    // itc_invoice = _itc_invoice.getByStatus("checked");
+                }
+                else if (status == "fae-checked")
+                {
+                    invoice = _invoiceService.getByStatus(status);
+                    // itc_invoice = _itc_invoice.getByStatus("checked");
+                }
+                else if (status == "makingApproved")
                 {
                     invoice = _invoiceService.getByStatus(status);
                     // itc_invoice = _itc_invoice.getByStatus("checked");

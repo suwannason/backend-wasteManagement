@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Authorization;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System;
-using OfficeOpenXml;
 using System.IO;
 using System.Linq;
 
@@ -59,12 +58,12 @@ namespace backend.Controllers
             user.name = User.FindFirst("name")?.Value;
             user.tel = User.FindFirst("tel")?.Value;
 
-            Parallel.ForEach(body.lotNo, item =>
+            Parallel.ForEach(body.id, item =>
             {
                 _requester.updateStatus(item, body.status);
             });
 
-            Parallel.ForEach(body.lotNo, item =>
+            Parallel.ForEach(body.id, item =>
             {
                 _requester.signedProfile(item, body.status, user);
             });
@@ -91,6 +90,7 @@ namespace backend.Controllers
                     data = _requester.getByStatus(status, dept);
                 }
 
+                Console.WriteLine(dept + " = " + data.Count);
                 List<requesterUploadSchema> grouped = data.GroupBy(x => new { x.moveOutDate, x.phase, x.boiType }).Select(y => new requesterUploadSchema
                 {
                     boiType = y.Key.boiType,
@@ -103,7 +103,7 @@ namespace backend.Controllers
 
                 foreach (requesterUploadSchema item in grouped)
                 {
-                    List<requesterUploadSchema> itemInGroup = _requester.getGroupingItems(item.moveOutDate, item.phase, item.boiType, status);
+                    List<requesterUploadSchema> itemInGroup = _requester.getGroupingItems(item.moveOutDate, item.phase, item.boiType, status, dept);
 
                     // return Ok(itemInGroup);
                     double totalNetweight = 0;
@@ -137,7 +137,8 @@ namespace backend.Controllers
         [HttpGet("group/detail")]
         public ActionResult getExpandDetail(RequestGetDetail body)
         {
-            List<requesterUploadSchema> data = _requester.getGroupingItems(body.moveOutDate, body.phase, body.boiType, body.status);
+            string dept = User.FindFirst("dept")?.Value;
+            List<requesterUploadSchema> data = _requester.getGroupingItems(body.moveOutDate, body.phase, body.boiType, body.status, dept);
             return Ok(new { success = true, message = "Data record", data, });
         }
         [HttpGet("invoice/{lotNo}")]
@@ -246,17 +247,98 @@ namespace backend.Controllers
         }
 
         [HttpPatch("history")]
-        public ActionResult history(startEndDate body)
+        public ActionResult history(requesterHistory body)
         {
-            Console.WriteLine("HISTORY REUESTER");
-
-            if (User.FindFirst("dept")?.Value.ToLower() == "imo")
+            try
             {
-                List<requesterUploadSchema> data = _requester.getHistory(body.startDate, body.endDate);
-                return Ok(new { success = true, message = "Get imo history success", data, });
+                if (body.year == null)
+                {
+                    body.year = DateTime.Now.ToString("yyyy");
+                }
+                if (body.month == null) {
+                    body.month = DateTime.Now.ToString("MMMM");
+                }
+
+                string dept = User.FindFirst("dept")?.Value;
+                List<requesterUploadSchema> data = _requester.getHistory(body.month, body.year, dept);
+
+                List<requesterUploadSchema> grouped = data.GroupBy(x => new { x.moveOutDate, x.phase, x.boiType }).Select(y => new requesterUploadSchema
+                {
+                    boiType = y.Key.boiType,
+                    moveOutDate = y.Key.moveOutDate,
+                    phase = y.Key.phase
+                }).ToList();
+
+                List<dynamic> returnData = new List<dynamic>();
+
+                foreach (requesterUploadSchema item in grouped)
+                {
+                    List<requesterUploadSchema> itemInGroup = _requester.getGroupingTracking_dept(item.moveOutDate, item.phase, item.boiType, dept);
+                    // return Ok(itemInGroup);
+                    if (itemInGroup.Count > 0)
+                    {
+                        double totalNetweight = 0;
+                        List<string> id = new List<string>();
+
+                        foreach (requesterUploadSchema gItem in itemInGroup)
+                        { // this loop for sum total and add id to return data
+                            totalNetweight += Double.Parse(gItem.netWasteWeight);
+                            id.Add(gItem._id);
+                        }
+
+                        requesterUploadSchema dataItem = _requester.getById(id[0]);
+                        string status = "";
+                        if (dataItem.status == "req-prepared")
+                        {
+                            status = "Waiting for requester checking";
+                        }
+                        else if (dataItem.status == "req-checked")
+                        {
+                            status = "Waiting for requester approving";
+                        }
+                        else if (dataItem.status == "req-approved")
+                        {
+                            status = "Waiting for PDC prepare data";
+                        }
+                        else if (dataItem.status == "pdc-prepared")
+                        {
+                            status = "Waiting for PDC checking";
+                        }
+                        else if (dataItem.status == "pdc-checked")
+                        {
+                            status = "Waiting for ITC checking data";
+                        }
+                        else if (dataItem.status == "itc-checked")
+                        {
+                            status = "Waiting for ITC approving";
+                        }
+                        returnData.Add(new
+                        {
+                            dept = dataItem.dept,
+                            moveOutDate = item.moveOutDate,
+                            boiType = item.boiType,
+                            netWasteWeight = totalNetweight.ToString("##,###.00"),
+                            phase = item.phase,
+                            status,
+                            id = id.ToArray(),
+                        });
+                    }
+                }
+
+                return Ok(
+                    new
+                    {
+                        success = true,
+                        message = "All requester tracking data.",
+                        data = returnData,
+                    }
+                );
+            }
+            catch (Exception e)
+            {
+                return Problem(e.Message);
             }
 
-            return Unauthorized(new { success = false, message = "User login department DB not match" });
         }
 
         [HttpPatch("invoice")]

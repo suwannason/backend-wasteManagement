@@ -69,7 +69,7 @@ namespace backend.request
 
     public class UpdateStatusFormRequester
     {
-        public string[] lotNo { get; set; }
+        public string[] id { get; set; }
         public string status { get; set; }
     }
     public class getByStatus
@@ -90,6 +90,11 @@ namespace backend.request
     public class startEndDate {
         public string startDate { get; set; }
         public string endDate { get; set; }
+    }
+
+    public class requesterHistory {
+        public string month { get; set; }
+        public string year { get; set; }
     }
 
     public class invoiceRef {

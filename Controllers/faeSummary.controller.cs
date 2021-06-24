@@ -71,7 +71,12 @@ namespace backend.Controllers
                 foreach (string lotNo in body.requester)
                 {
                     requesterItems.AddRange(_requester.getByLotno(lotNo));
-                    _requester.updateStatus(lotNo, "toSummary");
+                    // _requester.updateStatus(lotNo, "toSummary");
+                }
+
+                // Update status
+                foreach (requesterUploadSchema item in requesterItems) {
+                    _requester.updateStatus(item._id, "toSummary");
                 }
 
                 foreach (string id in body.recycle)

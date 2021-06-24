@@ -32,17 +32,17 @@ namespace backend.Services
             .ToList<requesterUploadSchema>();
         }
 
-        public void updateStatus(string lotNo, string status)
+        public void updateStatus(string id, string status)
         {
-            FilterDefinition<requesterUploadSchema> filter = Builders<requesterUploadSchema>.Filter.Eq(item => item.lotNo, lotNo);
+            FilterDefinition<requesterUploadSchema> filter = Builders<requesterUploadSchema>.Filter.Eq(item => item._id, id);
             UpdateDefinition<requesterUploadSchema> update = Builders<requesterUploadSchema>.Update.Set("status", status);
 
             _scrapMatrial.UpdateMany(filter, update);
         }
-        public void signedProfile(string lotNo, string status, Profile user)
+        public void signedProfile(string id, string status, Profile user)
         {
             Console.WriteLine("signedProfile: " + status);
-            FilterDefinition<requesterUploadSchema> eqlotNo = Builders<requesterUploadSchema>.Filter.Eq(item => item.lotNo, lotNo);
+            FilterDefinition<requesterUploadSchema> eqlotNo = Builders<requesterUploadSchema>.Filter.Eq(item => item._id, id);
             FilterDefinition<requesterUploadSchema> eqStatus = Builders<requesterUploadSchema>.Filter.Eq(item => item.status, status);
 
             UpdateDefinition<requesterUploadSchema> update = null;
@@ -97,7 +97,6 @@ namespace backend.Services
         }
         public List<requesterUploadSchema> getByStatus(string status, string dept)
         {
-            Console.WriteLine(dept);
             return _scrapMatrial
             .Find<requesterUploadSchema>(item => item.status == status & item.dept == dept)
             .ToList<requesterUploadSchema>();
@@ -119,14 +118,13 @@ namespace backend.Services
             // Console.WriteLine(_scrapMatrial.Count<requesterUploadSchema>(item => item.status == status));
         }
 
-        public List<requesterUploadSchema> getHistory(string startDate, string endDate)
+        public List<requesterUploadSchema> getHistory(string month, string year, string dept)
         {
+            FilterDefinition<requesterUploadSchema> start = Builders<requesterUploadSchema>.Filter.Gte(item => item.requestMonth, month);
+            FilterDefinition<requesterUploadSchema> end = Builders<requesterUploadSchema>.Filter.Lte(item => item.requestYear, year);
+            FilterDefinition<requesterUploadSchema> department = Builders<requesterUploadSchema>.Filter.Lte(item => item.dept, dept);
 
-            Console.WriteLine(startDate + " --> " + endDate);
-            FilterDefinition<requesterUploadSchema> start = Builders<requesterUploadSchema>.Filter.Gte(item => item.moveOutDate, startDate);
-            FilterDefinition<requesterUploadSchema> end = Builders<requesterUploadSchema>.Filter.Lte(item => item.moveOutDate, endDate);
-
-            return _scrapMatrial.Find<requesterUploadSchema>(start & end).ToList<requesterUploadSchema>();
+            return _scrapMatrial.Find<requesterUploadSchema>(start & end & department).ToList<requesterUploadSchema>();
         }
 
         public void updateRefInvoice(string lotNo)
@@ -210,16 +208,22 @@ namespace backend.Services
             _scrapMatrial.UpdateOne(filter, update);
         }
 
-        public List<requesterUploadSchema> getGroupingItems(string moveOutDate, string phase, string boiType, string status)
+        public List<requesterUploadSchema> getGroupingItems(string moveOutDate, string phase, string boiType, string status, string dept)
         {
 
-            return _scrapMatrial.Find<requesterUploadSchema>(item => item.moveOutDate == moveOutDate && item.phase == phase && item.boiType == boiType && item.status == status).ToList();
+            return _scrapMatrial.Find<requesterUploadSchema>(item => item.moveOutDate == moveOutDate && item.phase == phase && item.boiType == boiType && item.status == status && item.dept == dept).ToList();
         }
 
         public List<requesterUploadSchema> getGroupingTracking(string moveOutDate, string phase, string boiType)
         {
 
             return _scrapMatrial.Find<requesterUploadSchema>(item => item.moveOutDate == moveOutDate && item.phase == phase && item.boiType == boiType).ToList();
+        }
+
+        public List<requesterUploadSchema> getGroupingTracking_dept(string moveOutDate, string phase, string boiType, string dept)
+        {
+
+            return _scrapMatrial.Find<requesterUploadSchema>(item => item.moveOutDate == moveOutDate && item.phase == phase && item.boiType == boiType && item.dept == dept).ToList();
         }
 
 
