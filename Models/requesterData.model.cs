@@ -54,10 +54,13 @@ namespace backend.Models
         public string unitPrice { get; set; }
         public string totalPrice { get; set; }
         // FIELD ON MERGE
-        public string year { get; set; }
+        public string requestYear { get; set; }
+        public string requestMonth { get; set; }
+        public string requestTime { get; set; }
         public string status { get; set; }
-
         public bool invoiceRef { get; set; } // true = invoice , false = refferance
+
+        // public string 
     }
 
     public class requesterGroupedRecord {

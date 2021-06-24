@@ -21,7 +21,7 @@ using OfficeOpenXml;
 namespace backend.Controllers
 {
     [Route("fae-part/[controller]")]
-    [ApiController]
+    [ApiController, Authorize]
 
     public class userController : ControllerBase
     {
@@ -40,6 +40,10 @@ namespace backend.Controllers
             LDAP_AUTH = setting.ldap_auth;
         }
 
+        [HttpGet("auth")]
+        public ActionResult tokenCheck() {
+            return Ok();
+        }
         [HttpPost("login/backdoor"), AllowAnonymous]
         public ActionResult loginBD(Login body)
         {

@@ -25,54 +25,6 @@ namespace backend.Services
 
             return _scrapMatrial.Find(item => item._id == id).FirstOrDefault();
         }
-        public void create(ReuqesterREQ body, Profile req_prepare)
-        {
-            List<requesterUploadSchema> data = new List<requesterUploadSchema>();
-
-            string currentYear = DateTime.Now.Year.ToString();
-            SortDefinitionBuilder<requesterUploadSchema> builder = Builders<requesterUploadSchema>.Sort;
-            SortDefinition<requesterUploadSchema> sort = builder.Descending("record");
-
-            Parallel.ForEach(body.scrapImo, item =>
-            {
-
-                data.Add(new requesterUploadSchema
-                {
-                    no = item.no,
-                    date = body.date,
-                    div = body.div,
-                    dept = body.dept,
-                    biddingType = "<DEFAULT DB BY ITC>",
-
-                    qtyOfContainer = item.qtyOfContainer,
-                    matrialName = item.matrialName,
-                    moveOutDate = item.moveOutDate,
-                    lotNo = "<CREATE API FOR FN GET LAST LOT>",
-                    color = "<DEFAULT DB BY ITC>",
-                    biddingNo = "<DEFAULT DB BY ITC>",
-                    unitPrice = "<DEFAULT DB BY ITC>",
-                    totalPrice = "item.netWasteWeight * <DEFAULT DB BY ITC (unit price)>",
-                    boiType = item.boiType,
-                    containerWeight = item.containerWeight,
-                    unit = item.unit,
-                    groupBoiName = item.groupBoiName,
-                    groupBoiNo = item.groupBoiNo,
-                    matrialCode = item.matrialCode,
-                    netWasteWeight = item.netWasteWeight,
-                    totalWeight = item.totalWeight,
-                    req_prepared = req_prepare,
-                    status = "req-prepared",
-                    itc_approved = new Profile { empNo = "-", name = "-", band = "-", dept = "-", div = "-", tel = "-" },
-                    itc_checked = new Profile { empNo = "-", name = "-", band = "-", dept = "-", div = "-", tel = "-" },
-                    req_checked = new Profile { empNo = "-", name = "-", band = "-", dept = "-", div = "-", tel = "-" },
-                    req_approved = new Profile { empNo = "-", name = "-", band = "-", dept = "-", div = "-", tel = "-" },
-                    year = currentYear,
-                    fae_checked = new Profile { empNo = "-", name = "-", band = "-", dept = "-", div = "-", tel = "-" },
-                    fae_approved = new Profile { empNo = "-", name = "-", band = "-", dept = "-", div = "-", tel = "-" },
-                });
-            });
-            _scrapMatrial.InsertMany(data);
-        }
         public List<requesterUploadSchema> getByLotNoAndStatus(string lotNo, string status)
         {
             return _scrapMatrial

@@ -157,7 +157,9 @@ public class handleUpload
                     rowData.date = DateTime.Now.ToString("yyyy-MM-dd");
                     rowData.dept = prepare.dept;
                     rowData.div = prepare.div;
-                    rowData.year = DateTime.Now.ToString("yyyy");
+                    rowData.requestYear = DateTime.Now.ToString("yyyy");
+                    rowData.requestMonth = DateTime.Now.ToString("MMM");
+                    rowData.requestTime = DateTime.Now.ToString("HH:mm");
 
                     rowData.status = "req-prepared";
                     rowData.req_prepared = prepare;
