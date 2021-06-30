@@ -90,7 +90,7 @@ public class handleUpload
                     }
                     else if (col == 10)
                     {
-                        rowData.containerWeight = Math.Round(Double.Parse(sheet.Cells[row, col].Value?.ToString()), 2).ToString();
+                        rowData.containerWeight = Math.Round(Double.Parse(sheet.Cells[row, col].Value?.ToString()), 4).ToString();
                     }
                     else if (col == 11)
                     {
@@ -139,7 +139,7 @@ public class handleUpload
                             rowData.wasteName = faeDB.wasteName;
                             rowData.color = faeDB.color;
                             rowData.unitPrice = faeDB.pricePerUnit;
-                            rowData.totalPrice = Math.Round(Double.Parse(faeDB.pricePerUnit) * Double.Parse(rowData.netWasteWeight), 2).ToString(); // ??
+                            rowData.totalPrice = Math.Round(Double.Parse(faeDB.pricePerUnit) * Double.Parse(rowData.netWasteWeight), 4).ToString(); // ??
                         }
                         else
                         {

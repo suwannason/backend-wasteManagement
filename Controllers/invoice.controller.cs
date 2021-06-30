@@ -193,11 +193,17 @@ namespace backend.Controllers
                     invoice = _invoiceService.getByStatus(status);
                     itc_invoice = _itc_invoice.getByStatus("acc-checked");
                 }
+                else if (status == "acc-approved")
+                {
+                    invoice = _invoiceService.getByStatus(status);
+                    // itc_invoice = _itc_invoice.getByStatus("acc-checked");
+                }
                 else if (status == "fae-approved")
                 {
                     invoice = _invoiceService.getByStatus(status);
                     // itc_invoice = _itc_invoice.getByStatus("checked");
                 }
+
                 else if (status == "fae-prepared")
                 {
                     invoice = _invoiceService.getByStatus(status);
@@ -213,6 +219,7 @@ namespace backend.Controllers
                     invoice = _invoiceService.getByStatus(status);
                     // itc_invoice = _itc_invoice.getByStatus("checked");
                 }
+
 
                 int i = 1;
                 foreach (ITCinvoiceSchema item in itc_invoice)
@@ -362,6 +369,7 @@ namespace backend.Controllers
 
         public static string ThaiBahtText(string strNumber, bool IsTrillion = false)
         {
+            // Console.WriteLine(strNumber);
             string BahtText = "";
             string strTrillion = "";
             string[] strThaiNumber = { "ศูนย์", "หนึ่ง", "สอง", "สาม", "สี่", "ห้า", "หก", "เจ็ด", "แปด", "เก้า", "สิบ" };
@@ -528,6 +536,11 @@ namespace backend.Controllers
                 }
                 double vat = Math.Round(((subTotal * 7) / 100), 2);
 
+                if (subTotal + vat < 0)
+                {
+                    return BadRequest(new { success = false, message = "Total price from summary invalid." });
+                }
+
                 string bathString = ThaiBahtText((subTotal + vat).ToString("#,###,###.00"));
 
                 InvoicePrintedSchema printingData = new InvoicePrintedSchema
@@ -573,7 +586,8 @@ namespace backend.Controllers
             }
             catch (Exception e)
             {
-
+                Console.WriteLine(e.Message);
+                Console.WriteLine(e.StackTrace);
                 return Problem(e.Message);
             }
         }
@@ -856,11 +870,8 @@ namespace backend.Controllers
             {
                 _invoiceService.accPrepare(
                     id,
-                    body.attnRef,
-                    body.customerCode,
                     body.dueDate,
                     body.invoiceNo,
-                    body.poNo,
                     body.termsOfPayment
                 );
             }

@@ -1,7 +1,6 @@
 
 using backend.Models;
 using backend.Services;
-using backend.response;
 using backend.request;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,18 +20,14 @@ namespace backend.Controllers
     public class requesterController : ControllerBase
     {
         private readonly HazadousService _hazadous;
-        private readonly InfectionsService _infections;
         private readonly requesterUploadServices _requester;
         private readonly itcDBservice _itcDB;
         private readonly RecycleService _waste;
         private readonly faeDBservice _faeDB;
 
-        RequesterResponse res = new RequesterResponse();
-
-        public requesterController(HazadousService req, InfectionsService infect, requesterUploadServices scrapImo, itcDBservice itc_imo, RecycleService waste, faeDBservice fae)
+        public requesterController(HazadousService req, requesterUploadServices scrapImo, itcDBservice itc_imo, RecycleService waste, faeDBservice fae)
         {
             _hazadous = req;
-            _infections = infect;
             _requester = scrapImo;
             _itcDB = itc_imo;
             _waste = waste;
@@ -47,7 +42,7 @@ namespace backend.Controllers
         }
 
         [HttpPut("status")]
-        public ActionResult<RequesterResponse> updateStatus(UpdateStatusFormRequester body)
+        public ActionResult updateStatus(UpdateStatusFormRequester body)
         {
             Profile user = new Profile();
 
@@ -67,9 +62,7 @@ namespace backend.Controllers
             {
                 _requester.signedProfile(item, body.status, user);
             });
-            res.success = true;
-            res.message = "Update status to " + body.status + " success.";
-            return Ok(res);
+            return Ok(new { success = true, message = "Update status to " + body.status + " success." });
         }
 
         [HttpGet("{status}")]
@@ -99,7 +92,7 @@ namespace backend.Controllers
                 }).ToList();
 
                 // return Ok(grouped);
-                List<requesterGroupedRecord> returnData = new List<requesterGroupedRecord>();
+                List<dynamic> returnData = new List<dynamic>();
 
                 foreach (requesterUploadSchema item in grouped)
                 {
@@ -114,11 +107,13 @@ namespace backend.Controllers
                         totalNetweight += Double.Parse(gItem.netWasteWeight);
                         id.Add(gItem._id);
                     }
-                    returnData.Add(new requesterGroupedRecord
+                    returnData.Add(new
                     {
                         moveOutDate = item.moveOutDate,
                         boiType = item.boiType,
+                        type = "parts",
                         // lotNo = itemInGroup[0].lotNo,
+                        dept = itemInGroup[0].dept,
                         netWasteWeight = totalNetweight.ToString("##,###.00"),
                         phase = item.phase,
                         id = id.ToArray(),
@@ -188,11 +183,6 @@ namespace backend.Controllers
                 req_prepare.tel = User.FindFirst("tel")?.Value;
                 req_prepare.date = DateTime.Now.ToString("yyyy/MM/dd");
 
-                // if (req_prepare.dept.ToUpper() != body.form.ToUpper() || req_prepare.dept.ToUpper() == "fae")
-                // {
-                //     return Forbid();
-                // }
-
                 string filename = serverPath + System.Guid.NewGuid().ToString() + "-" + body.file.FileName;
                 using (FileStream strem = System.IO.File.Create(filename))
                 {
@@ -255,7 +245,8 @@ namespace backend.Controllers
                 {
                     body.year = DateTime.Now.ToString("yyyy");
                 }
-                if (body.month == null) {
+                if (body.month == null)
+                {
                     body.month = DateTime.Now.ToString("MMMM");
                 }
 

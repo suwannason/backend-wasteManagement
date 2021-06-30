@@ -210,8 +210,12 @@ namespace backend.Services
 
         public List<requesterUploadSchema> getGroupingItems(string moveOutDate, string phase, string boiType, string status, string dept)
         {
+            if (dept != "PDC" && dept != "ITC" && dept != "FAE")
+            {
+                return _scrapMatrial.Find<requesterUploadSchema>(item => item.moveOutDate == moveOutDate && item.phase == phase && item.boiType == boiType && item.status == status && item.dept == dept).ToList();
+            }
+            return _scrapMatrial.Find<requesterUploadSchema>(item => item.moveOutDate == moveOutDate && item.phase == phase && item.boiType == boiType && item.status == status).ToList();
 
-            return _scrapMatrial.Find<requesterUploadSchema>(item => item.moveOutDate == moveOutDate && item.phase == phase && item.boiType == boiType && item.status == status && item.dept == dept).ToList();
         }
 
         public List<requesterUploadSchema> getGroupingTracking(string moveOutDate, string phase, string boiType)

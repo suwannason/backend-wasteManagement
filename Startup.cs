@@ -110,9 +110,9 @@ namespace backend
             services.AddSingleton<WasteNameService>();
             services.AddSingleton<wasteGroupService>();
             services.AddSingleton<HazadousService>();
-            services.AddSingleton<InfectionsService>();
+            services.AddSingleton<InfectionService>();
             services.AddSingleton<requesterUploadServices>();
-            services.AddSingleton<prepareLotService>();
+            // services.AddSingleton<prepareLotService>();
             services.AddSingleton<faeDBservice>();
             services.AddSingleton<itcDBservice>();
             services.AddSingleton<SummaryInvoiceService>();

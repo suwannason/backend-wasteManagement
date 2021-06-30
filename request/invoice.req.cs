@@ -25,9 +25,6 @@ namespace backend.request
         public string invoiceNo { get; set; }
         public string termsOfPayment { get; set; }
         public string dueDate { get; set; }
-        public string customerCode { get; set; }
-        public string poNo { get; set; }
-        public string attnRef { get; set; }
 
     }
     public class ITCapproveInvoice {

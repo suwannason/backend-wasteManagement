@@ -89,16 +89,13 @@ namespace backend.Services
             return invoice.Find<Invoices>(item => item._id == id).FirstOrDefault();
         }
 
-        public void accPrepare(string id, string attnRef, string customerCode, string dueDate, string invoiceNo, string poNo, string termsOfPayment)
+        public void accPrepare(string id, string dueDate, string invoiceNo, string termsOfPayment)
         {
             FilterDefinition<Invoices> filter = Builders<Invoices>.Filter.Eq(item => item._id, id);
             UpdateDefinition<Invoices> update = Builders<Invoices>.Update.Set("status", "acc-prepared")
                                                 .Set("termsOfPayment", termsOfPayment)
                                                 .Set("dueDate", dueDate)
-                                                .Set("customerCode", customerCode)
-                                                .Set("poNo", poNo)
-                                                .Set("invoiceNo", invoiceNo)
-                                                .Set("attnRef", attnRef);
+                                                .Set("invoiceNo", invoiceNo);
 
             invoice.UpdateOne(filter, update);
         }

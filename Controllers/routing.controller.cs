@@ -19,20 +19,15 @@ namespace backend.Controllers
     public class routingController : ControllerBase
     {
         private readonly HazadousService _hazadous;
-        private readonly InfectionsService _infections;
         private readonly requesterUploadServices _scrapImo;
-
-        private readonly prepareLotService _prepareLot;
 
         private readonly SummaryInvoiceService _summaryInvoice;
         private readonly ITC_invoiceService _itc_invoice;
 
-        public routingController(HazadousService req, InfectionsService infect, requesterUploadServices scrapImo, prepareLotService prepareLot, SummaryInvoiceService summary, ITC_invoiceService itcInvoice)
+        public routingController(HazadousService req, requesterUploadServices scrapImo, SummaryInvoiceService summary, ITC_invoiceService itcInvoice)
         {
             _hazadous = req;
-            _infections = infect;
             _scrapImo = scrapImo;
-            _prepareLot = prepareLot;
             _summaryInvoice = summary;
             _itc_invoice = itcInvoice;
         }
@@ -168,37 +163,6 @@ namespace backend.Controllers
                 user.tel = User.FindFirst("tel")?.Value;
 
                 return Ok("reject");
-            }
-            catch (Exception e)
-            {
-                return Problem(e.StackTrace);
-            }
-        }
-
-
-        [HttpPost("fae/requester")]
-        public ActionResult FaePrepareRequester(FaePrepareRequester body)
-        { // FAE prepare record 
-            try
-            {
-                FAEPreparedLotSchema data = new FAEPreparedLotSchema();
-
-                Profile user = new Profile();
-
-                user.empNo = User.FindFirst("username")?.Value;
-                user.band = User.FindFirst("band")?.Value;
-                user.dept = User.FindFirst("dept")?.Value;
-                user.div = User.FindFirst("div")?.Value;
-                user.name = User.FindFirst("name")?.Value;
-                data.allowToDestroy = body.allowToDestroy;
-                data.lotNo = body.lotNo;
-                data.preparedBy = user;
-                data.createDate = DateTime.Now.ToString("yyyy/MM/dd");
-                data.remark = body.remark;
-                data.howTodestory = body.howTodestory;
-
-                _prepareLot.create(data);
-                return Ok();
             }
             catch (Exception e)
             {
