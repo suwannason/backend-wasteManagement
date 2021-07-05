@@ -117,7 +117,7 @@ namespace backend.Controllers
                 ExcelWorksheet sheet = workbook.Worksheets[0];
                 int rowCount = sheet.Dimension.Rows;
                 // _userService.removeUser();
-                if (sheet.Cells[2, 5].Value?.ToString().Length != 11 || sheet.Cells[2, 2].Value?.ToString().Length != 10)
+                if (sheet.Cells[2, 6].Value?.ToString().Trim().Length != 10 || sheet.Cells[2, 3].Value?.ToString().Trim().Length != 8)
                 {
                     return BadRequest(new { success = false, message = "File format invalid" });
                 }
@@ -125,7 +125,7 @@ namespace backend.Controllers
                 for (int row = 3; row <= rowCount; row++)
                 {
                     UserSchema item = new UserSchema();
-                    for (int col = 2; col <= 5; col += 1)
+                    for (int col = 2; col <= 6; col += 1)
                     {
                         string value = sheet.Cells[row, col].Value?.ToString();
                         if (String.IsNullOrEmpty(value))
@@ -135,9 +135,10 @@ namespace backend.Controllers
                         switch (col)
                         {
                             case 2: item.dept = value; break;
-                            case 3: item.username = value; break;
-                            case 4: item.name = value; break;
-                            case 5: item.permission = value; break;
+                            case 3: item.div = value; break;
+                            case 4: item.username = value; break;
+                            case 5: item.name = value; break;
+                            case 6: item.permission = value; break;
                         }
                         item.filename = fiilServername;
 

@@ -253,7 +253,7 @@ namespace backend.Controllers
                 item.contractStartDate = contrator.contractStartDate.Substring(0, contrator.contractStartDate.IndexOf(" "));
                 item.contractNo = contrator.contractNo;
 
-                faeDBschema faeData = _faeDB.getByWasteName(null, item.wasteName);
+                faeDBschema faeData = _faeDB.getByBiddingType(item.biddingType);
                 item.biddingNo = faeData.biddingNo;
                 item.color = faeData.color;
                 item.unitPrice = faeData.pricePerUnit;
@@ -311,7 +311,6 @@ namespace backend.Controllers
             try
             {
                 var data = _recycleService.Get(id);
-
                 if (data == null)
                 {
                     return NotFound();

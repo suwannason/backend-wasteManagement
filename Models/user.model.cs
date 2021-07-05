@@ -10,6 +10,7 @@ namespace backend.Models
         [BsonRepresentation(BsonType.ObjectId)]
         public string _id { get; set; }
         public string dept { get; set; }
+        public string div { get; set; }
         public string username { get; set; }
         public string name { get; set; }
         public string permission { get; set; }

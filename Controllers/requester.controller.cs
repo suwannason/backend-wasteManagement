@@ -24,14 +24,16 @@ namespace backend.Controllers
         private readonly itcDBservice _itcDB;
         private readonly RecycleService _waste;
         private readonly faeDBservice _faeDB;
+        private readonly UserService _user;
 
-        public requesterController(HazadousService req, requesterUploadServices scrapImo, itcDBservice itc_imo, RecycleService waste, faeDBservice fae)
+        public requesterController(HazadousService req, requesterUploadServices scrapImo, itcDBservice itc_imo, RecycleService waste, faeDBservice fae, UserService user)
         {
             _hazadous = req;
             _requester = scrapImo;
             _itcDB = itc_imo;
             _waste = waste;
             _faeDB = fae;
+            _user = user;
         }
 
         [HttpGet("getById/{id}")]
@@ -44,25 +46,43 @@ namespace backend.Controllers
         [HttpPut("status")]
         public ActionResult updateStatus(UpdateStatusFormRequester body)
         {
-            Profile user = new Profile();
-
-            user.empNo = User.FindFirst("username")?.Value;
-            user.band = User.FindFirst("band")?.Value;
-            user.dept = User.FindFirst("dept")?.Value;
-            user.div = User.FindFirst("div")?.Value;
-            user.name = User.FindFirst("name")?.Value;
-            user.tel = User.FindFirst("tel")?.Value;
-
-            Parallel.ForEach(body.id, item =>
+            try
             {
-                _requester.updateStatus(item, body.status);
-            });
 
-            Parallel.ForEach(body.id, item =>
+                Profile user = new Profile();
+                user.empNo = User.FindFirst("username")?.Value;
+                user.band = User.FindFirst("band")?.Value;
+                user.dept = User.FindFirst("dept")?.Value;
+                user.div = User.FindFirst("div")?.Value;
+                user.name = User.FindFirst("name")?.Value;
+                user.tel = User.FindFirst("tel")?.Value;
+
+                List<UserSchema> userDB = _user.Getlist(user.empNo);
+
+                if (body.status.IndexOf("check") > 0 && userDB.FindAll(item => item.permission != "Checked").Count > 0)
+                {
+                    return Unauthorized(new { success = false, message = "Can't check, Permission denied." });
+                }
+                else if (body.status.IndexOf("approve") > 0 && userDB.FindAll(item => item.permission == "Approved").Count == 0)
+                {
+                    return Unauthorized(new { success = false, message = "Can't approve, Permission denied." });
+                }
+
+                Parallel.ForEach(body.id, item =>
+                {
+                    _requester.updateStatus(item, body.status);
+                });
+
+                Parallel.ForEach(body.id, item =>
+                {
+                    _requester.signedProfile(item, body.status, user);
+                });
+                return Ok(new { success = true, message = "Update status to " + body.status + " success." });
+            }
+            catch (Exception e)
             {
-                _requester.signedProfile(item, body.status, user);
-            });
-            return Ok(new { success = true, message = "Update status to " + body.status + " success." });
+                return Problem(e.Message);
+            }
         }
 
         [HttpGet("{status}")]
@@ -198,41 +218,14 @@ namespace backend.Controllers
 
                 handleUpload action = new handleUpload(_itcDB, _faeDB);
 
-                List<requesterUploadSchema> data = action.Upload(filename, req_prepare, usertmp);
-
-                List<requesterUploadSchema> errrorItems = data.FindAll(item => item.totalPrice == "-");
-
-                if (errrorItems.Count > 0)
-                {
-                    List<dynamic> returnError = new List<dynamic>();
-                    int id = 1;
-                    foreach (requesterUploadSchema item in errrorItems)
-                    {
-                        returnError.Add(new
-                        {
-                            id,
-                            kind = item.kind,
-                            moveOutDate = item.moveOutDate,
-                            lotNo = item.lotNo,
-                            matrialCode = item.matrialCode,
-                            matrialName = item.matrialName,
-                            totalWeight = item.totalWeight,
-                            containerWeight = item.containerWeight,
-                            qtyOfContainer = item.qtyOfContainer,
-                            netWasteWeight = item.netWasteWeight,
-                            unit = item.unit
-                        });
-                        id += 1;
-                    }
-                    return BadRequest(new { success = false, message = "Upload Error please check data.", data = returnError });
-                }
+                List<requesterUploadSchema> data = action.uploadData(filename, System.Guid.NewGuid().ToString() + "-" + body.file.FileName, req_prepare, usertmp);
                 _requester.handleUpload(data);
 
-                return Ok(new { success = true, message = "Upload data success." });
+                return Ok(new { success = true, message = "Upload data success.", });
             }
             catch (Exception e)
             {
-                return Problem(e.StackTrace);
+                return Problem(e.Message);
             }
         }
 

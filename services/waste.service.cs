@@ -56,6 +56,7 @@ namespace backend.Services
             .Set("companyApprove", bookIn.companyApprove)
             .Set("containerType", bookIn.containerType)
             .Set("containerWeight", bookIn.containerWeight)
+            .Set("boiType", bookIn.boiType)
             .Set("cptMainType", bookIn.cptMainType)
             .Set("files", bookIn.files)
             .Set("lotNo", bookIn.lotNo)

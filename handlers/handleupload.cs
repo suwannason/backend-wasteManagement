@@ -67,7 +67,8 @@ public class handleUpload
                         rowData.moveOutMonth = parsed.ToString("MMMM");
                         rowData.moveOutYear = parsed.ToString("yyyy");
                     }
-                    else if (col == 5) {
+                    else if (col == 5)
+                    {
                         rowData.phase = sheet.Cells[row, col].Value?.ToString();
                     }
                     else if (col == 6)
@@ -184,135 +185,125 @@ public class handleUpload
         }
     }
 
-    public void PMDupload(string pathFile, Profile prepare, Profile emptyUser)
+    public List<requesterUploadSchema> uploadData(string pathFile, string fileName, Profile prepare, Profile emptyUser)
     {
 
+        List<requesterUploadSchema> data = new List<requesterUploadSchema>();
+
+        using (ExcelPackage package = new ExcelPackage(new FileInfo(pathFile)))
+        {
+            ExcelWorkbook Workbook = package.Workbook;
+            ExcelWorksheet sheet = Workbook.Worksheets[0];
+
+            int colCount = sheet.Dimension.Columns;
+            int rowCount = sheet.Dimension.Rows;
+
+            bool isEmptyRow = false;
+            for (int row = 4; row <= rowCount; row++)
+            {
+                requesterUploadSchema item = new requesterUploadSchema();
+                // isEmptyRow = false;
+
+                for (int col = 1; col <= 25; col++)
+                {
+                    string value = sheet.Cells[row, col].Value?.ToString();
+                    if (value == null)
+                    {
+                        value = "-";
+                    }
+                    switch (col)
+                    {
+                        case 1:
+                            if (value == null)
+                            {
+                                isEmptyRow = true;
+                                break;
+                            }
+                            else
+                            {
+                                item.no = value;
+                            }
+                            break;
+                        case 2: item.extraWorkNo = value; break;
+                        case 3: item.matrialCode = value; break;
+                        case 4: item.matrialName = value; break;
+                        case 5: item.childPart = value; break;
+                        case 6: item.blockCodeExtraWork = value; break;
+                        case 7: item.supOnMacro = value; break;
+                        case 8: item.fact = value; break;
+                        case 9: item.boiType = value; break;
+                        case 10: item.groupBoiNo = value; break;
+                        case 11: item.groupBoiName = value; break;
+                        case 12: item.boiUnit = value; break;
+                        case 13: item.qtyOfContainer = value; break;
+                        case 14: item.dateSupplierConfirm = value; break;
+                        case 15: item.phase = value; break;
+                        case 16: item.kind = value; break;
+                        case 17:
+                            item.moveOutDate = DateTime.FromOADate(Double.Parse(value)).ToString("dd-MMM-yyyy");
+                            item.moveOutMonth = DateTime.FromOADate(Double.Parse(value)).ToString("MMMM");
+                            item.moveOutYear = DateTime.FromOADate(Double.Parse(value)).ToString("yyyy");
+                            break;
+                        case 18: item.lotNo = value; break;
+                        case 19: item.totalWeight = value; break;
+                        case 20: item.containerWeight = value; break;
+                        case 21: item.qtyOfContainer = value; break;
+                        case 22: item.unit = value; break;
+                        case 23: item.netWasteWeight = value; break;
+                        case 24: item.KG_G = value; break;
+                        case 25: item.remark = value; break;
+                    }
+                    if (col == 12)
+                    {
+                        faeDBschema faeDB = _faeDB.getByWasteName(item.matrialCode, item.kind);
+
+                        if (faeDB != null)
+                        {
+                            item.biddingType = faeDB.biddingType;
+                            item.wasteName = faeDB.wasteName;
+                            item.biddingNo = faeDB.biddingNo;
+                            item.wasteName = faeDB.wasteName;
+                            item.color = faeDB.color;
+                            item.unitPrice = faeDB.pricePerUnit;
+                            item.totalPrice = Math.Round(Double.Parse(faeDB.pricePerUnit) * Double.Parse(item.netWasteWeight), 4).ToString(); // ??
+                        }
+                        else
+                        {
+                            item.biddingType = "-";
+                            item.wasteName = "-";
+                            item.biddingNo = "-";
+                            item.color = "-";
+                            item.unitPrice = "-";
+                            item.totalPrice = "-";
+                        }
+                    }
+
+                    item.requestMonth = DateTime.Now.ToString("MMMM");
+                    item.requestYear = DateTime.Now.ToString("yyyy");
+                    item.requestTime = DateTime.Now.ToString("hh:mm");
+                    item.dept = prepare.dept;
+                    item.div = prepare.div;
+                    item.date = DateTime.Now.ToString("dd-MMM-yyyy");
+                    item.status = "req-prepared";
+                    item.req_prepared = prepare;
+                    item.req_checked = emptyUser;
+                    item.req_approved = emptyUser;
+                    item.pdc_checked = emptyUser;
+                    item.itc_checked = emptyUser;
+                    item.itc_approved = emptyUser;
+                    item.fae_approved = emptyUser;
+                    item.fileUploadName = fileName;
+                }
+                if (isEmptyRow == false)
+                {
+                    data.Add(item);
+                }
+
+            }
+            Console.WriteLine(data.Count);
+        }
+
+        return data;
     }
 
-    // public List<ITC_PMD_DB> ITCupload(string pathFile)
-    // {
-
-    //     Console.WriteLine(pathFile);
-    //     using (ExcelPackage package = new ExcelPackage(new FileInfo(pathFile)))
-    //     {
-    //         ExcelWorkbook Workbook = package.Workbook;
-    //         ExcelWorksheet sheet = Workbook.Worksheets[0];
-
-    //         int colCount = sheet.Dimension.Columns;
-    //         int rowCount = sheet.Dimension.Rows;
-
-    //         Console.WriteLine(sheet.Name);
-    //         Console.WriteLine(rowCount);
-    //         List<ITC_PMD_DB> data = new List<ITC_PMD_DB>();
-    //         for (int row = 2; row <= rowCount; row++)
-    //         {
-    //             ITC_PMD_DB rowData = new ITC_PMD_DB();
-    //             for (int col = 1; col <= colCount; col++)
-    //             {
-    //                 if (col == 1)
-    //                 {
-    //                     // rowData.summaryType = sheet.Cells[row, col].Value?.ToString();
-    //                 }
-    //                 else if (col == 2)
-    //                 {
-
-    //                 }
-    //                 else if (col == 3)
-    //                 {
-    //                     rowData.matrialCode = sheet.Cells[row, col].Value?.ToString();
-    //                 }
-    //                 else if (col == 4)
-    //                 {
-    //                     rowData.dim = sheet.Cells[row, col].Value?.ToString();
-    //                 }
-    //                 else if (col == 5)
-    //                 {
-    //                     rowData.matrial = sheet.Cells[row, col].Value?.ToString();
-    //                 }
-    //                 else if (col == 6)
-    //                 {
-    //                     rowData.matrialName = sheet.Cells[row, col].Value?.ToString();
-    //                 }
-    //                 else if (col == 7)
-    //                 {
-    //                     rowData.partForCheck = sheet.Cells[row, col].Value?.ToString();
-    //                 }
-    //                 else if (col == 8)
-    //                 {
-    //                     rowData.partNo = sheet.Cells[row, col].Value?.ToString();
-    //                 }
-    //                 else if (col == 9)
-    //                 {
-    //                     rowData.unitNo = sheet.Cells[row, col].Value?.ToString();
-    //                 }
-    //                 else if (col == 10)
-    //                 {
-    //                     rowData.partName = sheet.Cells[row, col].Value?.ToString();
-    //                 }
-    //                 else if (col == 11)
-    //                 {
-    //                     rowData.part_matrial_name = sheet.Cells[row, col].Value?.ToString();
-    //                 }
-    //                 else if (col == 12)
-    //                 {
-    //                     rowData.sizeT = sheet.Cells[row, col].Value?.ToString();
-    //                 }
-    //                 else if (col == 13)
-    //                 {
-    //                     rowData.sizeW = sheet.Cells[row, col].Value?.ToString();
-    //                 }
-    //                 else if (col == 14)
-    //                 {
-    //                     rowData.sizeL = sheet.Cells[row, col].Value?.ToString();
-    //                 }
-    //                 else if (col == 15)
-    //                 {
-    //                     rowData.sizePitch = sheet.Cells[row, col].Value?.ToString();
-    //                 }
-    //                 else if (col == 16)
-    //                 {
-    //                     rowData.CTsystem = sheet.Cells[row, col].Value?.ToString();
-    //                 }
-    //                 else if (col == 17)
-    //                 {
-    //                     rowData.mc = sheet.Cells[row, col].Value?.ToString();
-    //                 }
-    //                 else if (col == 18)
-    //                 {
-    //                     rowData.vendor = sheet.Cells[row, col].Value?.ToString();
-    //                 }
-    //                 else if (col == 19)
-    //                 {
-    //                     rowData.remark = sheet.Cells[row, col].Value?.ToString();
-    //                 }
-    //                 else if (col == 20)
-    //                 {
-    //                     rowData.privilegeType = sheet.Cells[row, col].Value?.ToString();
-    //                 }
-    //                 else if (col == 21)
-    //                 {
-    //                     rowData.bioGroup = sheet.Cells[row, col].Value?.ToString();
-    //                 }
-    //                 else if (col == 22)
-    //                 {
-    //                     rowData.bioName = sheet.Cells[row, col].Value?.ToString();
-    //                 }
-    //                 else if (col == 23)
-    //                 {
-    //                     rowData.unit = sheet.Cells[row, col].Value?.ToString();
-    //                 }
-    //                 else if (col == 24)
-    //                 {
-    //                     rowData.supplier = sheet.Cells[row, col].Value?.ToString();
-    //                 }
-    //                 else if (col == 25)
-    //                 {
-    //                     rowData.remark_itc = sheet.Cells[row, col].Value?.ToString();
-    //                 }
-    //             }
-    //             data.Add(rowData);
-    //         }
-    //         return data;
-    //     }
-    // }
 }

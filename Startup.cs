@@ -87,12 +87,14 @@ namespace backend
                                     var username = data["user"]["username"];
                                     var name = data["user"]["name"];
                                     var dept = data["user"]["dept"];
+                                    var div = data["user"]["div"];
                                     var permission = data["user"]["permission"];
 
                                     identity.AddClaim(new Claim("access_token", accessToken.RawData));
                                     identity.AddClaim(new Claim("username", username.ToString()));
                                     identity.AddClaim(new Claim("name", name.ToString()));
                                     identity.AddClaim(new Claim("dept", dept.ToString()));
+                                    identity.AddClaim(new Claim("div", div.ToString()));
                                     identity.AddClaim(new Claim("permission", permission.ToString()));
                                     // identity.AddClaim(new Claim("position", position.ToString()));
                                 }

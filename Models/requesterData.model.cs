@@ -8,8 +8,7 @@ namespace backend.Models
 
     public class requesterUploadSchema
     {
-        [BsonId]
-        [BsonRepresentation(BsonType.ObjectId)]
+        [BsonId, BsonRepresentation(BsonType.ObjectId)]
         public string _id { get; set; }
         public string date { get; set; }
         public string dept { get; set; } // fix to imo
@@ -32,6 +31,19 @@ namespace backend.Models
         public string containerWeight { get; set; }
         public string qtyOfContainer { get; set; } //
         public string netWasteWeight { get; set; } //
+
+        // adding format updated with ITC
+        public string fact { get; set; }
+        public string childPart { get; set; }
+        public string blockCodeExtraWork { get; set; }
+        public string extraWorkNo { get; set; }
+        public string supOnMacro { get; set; }
+        public string dateSupplierConfirm { get; set; }
+        public string remark { get; set; }
+        public string fileUploadName { get; set; }
+        public string boiUnit { get; set; }
+        public string KG_G { get; set; }
+        // adding format updated with ITC
         // APPROVING STEP
         public Profile req_prepared { get; set; }
         public Profile req_checked { get; set; }

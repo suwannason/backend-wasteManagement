@@ -55,6 +55,7 @@ namespace backend.Controllers
                     data.time = DateTime.Now.ToString("hh:mm");
                     data.phase = "Phase " + sheet.Cells[1, 2].Value?.ToString();
                     data.dept = User.FindFirst("dept")?.Value;
+                    data.div = User.FindFirst("div")?.Value;
                     data.description = "-";
                     data.req_prepared = new request.Profile
                     {
@@ -62,6 +63,7 @@ namespace backend.Controllers
                         empNo = User.FindFirst("username")?.Value,
                         name = User.FindFirst("name")?.Value,
                         dept = User.FindFirst("dept")?.Value,
+                        div = User.FindFirst("div")?.Value,
                         tel = sheet.Cells[2, 2].Value?.ToString()
                     };
                     data.div = "-";
@@ -194,7 +196,7 @@ namespace backend.Controllers
             List<HazadousSchema> data = _tb.getByStatus(status, dept);
             return Ok(new { success = true, message = "Hazadous items", data, });
         }
-        
+
         [HttpPut("status")]
         public ActionResult updateStatus(request.UpdateStatusFormRequester body)
         {
@@ -207,7 +209,11 @@ namespace backend.Controllers
                 dept = User.FindFirst("dept")?.Value,
                 tel = "-"
             };
-            return Ok();
+            foreach (string id in body.id)
+            {
+                _tb.updateStatus(id, body.status, user);
+            }
+            return Ok(new { success = true, message = "Update status success." });
         }
     }
 }

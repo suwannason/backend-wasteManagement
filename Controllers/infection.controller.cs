@@ -62,7 +62,7 @@ namespace backend.Controllers
                         dept = User.FindFirst("dept")?.Value,
                         tel = sheet.Cells[2, 2].Value?.ToString()
                     };
-                    data.div = "-";
+                    data.div = User.FindFirst("div")?.Value;
                     data.status = "req-prepared";
                     data.year = DateTime.Now.ToString("yyyy");
                     data.month = DateTime.Now.ToString("MMMM");
@@ -113,7 +113,6 @@ namespace backend.Controllers
         [HttpGet("{status}")]
         public ActionResult getByStatus(string status)
         {
-
             string dept = User.FindFirst("dept")?.Value;
 
             List<InfectionSchema> data = _tb.getByStatus(status, dept);
