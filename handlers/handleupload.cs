@@ -240,9 +240,13 @@ public class handleUpload
                         case 15: item.phase = value; break;
                         case 16: item.kind = value; break;
                         case 17:
-                            item.moveOutDate = DateTime.FromOADate(Double.Parse(value)).ToString("dd-MMM-yyyy");
-                            item.moveOutMonth = DateTime.FromOADate(Double.Parse(value)).ToString("MMMM");
-                            item.moveOutYear = DateTime.FromOADate(Double.Parse(value)).ToString("yyyy");
+                            if (value != "-")
+                            {
+                                item.moveOutDate = DateTime.FromOADate(Double.Parse(value)).ToString("dd-MMM-yyyy");
+                                item.moveOutMonth = DateTime.FromOADate(Double.Parse(value)).ToString("MMMM");
+                                item.moveOutYear = DateTime.FromOADate(Double.Parse(value)).ToString("yyyy");
+
+                            }
                             break;
                         case 18: item.lotNo = value; break;
                         case 19: item.totalWeight = value; break;
@@ -253,9 +257,18 @@ public class handleUpload
                         case 24: item.KG_G = value; break;
                         case 25: item.remark = value; break;
                     }
-                    if (col == 12)
+                    if (col == 25)
                     {
-                        faeDBschema faeDB = _faeDB.getByWasteName(item.matrialCode, item.kind);
+                        faeDBschema faeDB = null;
+
+                        if (item.kind == "-") {
+                            break;
+                        }
+                        if (item.matrialCode == "-") {
+                            faeDB = _faeDB.getByKind(item.kind);
+                        } else {
+                            faeDB = _faeDB.getByMatcodeAndKind(item.matrialCode, item.kind);
+                        }
 
                         if (faeDB != null)
                         {
@@ -294,7 +307,7 @@ public class handleUpload
                     item.fae_approved = emptyUser;
                     item.fileUploadName = fileName;
                 }
-                if (isEmptyRow == false)
+                if (isEmptyRow == false && item.totalWeight != "-")
                 {
                     data.Add(item);
                 }

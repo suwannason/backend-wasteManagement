@@ -68,5 +68,29 @@ namespace backend.Services
             }
             _Hazadous.UpdateOne(findId, update);
         }
+
+        public HazadousSchema getById(string id)
+        {
+
+            return _Hazadous.Find<HazadousSchema>(item => item._id == id).FirstOrDefault();
+        }
+        public void faePrepare(string id, string no, bool allowed, string howTodestroy)
+        {
+            var filter = Builders<HazadousSchema>.Filter.Eq("_id", id) & Builders<HazadousSchema>.Filter.Eq("items.no", no);
+            UpdateDefinition<HazadousSchema> update = Builders<HazadousSchema>.Update
+            .Set("items.$.allowed ", allowed)
+            .Set("items.$.howTodestroy", howTodestroy);
+
+            _Hazadous.UpdateOne(filter, update);
+
+        }
+        public HazadousItems getSubId(string id, string no)
+        {
+            // FilterDefinition<HazadousSchema> filterNo = Builders<HazadousSchema>.Filter.Eq("items.$.no", no);
+            var filterId = Builders<HazadousSchema>.Filter.Eq("_id", id) & Builders<HazadousSchema>.Filter.Eq("items.no", no);
+
+            return _Hazadous.Find<HazadousSchema>(filterId)?.FirstOrDefault()?.items.FirstOrDefault();
+
+        }
     }
 }

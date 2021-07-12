@@ -151,6 +151,12 @@ namespace backend.Services
             FilterDefinition<requesterUploadSchema> lotNoFilter = Builders<requesterUploadSchema>.Filter.Eq(item => item.lotNo, lotNo);
             return _scrapMatrial.Find<requesterUploadSchema>(lotNoFilter).ToList<requesterUploadSchema>();
         }
+        public List<requesterUploadSchema> getByLotAndBoi(string lotNo, string boiType) {
+            FilterDefinition<requesterUploadSchema> lotNoFilter = Builders<requesterUploadSchema>.Filter.Eq(item => item.lotNo, lotNo);
+            FilterDefinition<requesterUploadSchema> boiFilter = Builders<requesterUploadSchema>.Filter.Eq(item => item.boiType, boiType);
+
+            return _scrapMatrial.Find<requesterUploadSchema>(lotNoFilter & boiFilter).ToList();
+        }
 
         public void setFaeDB(requesterUploadSchema data, string id)
         {

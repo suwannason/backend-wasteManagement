@@ -68,9 +68,9 @@ namespace backend.Controllers
                 List<Waste> wasteItems = new List<Waste>();
                 List<requesterUploadSchema> requesterItems = new List<requesterUploadSchema>();
 
-                foreach (string lotNo in body.requester)
+                foreach (lotAndboi item in body.requester)
                 {
-                    requesterItems.AddRange(_requester.getByLotno(lotNo));
+                    requesterItems.AddRange(_requester.getByLotAndBoi(item.lotNo, item.boiType));
                     // _requester.updateStatus(lotNo, "toSummary");
                 }
 
@@ -102,7 +102,7 @@ namespace backend.Controllers
                 createItem.prepare = new Profile { band = "-", date = DateTime.Now.ToString("yyyy/MM/dd"), dept = dept, div = "-", empNo = empNo, name = name, tel = "-" };
                 createItem.recycle = wasteItems.ToArray();
                 createItem.requester = requesterItems.ToArray();
-                createItem.status = "prepared";
+                createItem.status = "created";
                 createItem.type = body.type;
                 createItem.recycleWeight = sumRecycle;
                 createItem.requesterWeight = sumRequester;
@@ -119,7 +119,7 @@ namespace backend.Controllers
             }
         }
 
-        [HttpGet("fae/prepared")]
+        [HttpGet("fae/created")]
         public ActionResult getStatusPrepareAndReject()
         {
             List<SummaryInvoiceSchema> data = _services.getPrepareandReject();
@@ -303,7 +303,7 @@ namespace backend.Controllers
 
                 int no = 1;
                 double totalWeight = 0.0; double totalPrice = 0.0;
-                foreach (Waste item in data.recycle)
+                foreach (requesterUploadSchema item in data.requester)
                 {
                     returnData.Add(new
                     {
@@ -334,7 +334,7 @@ namespace backend.Controllers
                     data = returnData,
                     total = new
                     {
-                        lotNo = data.recycle[0].lotNo,
+                        lotNo = data.requester[0].lotNo,
                         totalWeight = totalWeight.ToString("#,##0.00"),
                         totalPrice = totalPrice.ToString("#,##0.00")
                     },
@@ -512,7 +512,7 @@ namespace backend.Controllers
                     SummaryInvoiceSchema data = _services.getById(id);
 
                     int rowItem = 9; int no = 1;
-                    foreach (Waste item in data.recycle)
+                    foreach (requesterUploadSchema item in data.requester)
                     {
                         sheet.Cells["A" + rowItem].Value = no;
                         sheet.Cells["B" + rowItem + ":C" + rowItem].Merge = true;
@@ -738,5 +738,6 @@ namespace backend.Controllers
                 return Problem(e.StackTrace);
             }
         }
+    
     }
 }

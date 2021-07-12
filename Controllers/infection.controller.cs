@@ -15,9 +15,11 @@ namespace backend.Controllers
     public class infectionController : ControllerBase
     {
         private readonly InfectionService _tb;
-        public infectionController(InfectionService infection)
+        private readonly UserService _user;
+        public infectionController(InfectionService infection, UserService user)
         {
             _tb = infection;
+            _user = user;
         }
 
         [HttpPost("upload"), Consumes("multipart/form-data")]
@@ -121,6 +123,7 @@ namespace backend.Controllers
         [HttpPut("status")]
         public ActionResult updateStatus(request.UpdateStatusFormRequester body)
         {
+
             request.Profile user = new request.Profile
             {
                 date = DateTime.Now.ToString("yyyy/MM/dd"),
@@ -129,6 +132,16 @@ namespace backend.Controllers
                 dept = User.FindFirst("dept")?.Value,
                 tel = "-"
             };
+            List<UserSchema> userDB = _user.Getlist(user.empNo);
+
+            if (body.status.IndexOf("check") > 0 && userDB.FindAll(item => item.permission != "Checked").Count > 0)
+            {
+                return Unauthorized(new { success = false, message = "Can't check, Permission denied." });
+            }
+            else if (body.status.IndexOf("approve") > 0 && userDB.FindAll(item => item.permission == "Approved").Count == 0)
+            {
+                return Unauthorized(new { success = false, message = "Can't approve, Permission denied." });
+            }
             foreach (string id in body.id)
             {
                 _tb.updateStatus(id, body.status, user);

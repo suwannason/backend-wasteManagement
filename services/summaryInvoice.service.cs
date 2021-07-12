@@ -56,6 +56,10 @@ namespace backend.Services
             } else if (status == "reject") {
                 UpdateDefinition<SummaryInvoiceSchema> update = Builders<SummaryInvoiceSchema>.Update.Set("status", status);
                 _tb.UpdateOne(filter, update);
+
+            } else if (status == "prepared") {
+                UpdateDefinition<SummaryInvoiceSchema> update = Builders<SummaryInvoiceSchema>.Update.Set("status", status);
+                _tb.UpdateOne(filter, update);
             }
         }
 
@@ -82,7 +86,7 @@ namespace backend.Services
         }
         public List<SummaryInvoiceSchema> getPrepareandReject() {
 
-            return _tb.Find<SummaryInvoiceSchema>(item => item.status == "prepared" || item.status == "reject").ToList();
-        }
+            return _tb.Find<SummaryInvoiceSchema>(item => item.status == "created" || item.status == "reject").ToList();
+        } 
     }
 }

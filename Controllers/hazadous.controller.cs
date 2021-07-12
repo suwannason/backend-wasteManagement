@@ -16,9 +16,11 @@ namespace backend.Controllers
     {
 
         private readonly HazadousService _tb;
-        public hazadousController(HazadousService hazadous)
+        private readonly UserService _user;
+        public hazadousController(HazadousService hazadous, UserService user)
         {
             _tb = hazadous;
+            _user = user;
         }
 
         [HttpPost("upload"), Consumes("multipart/form-data")]
@@ -66,7 +68,6 @@ namespace backend.Controllers
                         div = User.FindFirst("div")?.Value,
                         tel = sheet.Cells[2, 2].Value?.ToString()
                     };
-                    data.div = "-";
                     data.status = "req-prepared";
                     data.year = DateTime.Now.ToString("yyyy");
                     data.month = DateTime.Now.ToString("MMMM");
@@ -200,7 +201,6 @@ namespace backend.Controllers
         [HttpPut("status")]
         public ActionResult updateStatus(request.UpdateStatusFormRequester body)
         {
-
             request.Profile user = new request.Profile
             {
                 date = DateTime.Now.ToString("yyyy/MM/dd"),
@@ -209,11 +209,67 @@ namespace backend.Controllers
                 dept = User.FindFirst("dept")?.Value,
                 tel = "-"
             };
+            List<UserSchema> userDB = _user.Getlist(user.empNo);
+
+            if (body.status.IndexOf("check") > 0 && userDB.FindAll(item => item.permission != "Checked").Count > 0)
+            {
+                return Unauthorized(new { success = false, message = "Can't check, Permission denied." });
+            }
+            else if (body.status.IndexOf("approve") > 0 && userDB.FindAll(item => item.permission == "Approved").Count == 0)
+            {
+                return Unauthorized(new { success = false, message = "Can't approve, Permission denied." });
+            }
             foreach (string id in body.id)
             {
                 _tb.updateStatus(id, body.status, user);
             }
             return Ok(new { success = true, message = "Update status success." });
+        }
+
+        [HttpGet("byId/{id}")]
+        public ActionResult getById(string id)
+        {
+
+            HazadousSchema data = _tb.getById(id);
+
+            return Ok(new { success = true, message = "Hazadous item", data, });
+        }
+
+        [HttpGet("subId/{id}/{no}")]
+        public ActionResult getBySubId(string id, string no)
+        {
+
+            HazadousItems data = _tb.getSubId(id, no);
+            return Ok(data);
+        }
+
+        [HttpPut("fae/prepare")]
+        public ActionResult faePrepare(backend.request.HazadousFAEprepare body)
+        {
+            try
+            {
+                if (User.FindFirst("dept")?.Value != "FAE")
+                {
+                    return Unauthorized(new { success = false, message = "Permission denied." });
+                }
+                string howTodestroy = "";
+
+                if (body.burn == true)
+                {
+                    howTodestroy = "burn";
+                }
+                if (body.recycle == true)
+                {
+                    howTodestroy = "recycle";
+                }
+                _tb.faePrepare(body.id, body.no, body.allowed, howTodestroy);
+                return Ok(new { success = true, message = "FAE prepare success." });
+            }
+            catch (Exception e)
+            {
+                return Conflict(new { success = false, stack = e.StackTrace, message = e.Message });
+            }
+
         }
     }
 }

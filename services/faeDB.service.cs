@@ -66,6 +66,10 @@ namespace backend.Services
         {
             return _faedb.Find<faeDBschema>(item => item.biddingType == biddingType).FirstOrDefault();
         }
+        public faeDBschema getByMatcodeAndKind(string matrialCode, string kind)
+        {
+            return _faedb.Find<faeDBschema>(item => item.matrialCode == matrialCode && item.kind == kind).FirstOrDefault();
+        }
 
         public faeDBschema getByKind(string kind)
         {

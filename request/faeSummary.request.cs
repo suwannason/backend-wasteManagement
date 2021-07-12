@@ -14,11 +14,16 @@ namespace backend.request {
 
      }
 
+     public class lotAndboi {
+         public string lotNo { get; set; }
+         public string boiType { get; set; }
+     }
+
      public class createSummary {
 
          [Required]
          public string type { get; set; }
-         public string[] requester { get; set; }
+         public lotAndboi[] requester { get; set; }
          public string[] recycle { get; set; }
      }
      public class updateStatus {
