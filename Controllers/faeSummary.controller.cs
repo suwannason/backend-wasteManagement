@@ -66,6 +66,7 @@ namespace backend.Controllers
                 SummaryInvoiceSchema createItem = new SummaryInvoiceSchema();
 
                 List<Waste> wasteItems = new List<Waste>();
+                
                 List<requesterUploadSchema> requesterItems = new List<requesterUploadSchema>();
 
                 foreach (lotAndboi item in body.requester)
@@ -103,6 +104,7 @@ namespace backend.Controllers
                 createItem.recycle = wasteItems.ToArray();
                 createItem.requester = requesterItems.ToArray();
                 createItem.status = "created";
+                createItem.mainInvoice = body.mainInvoice;
                 createItem.type = body.type;
                 createItem.recycleWeight = sumRecycle;
                 createItem.requesterWeight = sumRequester;

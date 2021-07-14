@@ -494,46 +494,82 @@ namespace backend.Controllers
                 }
 
                 List<Waste> wasteData = new List<Waste>();
+                List<requesterUploadSchema> requesterData = new List<requesterUploadSchema>();
 
                 // merge all recycle data summary
                 foreach (SummaryInvoiceSchema item in summary)
                 {
                     wasteData.AddRange(item.recycle);
                 }
+                foreach (SummaryInvoiceSchema item in summary)
+                {
+                    requesterData.AddRange(item.requester);
+                }
+
                 // merge all recycle data summary
 
                 List<Waste> distinct = wasteData.GroupBy(x => x.wasteName).Select(x => x.First()).ToList();
+                List<requesterUploadSchema> distinct_req = requesterData.GroupBy(x => x.kind).Select(x => x.First()).ToList();
                 // preparing acc record
 
 
                 List<InvoiceprintingItems> dataItems = new List<InvoiceprintingItems>();
 
                 double subTotal = 0.0;
-
-                foreach (Waste wastename in distinct)
+                // CONDITION select main print
+                if (summary[0].mainInvoice == "FAE input")
                 {
-                    string name = wastename.wasteName;
-                    double totalWeight = 0.0; double totalPrice = 0.0;
-                    int no = 1;
-                    List<Waste> searchBywasteName = wasteData.FindAll(item => item.wasteName == name);
-                    foreach (Waste item in searchBywasteName)
+                    foreach (Waste wastename in distinct)
                     {
-                        totalWeight += Double.Parse(item.netWasteWeight);
-                        totalPrice += Double.Parse(item.totalPrice);
-                    }
-                    dataItems.Add(new InvoiceprintingItems
-                    {
-                        no = no,
-                        wastename = wastename.wasteName,
-                        quantity = totalWeight.ToString("#,###.00"),
-                        unit = wastename.unit,
-                        unitPrice = wastename.unitPrice,
-                        totalPrice = totalPrice.ToString("#,###.00")
-                    });
-                    no += 1;
+                        string name = wastename.wasteName;
+                        double totalWeight = 0.0; double totalPrice = 0.0;
+                        int no = 1;
+                        List<Waste> searchBywasteName = wasteData.FindAll(item => item.wasteName == name);
+                        foreach (Waste item in searchBywasteName)
+                        {
+                            totalWeight += Double.Parse(item.netWasteWeight);
+                            totalPrice += Double.Parse(item.totalPrice);
+                        }
+                        dataItems.Add(new InvoiceprintingItems
+                        {
+                            no = no,
+                            wastename = wastename.wasteName,
+                            quantity = totalWeight.ToString("#,###.00"),
+                            unit = wastename.unit,
+                            unitPrice = wastename.unitPrice,
+                            totalPrice = totalPrice.ToString("#,###.00")
+                        });
+                        no += 1;
 
-                    subTotal += totalPrice;
+                        subTotal += totalPrice;
+                    }
+                } else {
+                    foreach (requesterUploadSchema wastename in distinct_req)
+                    {
+                        string name = wastename.kind;
+                        double totalWeight = 0.0; double totalPrice = 0.0;
+                        int no = 1;
+                        List<requesterUploadSchema> searachByKind = requesterData.FindAll(item => item.kind == name);
+                        foreach (requesterUploadSchema item in searachByKind)
+                        {
+                            totalWeight += Double.Parse(item.netWasteWeight);
+                            totalPrice += Double.Parse(item.totalPrice);
+                        }
+                        dataItems.Add(new InvoiceprintingItems
+                        {
+                            no = no,
+                            wastename = wastename.kind,
+                            quantity = totalWeight.ToString("#,###.00"),
+                            unit = wastename.unit,
+                            unitPrice = wastename.unitPrice,
+                            totalPrice = totalPrice.ToString("#,###.00")
+                        });
+                        no += 1;
+
+                        subTotal += totalPrice;
+                    }
                 }
+                // CONDITION select main print
                 double vat = Math.Round(((subTotal * 7) / 100), 2);
 
                 if (subTotal + vat < 0)

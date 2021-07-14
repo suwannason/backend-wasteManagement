@@ -52,4 +52,10 @@ namespace backend.request {
         public string boiType { get; set; }
         public string status { get; set; }
     }
+
+    public class RejectWaste {
+
+        public string[] id { get; set; }
+        public string commend { get; set; }
+    }
 }

@@ -181,10 +181,6 @@ namespace backend.Services
             {
                 data = data.FindAll(e => e.lotNo == lotNo);
             }
-            if (wasteName != "-" && wasteName != "")
-            {
-                data = data.FindAll(e => e.wasteName == wasteName);
-            }
 
             if (startDate != "-" && startDate != "")
             {

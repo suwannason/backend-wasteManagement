@@ -51,12 +51,19 @@ namespace backend.Services
             if (status == "req-checked")
             {
                 update = Builders<InfectionSchema>.Update.Set("req_checked", user).Set("status", status);
+                _infection.UpdateOne(findId, update);
             }
             else if (status == "req-approved")
             {
                 update = Builders<InfectionSchema>.Update.Set("req_approved", user).Set("status", status);
+                _infection.UpdateOne(findId, update);
             }
-            _infection.UpdateOne(findId, update);
+            else if (status == "fae-prepared")
+            {
+
+                update = Builders<InfectionSchema>.Update.Set("fae_prepared", user).Set("status", status);
+                _infection.UpdateOne(findId, update);
+            }
         }
     }
 }

@@ -233,5 +233,15 @@ namespace backend.Services
 
             return recycle.Find<Waste>(item => item.moveOutDate == moveOutDate && item.phase == phase && item.boiType == boiType && item.status == status).ToList();
         }
+
+        public void rejectWaste(string id, string commend)
+        {
+            FilterDefinition<Waste> filter = Builders<Waste>.Filter.Gte(item => item._id, id);
+            UpdateDefinition<Waste> update = Builders<Waste>.Update
+            .Set("rejectComment", commend)
+            .Set("status", "reject");
+
+            recycle.UpdateOne(filter, update);
+        }
     }
 }

@@ -60,11 +60,11 @@ namespace backend.Services
             }
             else if (status == "fae-checked")
             {
-
+                update = Builders<HazadousSchema>.Update.Set("fae_checked", user).Set("status", status);
             }
             else if (status == "fae-approved")
             {
-
+                update = Builders<HazadousSchema>.Update.Set("fae_approved", user).Set("status", status);
             }
             _Hazadous.UpdateOne(findId, update);
         }
@@ -74,16 +74,27 @@ namespace backend.Services
 
             return _Hazadous.Find<HazadousSchema>(item => item._id == id).FirstOrDefault();
         }
-        public void faePrepare(string id, string no, bool allowed, string howTodestroy)
+
+        public void faePrepare_setcommend(string id, string description, request.Profile user)
+        {
+            FilterDefinition<HazadousSchema> filter = Builders<HazadousSchema>.Filter.Eq("_id", id);
+            UpdateDefinition<HazadousSchema> update = Builders<HazadousSchema>.Update.Set("description", description).Set("fae_prepared", user);
+
+            _Hazadous.UpdateOne(filter, update);
+        }
+        public void faePrepare(string id, string no, bool allowed, bool burn, bool recycle)
         {
             var filter = Builders<HazadousSchema>.Filter.Eq("_id", id) & Builders<HazadousSchema>.Filter.Eq("items.no", no);
             UpdateDefinition<HazadousSchema> update = Builders<HazadousSchema>.Update
-            .Set("items.$.allowed ", allowed)
-            .Set("items.$.howTodestroy", howTodestroy);
+            .Set("items.$.allowed", allowed)
+            .Set("items.$.burn", burn)
+            .Set("items.$.recycle", recycle)
+            .Set("status", "fae-prepared");
 
             _Hazadous.UpdateOne(filter, update);
 
         }
+
         public HazadousItems getSubId(string id, string no)
         {
             // FilterDefinition<HazadousSchema> filterNo = Builders<HazadousSchema>.Filter.Eq("items.$.no", no);

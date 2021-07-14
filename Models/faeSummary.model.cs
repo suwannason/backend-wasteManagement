@@ -21,6 +21,7 @@ namespace backend.Models
         public requesterUploadSchema[] requester { get; set; }
         public Waste[] recycle { get; set; }
         public string createDate { get; set; }
+        public string mainInvoice { get; set; }
 
         public string totalWeight { get; set; }
         public string totalPrice { get; set; }

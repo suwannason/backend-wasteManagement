@@ -169,7 +169,8 @@ namespace backend.Controllers
                                     totalNetweight += Double.Parse(value);
                                     break;
                             }
-                            item.howTodestroy = "-";
+                            item.burn = false;
+                            item.recycle = false;
                             item.biddingType = biddingType;
                         }
                         hazadousList.Add(item);
@@ -211,7 +212,7 @@ namespace backend.Controllers
             };
             List<UserSchema> userDB = _user.Getlist(user.empNo);
 
-            if (body.status.IndexOf("check") > 0 && userDB.FindAll(item => item.permission != "Checked").Count > 0)
+            if (body.status.IndexOf("check") > 0 && userDB.FindAll(item => item.permission != "Checked").Count == 0)
             {
                 return Unauthorized(new { success = false, message = "Can't check, Permission denied." });
             }
@@ -252,17 +253,21 @@ namespace backend.Controllers
                 {
                     return Unauthorized(new { success = false, message = "Permission denied." });
                 }
-                string howTodestroy = "";
+                request.Profile user = new request.Profile
+                {
+                    date = DateTime.Now.ToString("yyyy/MM/dd"),
+                    empNo = User.FindFirst("username")?.Value,
+                    name = User.FindFirst("name")?.Value,
+                    dept = User.FindFirst("dept")?.Value,
+                    div = User.FindFirst("div")?.Value,
+                    tel = "-"
+                };
 
-                if (body.burn == true)
+                foreach (backend.request.HazadousFAEprepareItem item in body.items)
                 {
-                    howTodestroy = "burn";
+                    _tb.faePrepare(body.id, item.no, item.allowed, item.burn, item.recycle);
                 }
-                if (body.recycle == true)
-                {
-                    howTodestroy = "recycle";
-                }
-                _tb.faePrepare(body.id, body.no, body.allowed, howTodestroy);
+                _tb.faePrepare_setcommend(body.id, body.description, user);
                 return Ok(new { success = true, message = "FAE prepare success." });
             }
             catch (Exception e)

@@ -134,7 +134,7 @@ namespace backend.Controllers
             };
             List<UserSchema> userDB = _user.Getlist(user.empNo);
 
-            if (body.status.IndexOf("check") > 0 && userDB.FindAll(item => item.permission != "Checked").Count > 0)
+            if (body.status.IndexOf("check") > 0 && userDB.FindAll(item => item.permission == "Checked").Count == 0)
             {
                 return Unauthorized(new { success = false, message = "Can't check, Permission denied." });
             }

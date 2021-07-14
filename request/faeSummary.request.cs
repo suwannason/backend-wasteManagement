@@ -25,6 +25,7 @@ namespace backend.request {
          public string type { get; set; }
          public lotAndboi[] requester { get; set; }
          public string[] recycle { get; set; }
+         public string mainInvoice { get; set; }
      }
      public class updateStatus {
 

@@ -39,6 +39,7 @@ namespace backend.Models
         public string workCount { get; set; }
         public string totalWeight { get; set; }
         public bool allowed { get; set; }
-        public string howTodestroy { get; set; }
+        public bool burn { get; set; }
+        public bool recycle { get; set; }
     }
 }

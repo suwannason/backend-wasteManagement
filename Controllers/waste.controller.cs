@@ -126,7 +126,7 @@ namespace backend.Controllers
                         id = id.ToArray(),
                     });
                 }
-      
+
                 res.message = "Get data success";
                 return Ok(new { success = true, message = "Data record.", data = returnData });
             }
@@ -394,7 +394,9 @@ namespace backend.Controllers
                 // model.year = DateTime.Now.ToString("yyyy");
                 model.month = DateTime.Now.ToString("MMM");
                 model.netWasteWeight = body.netWasteWeight;
-
+                if (body.status == "reject") {
+                    model.status = "open";
+                }
                 model.phase = body.phase;
                 model.qtyOfContainer = body.qtyOfContainer;
                 model.status = body.status;
@@ -475,6 +477,17 @@ namespace backend.Controllers
             List<Waste> data = _recycleService.getGroupingItems(body.moveOutDate, body.phase, body.boiType, body.status);
 
             return Ok(new { success = true, message = "Data record", data, });
+        }
+
+        [HttpPatch("reject")]
+        public ActionResult rejectWaste(RejectWaste body)
+        {
+
+            foreach (string item in body.id)
+            {
+                _recycleService.rejectWaste(item, body.commend);
+            }
+            return Ok(new { success = true, message = "Reject waste success." });
         }
     }
 }

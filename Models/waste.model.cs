@@ -39,6 +39,7 @@ namespace backend.Models
 
         public string qtyOfContainer { get; set; }
         public long createDate { get; set; }
+        public string rejectComment { get; set; }
 
         public string[] files { get; set; }
         public Profile prepareBy { get; set; }
