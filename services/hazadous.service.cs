@@ -78,7 +78,13 @@ namespace backend.Services
         public void faePrepare_setcommend(string id, string description, request.Profile user)
         {
             FilterDefinition<HazadousSchema> filter = Builders<HazadousSchema>.Filter.Eq("_id", id);
-            UpdateDefinition<HazadousSchema> update = Builders<HazadousSchema>.Update.Set("description", description).Set("fae_prepared", user);
+            UpdateDefinition<HazadousSchema> update = null;
+
+            if (user != null) {
+                update = Builders<HazadousSchema>.Update.Set("description", description).Set("fae_prepared", user);
+            } else {
+                update = Builders<HazadousSchema>.Update.Set("description", description);
+            }
 
             _Hazadous.UpdateOne(filter, update);
         }

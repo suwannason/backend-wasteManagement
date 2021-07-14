@@ -212,7 +212,7 @@ namespace backend.Controllers
             };
             List<UserSchema> userDB = _user.Getlist(user.empNo);
 
-            if (body.status.IndexOf("check") > 0 && userDB.FindAll(item => item.permission != "Checked").Count == 0)
+            if (body.status.IndexOf("check") > 0 && userDB.FindAll(item => item.permission == "Checked").Count == 0)
             {
                 return Unauthorized(new { success = false, message = "Can't check, Permission denied." });
             }
@@ -253,6 +253,7 @@ namespace backend.Controllers
                 {
                     return Unauthorized(new { success = false, message = "Permission denied." });
                 }
+
                 request.Profile user = new request.Profile
                 {
                     date = DateTime.Now.ToString("yyyy/MM/dd"),
@@ -262,6 +263,13 @@ namespace backend.Controllers
                     div = User.FindFirst("div")?.Value,
                     tel = "-"
                 };
+
+                List<UserSchema> userDB = _user.Getlist(user.empNo);
+
+                if (userDB.FindAll(item => item.permission != "Prepared").Count == 0)
+                {
+                    user = null;
+                }
 
                 foreach (backend.request.HazadousFAEprepareItem item in body.items)
                 {

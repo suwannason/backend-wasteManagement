@@ -125,6 +125,7 @@ namespace backend.Controllers
                 }
                 data.invoiceNo = "-";
                 data.termsOfPayment = "-";
+                data.rejectCommend = "-";
                 data.dueDate = "-";
                 data.customerCode = "-";
                 data.poNo = "-";
@@ -543,7 +544,9 @@ namespace backend.Controllers
 
                         subTotal += totalPrice;
                     }
-                } else {
+                }
+                else
+                {
                     foreach (requesterUploadSchema wastename in distinct_req)
                     {
                         string name = wastename.kind;
@@ -912,6 +915,12 @@ namespace backend.Controllers
                 );
             }
             return Ok(new { success = true, message = "Prepared success." });
+        }
+
+        [HttpPatch("reject")]
+        public ActionResult rejectInvoice()
+        {
+            return Ok();
         }
     }
 }

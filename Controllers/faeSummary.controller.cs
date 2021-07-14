@@ -34,6 +34,13 @@ namespace backend.Controllers
             _requester = requester;
             _faeDB = fae;
         }
+        [HttpGet("get/{id}")]
+        public ActionResult getByIdSummary(string id) {
+
+            SummaryInvoiceSchema data = _services.getById(id);
+
+            return Ok(new { success = true, message = "Summary data.", data, });
+        }
 
         [HttpPost("search")]
         public ActionResult searchPrepare(dataSearch body)

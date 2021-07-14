@@ -27,6 +27,7 @@ namespace backend.Models
         public string month { get; set; }
         public string status { get; set; }
         public string totalPrice { get; set; }
+        public string rejectCommend { get; set; }
 
         // ACC INPUT
         public string invoiceNo { get; set; }
