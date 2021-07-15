@@ -15,6 +15,7 @@ namespace backend.Models
         public string files { get; set; }
         public string summaryId { get; set; }
         public string status { get; set; }
+        public string rejectCommend { get; set; }
         public Profile prepare { get; set; }
         public Profile check { get; set; }
         public Profile approve { get; set; }

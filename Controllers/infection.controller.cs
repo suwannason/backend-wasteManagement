@@ -22,6 +22,13 @@ namespace backend.Controllers
             _user = user;
         }
 
+        [HttpGet("getById/{id}")]
+        public ActionResult getById(string id) {
+
+            InfectionSchema data = _tb.getById(id);
+
+            return Ok(new { success = true, message = "Data infection.", data, });
+        }
         [HttpPost("upload"), Consumes("multipart/form-data")]
         public ActionResult upload([FromForm] request.uploadFile body)
         {
@@ -87,7 +94,7 @@ namespace backend.Controllers
                             switch (col)
                             {
                                 case 1: item.no = value; break;
-                                case 2: item.date = value; break;
+                                case 2: item.date = DateTime.FromOADate(Double.Parse(value)).ToString("dd-MMM-yyyy"); break;
                                 case 3:
                                     item.totalWeight = value;
                                     totalNetweight += Double.Parse(value);

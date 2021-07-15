@@ -99,5 +99,14 @@ namespace backend.Services
 
             invoice.UpdateOne(filter, update);
         }
+        public void rejectInvoice(string id, string commend)
+        {
+            FilterDefinition<Invoices> filter = Builders<Invoices>.Filter.Eq(item => item._id, id);
+            UpdateDefinition<Invoices> update = Builders<Invoices>.Update
+            .Set("rejectCommend", commend)
+            .Set("status", "reject");
+
+            invoice.UpdateOne(filter, update);
+        }
     }
 }

@@ -82,6 +82,60 @@ namespace backend.Controllers
             return Ok(new { success = true, message = "Data record.", data = returnData });
         }
 
+        [HttpGet("reject")]
+        public ActionResult getReject()
+        {
+            try
+            {
+                List<Waste> data = _recycleService.GetReject();
+                if (data.Count == 0)
+                {
+                    return NotFound(new { success = true, message = "Data not found." });
+                }
+                List<Waste> grouped = data.GroupBy(x => new { x.moveOutDate, x.phase, x.boiType }).Select(y => new Waste
+                {
+                    boiType = y.Key.boiType,
+                    moveOutDate = y.Key.moveOutDate,
+                    phase = y.Key.phase
+                }).ToList();
+                List<wasteGroupedRecord> returnData = new List<wasteGroupedRecord>();
+
+                foreach (Waste item in grouped)
+                {
+                    List<Waste> itemInGroup = _recycleService.getGroupingItems(item.moveOutDate, item.phase, item.boiType, "checked");
+
+                    // return Ok(itemInGroup);
+                    double totalNetweight = 0;
+                    List<string> id = new List<string>();
+
+                    foreach (Waste gItem in itemInGroup)
+                    {
+                        totalNetweight += Double.Parse(gItem.netWasteWeight);
+                        id.Add(gItem._id);
+                    }
+                    returnData.Add(new wasteGroupedRecord
+                    {
+                        moveOutDate = item.moveOutDate,
+                        boiType = item.boiType,
+                        companyApprove = itemInGroup[0].companyApprove,
+                        cptMainType = itemInGroup[0].cptMainType,
+                        lotNo = itemInGroup[0].lotNo,
+                        netWasteWeight = totalNetweight.ToString("##,###.00"),
+                        phase = item.phase,
+                        wasteGroup = itemInGroup[0].wasteGroup,
+                        id = id.ToArray(),
+                    });
+                }
+
+                res.message = "Get data success";
+                return Ok(new { success = true, message = "Data record.", data = returnData });
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return Problem(e.StackTrace);
+            }
+        }
         [HttpGet("approve")]
         public ActionResult<RecycleWesteResponse> GetForApprove()
         {
@@ -394,7 +448,8 @@ namespace backend.Controllers
                 // model.year = DateTime.Now.ToString("yyyy");
                 model.month = DateTime.Now.ToString("MMM");
                 model.netWasteWeight = body.netWasteWeight;
-                if (body.status == "reject") {
+                if (body.status == "reject")
+                {
                     model.status = "open";
                 }
                 model.phase = body.phase;

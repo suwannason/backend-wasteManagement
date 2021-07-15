@@ -231,11 +231,18 @@ namespace backend.Services
 
             return _scrapMatrial.Find<requesterUploadSchema>(item => item.moveOutDate == moveOutDate && item.phase == phase && item.boiType == boiType && item.dept == dept).ToList();
         }
-
-
         public List<requesterUploadSchema> getTracking()
         {
             return _scrapMatrial.Find<requesterUploadSchema>(item => item.status != "itc-approved" && item.status != "fae-prepared" && item.status != "fae-checked" && item.status != "fae-approved" && item.status != "toInvoice" && item.status != "toSummary").ToList();
+        }
+
+        public void rejectByFileName(string filename, string commend, Profile user) {
+
+            FilterDefinition<requesterUploadSchema> filter = Builders<requesterUploadSchema>.Filter.Eq("fileUploadName", filename);
+
+            UpdateDefinition<requesterUploadSchema> update = Builders<requesterUploadSchema>.Update.Set("status", "reject").Set("rejectCommend", commend).Set("rejectBy", user);
+
+            _scrapMatrial.UpdateMany(filter, update);
         }
     }
 }

@@ -26,6 +26,10 @@ namespace backend.Services
             _infection.InsertOne(body);
         }
 
+        public InfectionSchema getById(string id) {
+
+            return _infection.Find(item => item._id == id).FirstOrDefault();
+        }
         public List<InfectionSchema> getByStatus(string status, string dept)
         {
 

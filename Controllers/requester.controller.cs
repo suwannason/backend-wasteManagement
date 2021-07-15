@@ -449,6 +449,24 @@ namespace backend.Controllers
                 }
             );
         }
+
+        [HttpPatch("reject")]
+        public ActionResult rejection(rejectRequester body)
+        {
+
+            Profile user = new Profile();
+            user.empNo = User.FindFirst("username")?.Value;
+            user.band = User.FindFirst("band")?.Value;
+            user.dept = User.FindFirst("dept")?.Value;
+            user.div = User.FindFirst("div")?.Value;
+            user.name = User.FindFirst("name")?.Value;
+            user.tel = User.FindFirst("tel")?.Value;
+
+            requesterUploadSchema data = _requester.getById(body.id[0]);
+            _requester.rejectByFileName(data.fileUploadName, body.commend, user);
+
+            return Ok(new { success = true, message = "Reject success." });
+        }
     }
 
 }

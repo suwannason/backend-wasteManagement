@@ -26,14 +26,20 @@ namespace backend.Services
             return recycle.Find<Waste>(recycle => recycle.status == "open").ToList();
         }
 
+
         public List<Waste> GetApprove()
         {
             return recycle.Find<Waste>(recycle => recycle.status == "checked").ToList();
+        }
+        public List<Waste> GetReject()
+        {
+            return recycle.Find<Waste>(recycle => recycle.status == "reject").ToList();
         }
         public List<Waste> GetCheck()
         {
             return recycle.Find<Waste>(recycle => recycle.year == DateTime.Now.Year.ToString() && recycle.status == "open").ToList();
         }
+
 
         public Waste Get(string id)
         {
@@ -236,9 +242,9 @@ namespace backend.Services
 
         public void rejectWaste(string id, string commend)
         {
-            FilterDefinition<Waste> filter = Builders<Waste>.Filter.Gte(item => item._id, id);
+            FilterDefinition<Waste> filter = Builders<Waste>.Filter.Eq(item => item._id, id);
             UpdateDefinition<Waste> update = Builders<Waste>.Update
-            .Set("rejectComment", commend)
+            .Set("rejectCommend", commend)
             .Set("status", "reject");
 
             recycle.UpdateOne(filter, update);

@@ -101,4 +101,9 @@ namespace backend.request
         public string[] check { get; set; }
         public string[] uncheck { get; set; }
     }
+
+    public class rejectRequester {
+        public string[] id { get; set; }
+        public string commend { get; set; }
+    }
 }

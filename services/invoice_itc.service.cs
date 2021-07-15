@@ -24,7 +24,8 @@ namespace backend.Services
         {
             ITCinvoiceSchema invoice = _tb.Find(item => item.summaryId == data.summaryId).FirstOrDefault();
 
-            if (invoice != null) {
+            if (invoice != null)
+            {
                 FilterDefinition<ITCinvoiceSchema> filter = Builders<ITCinvoiceSchema>.Filter.Eq(item => item._id, invoice._id);
                 invoice.files = data.files;
                 invoice.status = "prepared";
@@ -32,10 +33,12 @@ namespace backend.Services
                 invoice.prepare = invoice.prepare;
 
                 _tb.ReplaceOne(filter, invoice);
-            } else {
+            }
+            else
+            {
                 _tb.InsertOne(data);
             }
-            
+
         }
         public List<ITCinvoiceSchema> getByStatus(string status)
         {
@@ -46,6 +49,16 @@ namespace backend.Services
         {
             FilterDefinition<ITCinvoiceSchema> filter = Builders<ITCinvoiceSchema>.Filter.Eq(item => item._id, id);
             UpdateDefinition<ITCinvoiceSchema> update = Builders<ITCinvoiceSchema>.Update.Set("status", status);
+            _tb.UpdateOne(filter, update);
+        }
+
+        public void rejectInvoice(string id, string commend)
+        {
+            FilterDefinition<ITCinvoiceSchema> filter = Builders<ITCinvoiceSchema>.Filter.Eq(item => item._id, id);
+            UpdateDefinition<ITCinvoiceSchema> update = Builders<ITCinvoiceSchema>.Update
+            .Set("rejectCommend", commend)
+            .Set("status", "reject");
+
             _tb.UpdateOne(filter, update);
         }
     }

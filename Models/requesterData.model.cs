@@ -44,6 +44,7 @@ namespace backend.Models
         public string boiUnit { get; set; }
         public string KG_G { get; set; }
         // adding format updated with ITC
+        public string rejectCommend { get; set; }
         // APPROVING STEP
         public Profile req_prepared { get; set; }
         public Profile req_checked { get; set; }
@@ -57,6 +58,7 @@ namespace backend.Models
         public Profile fae_prepared { get; set; }
         public Profile fae_checked { get; set; }
         public Profile fae_approved { get; set; }
+        public Profile rejectBy { get; set; }
         // APPROVING STEP
 
         // FIELD ON MERGE

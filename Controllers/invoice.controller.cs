@@ -51,11 +51,14 @@ namespace backend.Controllers
         {
             try
             {
-                var data = _invoiceService.GetById(id);
+                Invoices data = _invoiceService.GetById(id);
 
                 if (data == null)
                 {
                     return NotFound();
+                }
+                if (data.status == "reject") {
+                    data.status = "fae-prepared";
                 }
                 _invoiceService.Update(id, body);
                 res.success = true;
@@ -917,10 +920,15 @@ namespace backend.Controllers
             return Ok(new { success = true, message = "Prepared success." });
         }
 
-        [HttpPatch("reject")]
-        public ActionResult rejectInvoice()
+        [HttpPatch("reject/invoice")]
+        public ActionResult rejectInvoice(rejectInvoice body)
         {
-            return Ok();
+            foreach (string item in body.id)
+            {
+                _invoiceService.rejectInvoice(item, body.commend);
+                _itc_invoice.rejectInvoice(item, body.commend);
+            }
+            return Ok(new { success = true, message = "Reject Invoice success." });
         }
     }
 }
