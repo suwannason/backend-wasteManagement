@@ -284,5 +284,15 @@ namespace backend.Controllers
             }
 
         }
+
+        [HttpPatch("reject")]
+        public ActionResult reject(request.RejectHazadous body) {
+
+            foreach (string item in body.id) {
+
+                _tb.reject(item, body.commend);
+            }
+            return Ok(new { success = true, message = "Reject hazadous success. "});
+        }
     }
 }

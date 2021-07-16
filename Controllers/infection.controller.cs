@@ -155,5 +155,15 @@ namespace backend.Controllers
             }
             return Ok(new { success = true, message = "Update status success." });
         }
+    
+        [HttpPatch("reject")]
+        public ActionResult reject(request.RejectRequest body) {
+
+            foreach (string item in body.id) {
+
+                _tb.reject(item, body.commend);
+            }
+            return Ok(new { success = true, message = "Reject infection success." });
+        }
     }
 }

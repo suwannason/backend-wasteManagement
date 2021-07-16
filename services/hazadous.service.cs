@@ -109,5 +109,14 @@ namespace backend.Services
             return _Hazadous.Find<HazadousSchema>(filterId)?.FirstOrDefault()?.items.FirstOrDefault();
 
         }
+
+        public void reject(string id, string commend) {
+
+            FilterDefinition<HazadousSchema> filter = Builders<HazadousSchema>.Filter.Eq("_id", id);
+
+            UpdateDefinition<HazadousSchema> update = Builders<HazadousSchema>.Update.Set("rejectCommend", commend).Set("status", "reject");
+
+            _Hazadous.UpdateOne(filter, update);
+        }
     }
 }

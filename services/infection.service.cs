@@ -69,5 +69,13 @@ namespace backend.Services
                 _infection.UpdateOne(findId, update);
             }
         }
+    
+        public void reject(string id, string commend) {
+
+            FilterDefinition<InfectionSchema> filter = Builders<InfectionSchema>.Filter.Eq("_id", id);
+            UpdateDefinition<InfectionSchema> update = Builders<InfectionSchema>.Update.Set("rejectCommend", commend).Set("status", "reject");
+
+            _infection.UpdateOne(filter, update);
+        }
     }
 }

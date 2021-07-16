@@ -14,4 +14,10 @@ namespace backend.request
         public bool burn { get; set; }
         public bool recycle { get; set; }
     }
+
+    public class RejectHazadous {
+
+        public string[] id { get; set; }
+        public string commend { get; set; }
+    }
 }
