@@ -300,6 +300,8 @@ namespace backend.Controllers
                 item.department = body.department;
                 item.division = body.division;
                 item.biddingType = body.biddingType;
+                
+               
 
                 Companies contrator = _company.getByName(body.contractorCompany);
 
@@ -544,5 +546,14 @@ namespace backend.Controllers
             }
             return Ok(new { success = true, message = "Reject waste success." });
         }
+    
+        [HttpGet("test"), AllowAnonymous]
+        public ActionResult test() {
+
+            Console.WriteLine(Double.Parse("155,600.05"));
+            Console.WriteLine( Math.Truncate(Double.Parse("155,600.05")));
+            return Ok();
+        }
+
     }
 }

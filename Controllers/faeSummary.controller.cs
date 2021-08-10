@@ -35,7 +35,8 @@ namespace backend.Controllers
             _faeDB = fae;
         }
         [HttpGet("get/{id}")]
-        public ActionResult getByIdSummary(string id) {
+        public ActionResult getByIdSummary(string id)
+        {
 
             SummaryInvoiceSchema data = _services.getById(id);
 
@@ -50,11 +51,19 @@ namespace backend.Controllers
 
                 List<requesterUploadSchema> requester = _requester.faeSummarySearch(body.lotNo, body.startDate, body.endDate, body.wasteName, body.phase);
                 List<Waste> waste = _recycle.faeSummary(body.lotNo, body.startDate, body.endDate, body.wasteName, body.phase);
+                List<Waste> returnWaste = new List<Waste>();
+                foreach (Waste item in waste)
+                {
+                    item.netWasteWeight = Double.Parse(item.netWasteWeight).ToString("##,###.00");
+                    item.totalPrice = Double.Parse(item.totalPrice).ToString("##,###.00");
+                    returnWaste.Add(item);
+                }
+
                 return Ok(new
                 {
                     success = true,
                     // data = new { waste, }
-                    data = new { requester, waste, }
+                    data = new { requester, waste = returnWaste, }
                 });
             }
             catch (Exception e)
@@ -73,7 +82,7 @@ namespace backend.Controllers
                 SummaryInvoiceSchema createItem = new SummaryInvoiceSchema();
 
                 List<Waste> wasteItems = new List<Waste>();
-                
+
                 List<requesterUploadSchema> requesterItems = new List<requesterUploadSchema>();
 
                 foreach (lotAndboi item in body.requester)
@@ -83,7 +92,8 @@ namespace backend.Controllers
                 }
 
                 // Update status
-                foreach (requesterUploadSchema item in requesterItems) {
+                foreach (requesterUploadSchema item in requesterItems)
+                {
                     _requester.updateStatus(item._id, "toSummary");
                 }
 
@@ -141,8 +151,20 @@ namespace backend.Controllers
             try
             {
                 List<SummaryInvoiceSchema> data = _services.getByStatus(status);
+                List<dynamic> returnData = new List<dynamic>();
 
-                return Ok(new { success = true, message = "Data on this route.", data, });
+                foreach (SummaryInvoiceSchema item in data) {
+                    returnData.Add(
+                        new {
+                            _id = item._id,
+                            type = item.type,
+                            recycleWeight = item.recycleWeight.ToString("##,###.00"),
+                            requesterWeight = item.requesterWeight.ToString("##,###.00"),
+                            totalPrice = Double.Parse(item.totalPrice).ToString("##,###.00"),
+                        }
+                    );
+                }
+                return Ok(new { success = true, message = "Data on this route.", data = returnData, });
             }
             catch (Exception e)
             {
@@ -739,7 +761,7 @@ namespace backend.Controllers
                     _requester.updateStatusById(item._id, "fae-approved");
                 }
 
-                _services.updateStatus(id, "reject", null);
+                _services.delete(id);
                 return Ok(new { success = true, message = "Reset data success. " });
             }
             catch (Exception e)
@@ -747,6 +769,24 @@ namespace backend.Controllers
                 return Problem(e.StackTrace);
             }
         }
-    
+
+        [HttpPatch("reject")]
+        public ActionResult rejectSummary(RejectSummary body)
+        {
+
+            Profile user = new Profile
+            {
+                empNo = User.FindFirst("username")?.Value,
+                name = User.FindFirst("name")?.Value,
+                dept = User.FindFirst("dept")?.Value,
+                date = DateTime.Now.ToString("yyyy/MM/dd")
+            };
+            foreach (string item in body.id)
+            {
+
+                _services.rejectSummary(item, body.commend, user);
+            }
+            return Ok(new { success = true, message = "Reject summary success." });
+        }
     }
 }

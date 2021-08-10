@@ -24,6 +24,11 @@ namespace backend.Services
         {
             _tb.InsertOne(body);
         }
+        public void delete(string id) {
+            FilterDefinition<SummaryInvoiceSchema> filter = Builders<SummaryInvoiceSchema>.Filter.Eq("_id", id);
+
+            _tb.DeleteOne(filter);
+        }
         public List<SummaryInvoiceSchema> getByStatus(string status)
         {
 
@@ -53,11 +58,15 @@ namespace backend.Services
             {
                 UpdateDefinition<SummaryInvoiceSchema> update = Builders<SummaryInvoiceSchema>.Update.Set("status", status);
                 _tb.UpdateOne(filter, update);
-            } else if (status == "reject") {
+            }
+            else if (status == "reject")
+            {
                 UpdateDefinition<SummaryInvoiceSchema> update = Builders<SummaryInvoiceSchema>.Update.Set("status", status);
                 _tb.UpdateOne(filter, update);
 
-            } else if (status == "prepared") {
+            }
+            else if (status == "prepared")
+            {
                 UpdateDefinition<SummaryInvoiceSchema> update = Builders<SummaryInvoiceSchema>.Update.Set("status", status);
                 _tb.UpdateOne(filter, update);
             }
@@ -84,9 +93,17 @@ namespace backend.Services
         {
             return _tb.Find<SummaryInvoiceSchema>(item => item.status == "approved" && item.type == "Summary BOI/Non-BOI").ToList();
         }
-        public List<SummaryInvoiceSchema> getPrepareandReject() {
+        public List<SummaryInvoiceSchema> getPrepareandReject()
+        {
 
             return _tb.Find<SummaryInvoiceSchema>(item => item.status == "created" || item.status == "reject").ToList();
-        } 
+        }
+        public void rejectSummary(string id, string commend, request.Profile user)
+        {
+            FilterDefinition<SummaryInvoiceSchema> filter = Builders<SummaryInvoiceSchema>.Filter.Eq("_id", id);
+            UpdateDefinition<SummaryInvoiceSchema> update = Builders<SummaryInvoiceSchema>.Update.Set("status", "reject").Set("rejectBy", user).Set("rejectCommend", commend);
+
+            _tb.UpdateOne(filter, update);
+        }
     }
 }
