@@ -37,6 +37,7 @@ namespace backend.Models
         public string wasteName { get; set; }
         public string biddingType { get; set; }
         public string containerType { get; set; }
+        public string howTodestroy { get; set; }
         public string workCount { get; set; }
         public string totalWeight { get; set; }
         public bool allowed { get; set; }

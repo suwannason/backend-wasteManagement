@@ -657,7 +657,9 @@ namespace backend.Controllers
                         date = item.moveOutDate,
                         wasteName = item.wasteName,
                         weight = item.netWasteWeight,
-                        remark = ""
+                        unitPrice = item.unitPrice,
+                        totalPrice = item.totalPrice,
+                        // remark = ""
                     });
                     totalWeight += Double.Parse(item.netWasteWeight);
                     if (item.totalPrice != "-")

@@ -133,7 +133,7 @@ namespace backend.Controllers
                         moveOutDate = item.moveOutDate,
                         boiType = item.boiType,
                         type = "parts",
-                        // lotNo = itemInGroup[0].lotNo,
+                        lotNo = itemInGroup[0].lotNo,
                         dept = itemInGroup[0].dept,
                         netWasteWeight = totalNetweight.ToString("##,###.00"),
                         phase = item.phase,

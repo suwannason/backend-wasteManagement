@@ -125,7 +125,7 @@ namespace backend.Controllers
             string dept = User.FindFirst("dept")?.Value;
 
             List<InfectionSchema> data = _tb.getByStatus(status, dept);
-            return Ok(new { success = true, message = "Hazadous items", data, });
+            return Ok(new { success = true, message = "Infections items", data, });
         }
         [HttpPut("status")]
         public ActionResult updateStatus(request.UpdateStatusFormRequester body)

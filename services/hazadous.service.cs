@@ -34,14 +34,7 @@ namespace backend.Services
 
             List<HazadousSchema> data = new List<HazadousSchema>();
 
-            if (dept.ToUpper() == "FAE")
-            {
-                data = _Hazadous.Find<HazadousSchema>(item => item.status == status).ToList();
-            }
-            else
-            {
-                data = _Hazadous.Find<HazadousSchema>(item => item.status == status && item.dept == dept).ToList();
-            }
+            data = _Hazadous.Find<HazadousSchema>(item => item.status == status && item.dept == dept).ToList();
             return data;
         }
         public void updateStatus(string id, string status, request.Profile user)
@@ -80,9 +73,12 @@ namespace backend.Services
             FilterDefinition<HazadousSchema> filter = Builders<HazadousSchema>.Filter.Eq("_id", id);
             UpdateDefinition<HazadousSchema> update = null;
 
-            if (user != null) {
+            if (user != null)
+            {
                 update = Builders<HazadousSchema>.Update.Set("description", description).Set("fae_prepared", user);
-            } else {
+            }
+            else
+            {
                 update = Builders<HazadousSchema>.Update.Set("description", description);
             }
 
@@ -110,7 +106,8 @@ namespace backend.Services
 
         }
 
-        public void reject(string id, string commend) {
+        public void reject(string id, string commend)
+        {
 
             FilterDefinition<HazadousSchema> filter = Builders<HazadousSchema>.Filter.Eq("_id", id);
 
