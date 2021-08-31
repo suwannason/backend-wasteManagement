@@ -26,6 +26,7 @@ namespace backend.Models
         public Profile req_checked { get; set; }
         public Profile req_approved { get; set; }
         public Profile fae_prepared { get; set; }
+        public Profile fae_approved { get; set; }
         // APPROVING STEP
     }
     public class InfectionItems

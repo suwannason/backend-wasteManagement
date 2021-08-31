@@ -26,7 +26,8 @@ namespace backend.Services
             _infection.InsertOne(body);
         }
 
-        public InfectionSchema getById(string id) {
+        public InfectionSchema getById(string id)
+        {
 
             return _infection.Find(item => item._id == id).FirstOrDefault();
         }
@@ -68,9 +69,16 @@ namespace backend.Services
                 update = Builders<InfectionSchema>.Update.Set("fae_prepared", user).Set("status", status);
                 _infection.UpdateOne(findId, update);
             }
+            else if (status == "fae-approved")
+            {
+
+                update = Builders<InfectionSchema>.Update.Set("fae_approved", user).Set("status", status);
+                _infection.UpdateOne(findId, update);
+            }
         }
-    
-        public void reject(string id, string commend) {
+
+        public void reject(string id, string commend)
+        {
 
             FilterDefinition<InfectionSchema> filter = Builders<InfectionSchema>.Filter.Eq("_id", id);
             UpdateDefinition<InfectionSchema> update = Builders<InfectionSchema>.Update.Set("rejectCommend", commend).Set("status", "reject");

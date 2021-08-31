@@ -34,10 +34,17 @@ namespace backend.Services
 
         public void updateStatus(string id, string status)
         {
-            FilterDefinition<requesterUploadSchema> filter = Builders<requesterUploadSchema>.Filter.Eq(item => item._id, id);
-            UpdateDefinition<requesterUploadSchema> update = Builders<requesterUploadSchema>.Update.Set("status", status);
 
-            _scrapMatrial.UpdateMany(filter, update);
+            requesterUploadSchema data = _scrapMatrial.Find(item => item._id == id).FirstOrDefault();
+
+            if (data != null)
+            {
+                FilterDefinition<requesterUploadSchema> filter = Builders<requesterUploadSchema>.Filter.Eq(item => item._id, id);
+                UpdateDefinition<requesterUploadSchema> update = Builders<requesterUploadSchema>.Update.Set("status", status);
+
+                _scrapMatrial.UpdateMany(filter, update);
+            }
+
         }
         public void signedProfile(string id, string status, Profile user)
         {
@@ -151,7 +158,8 @@ namespace backend.Services
             FilterDefinition<requesterUploadSchema> lotNoFilter = Builders<requesterUploadSchema>.Filter.Eq(item => item.lotNo, lotNo);
             return _scrapMatrial.Find<requesterUploadSchema>(lotNoFilter).ToList<requesterUploadSchema>();
         }
-        public List<requesterUploadSchema> getByLotAndBoi(string lotNo, string boiType) {
+        public List<requesterUploadSchema> getByLotAndBoi(string lotNo, string boiType)
+        {
             FilterDefinition<requesterUploadSchema> lotNoFilter = Builders<requesterUploadSchema>.Filter.Eq(item => item.lotNo, lotNo);
             FilterDefinition<requesterUploadSchema> boiFilter = Builders<requesterUploadSchema>.Filter.Eq(item => item.boiType, boiType);
 
@@ -236,7 +244,8 @@ namespace backend.Services
             return _scrapMatrial.Find<requesterUploadSchema>(item => item.status != "itc-approved" && item.status != "fae-prepared" && item.status != "fae-checked" && item.status != "fae-approved" && item.status != "toInvoice" && item.status != "toSummary").ToList();
         }
 
-        public void rejectByFileName(string filename, string commend, Profile user) {
+        public void rejectByFileName(string filename, string commend, Profile user)
+        {
 
             FilterDefinition<requesterUploadSchema> filter = Builders<requesterUploadSchema>.Filter.Eq("fileUploadName", filename);
 

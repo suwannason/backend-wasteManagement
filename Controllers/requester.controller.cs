@@ -68,20 +68,21 @@ namespace backend.Controllers
                     return Unauthorized(new { success = false, message = "Can't approve, Permission denied." });
                 }
 
-                Parallel.ForEach(body.id, item =>
+                foreach (string item in body.id)
                 {
                     _requester.updateStatus(item, body.status);
-                });
+                }
 
-                Parallel.ForEach(body.id, item =>
+                foreach (string item in body.id)
                 {
-                    _requester.signedProfile(item, body.status, user);
-                });
+                   _requester.signedProfile(item, body.status, user);
+                }
                 return Ok(new { success = true, message = "Update status to " + body.status + " success." });
 
             }
             catch (Exception e)
             {
+                Console.WriteLine(e.StackTrace);
                 return Problem(e.Message);
             }
         }
