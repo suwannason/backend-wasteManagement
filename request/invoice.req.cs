@@ -41,4 +41,9 @@ namespace backend.request
         public string[] id { get; set; }
         public string commend { get; set; }
     }
+    public class attachmentReferance
+    {
+        public string invoiceId { get; set; }
+        public Microsoft.AspNetCore.Http.IFormFile file { get; set; }
+    }
 }

@@ -102,7 +102,7 @@ namespace backend.Controllers
 
                 foreach (Waste item in grouped)
                 {
-                    List<Waste> itemInGroup = _recycleService.getGroupingItems(item.moveOutDate, item.phase, item.boiType, "checked");
+                    List<Waste> itemInGroup = _recycleService.getGroupingItems(item.moveOutDate, item.phase, item.boiType, "reject");
 
                     // return Ok(itemInGroup);
                     double totalNetweight = 0;

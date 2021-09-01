@@ -221,7 +221,7 @@ namespace backend.Controllers
                 for (int row = 2; row < rowCount; row += 1)
                 {
                     Companies item = new Companies();
-                    for (int col = 2; col <= 9; col += 1)
+                    for (int col = 1; col <= 9; col += 1)
                     {
                         string value = "-";
                         if (sheet.Cells[row, col].Value != null)
@@ -230,6 +230,7 @@ namespace backend.Controllers
                         }
                         switch (col)
                         {
+                            case 1: break;
                             case 2: item.no = value; break;
                             case 3: item.companyName = value; break;
                             case 4: item.address = value; break;

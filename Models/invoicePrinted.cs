@@ -18,6 +18,7 @@ namespace backend.Models
         public string invoiceId { get; set; }
         public string printingDate { get; set; }
         public request.Profile printedBy { get; set; }
+        public string attatchmentFile { get; set; }
     }
 
 

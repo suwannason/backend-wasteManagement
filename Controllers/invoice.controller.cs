@@ -57,7 +57,8 @@ namespace backend.Controllers
                 {
                     return NotFound();
                 }
-                if (data.status == "reject") {
+                if (data.status == "reject")
+                {
                     data.status = "fae-prepared";
                 }
                 _invoiceService.Update(id, body);
@@ -608,7 +609,7 @@ namespace backend.Controllers
                         grandTotal = (subTotal + vat).ToString("#,###,###.00"),
                         bathString = bathString,
                     },
-                    printingDate = DateTime.Now.ToString("dd-MMM-yyyy"),
+                    printingDate = DateTime.Now.ToString("dd-MMMM-yyyy"),
                     printedBy = new Profile
                     {
                         empNo = User.FindFirst("username")?.Value,
@@ -616,9 +617,11 @@ namespace backend.Controllers
                         dept = User.FindFirst("dept")?.Value,
                         date = DateTime.Now.ToString("yyyy/MM/dd")
                     },
-                    invoiceId = id
+                    invoiceId = id,
+                    attatchmentFile = null,
                 };
                 _invoicePrinting.create(printingData);
+                _invoiceService.updateStatus(id, "printed", null);
 
                 string filePathcreated = accCreatePrintFile(printingData);
                 string filename = System.IO.Path.GetFileName(filePathcreated);
@@ -798,18 +801,18 @@ namespace backend.Controllers
                 sheet.Cells["B28:K28"].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
                 sheet.Cells["B29:K29"].Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
 
-                int startRow = 30;
-
+                int startRow = 30; int no = 1;
                 foreach (InvoiceprintingItems item in data.detail)
                 {
-                    sheet.Cells["B" + startRow].Value = item.no;
+                    sheet.Cells["B" + startRow].Value = no.ToString();
                     sheet.Cells["C" + startRow].Value = item.wastename;
                     sheet.Cells["G" + startRow].Value = item.quantity;
                     sheet.Cells["H" + startRow].Value = item.unit;
-                    sheet.Cells["I" + startRow].Value = item.unitPrice;
+                    sheet.Cells["I" + startRow].Value = Double.Parse(item.unitPrice).ToString("#,###.00");
                     sheet.Cells["K" + startRow].Value = item.totalPrice;
 
                     startRow += 1;
+                    no += 1;
                 }
                 sheet.Cells["B30:B" + startRow].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                 sheet.Cells["H30:H" + startRow].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
@@ -865,10 +868,10 @@ namespace backend.Controllers
                 sheet.Cells["B52:K52"].Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Double;
 
                 // green color space
-                sheet.Cells["I48:K49"].Style.Fill.SetBackground(ColorTranslator.FromHtml("#CFF7AC"));
-                sheet.Cells["I50:K51"].Style.Fill.SetBackground(ColorTranslator.FromHtml("#A4E769"));
-                sheet.Cells["D52:K52"].Style.Fill.SetBackground(ColorTranslator.FromHtml("#CFF7AC"));
-                sheet.Cells["B52:C52"].Style.Fill.SetBackground(ColorTranslator.FromHtml("#A4E769"));
+                sheet.Cells["I48:K49"].Style.Fill.SetBackground(ColorTranslator.FromHtml("#E2EFDA"));
+                sheet.Cells["I50:K51"].Style.Fill.SetBackground(ColorTranslator.FromHtml("#C6E0B4"));
+                sheet.Cells["D52:K52"].Style.Fill.SetBackground(ColorTranslator.FromHtml("#E2EFDA"));
+                sheet.Cells["B52:C52"].Style.Fill.SetBackground(ColorTranslator.FromHtml("#C6E0B4"));
 
                 // Remark space
                 sheet.Cells["B54"].Value = "REMARK / หมายเหตุ : ";
@@ -929,6 +932,72 @@ namespace backend.Controllers
                 _itc_invoice.rejectInvoice(item, body.commend);
             }
             return Ok(new { success = true, message = "Reject Invoice success." });
+        }
+
+
+        [HttpPatch("printed/items")]
+        public ActionResult getPrintedInvoice(requesterHistory body)
+        {
+
+            List<InvoicePrintedSchema> invoiceOnPrinted = _invoicePrinting.getPrintedItem(body.year, body.month);
+
+            List<dynamic> response = new List<dynamic>();
+            foreach (InvoicePrintedSchema item in invoiceOnPrinted)
+            {
+                Invoices invoice = _invoiceService.GetById(item.invoiceId);
+
+                response.Add(
+                    new
+                    {
+                        id = item.invoiceId,
+                        contractNo = invoice.company.contractNo,
+                        contractStartDate = invoice.company.contractStartDate,
+                        contractEndDate = invoice.company.contractEndDate,
+                        companyName = invoice.company.companyName,
+                        phoneNo = invoice.company.tel,
+                        fax = invoice.company.fax,
+                        invoiceDate = invoice.invoiceDate,
+                        attachment = item.attatchmentFile,
+                    }
+                );
+            }
+            return Ok(new { success = true, message = "History invoice print", data = response });
+        }
+        [HttpPost("printed/referance"), Consumes("multipart/form-data"), AllowAnonymous]
+        public ActionResult attachmentInvoicePrint([FromForm] attachmentReferance body)
+        {
+            try
+            {
+
+                string rootFolder = Directory.GetCurrentDirectory();
+
+                string pathString2 = @"\API site\files\wastemanagement\invoiceRef\";
+                string serverPath = rootFolder.Substring(0, rootFolder.LastIndexOf(@"\")) + pathString2;
+
+                if (!System.IO.Directory.Exists(serverPath))
+                {
+                    Directory.CreateDirectory(serverPath);
+                }
+
+                string filename = serverPath + body.invoiceId + "-" + body.file.FileName;
+
+                string filePathDB = "invoiceRef/" + body.invoiceId + "-" + body.file.FileName;
+
+                using (FileStream strem = System.IO.File.Create(filename))
+                {
+                    body.file.CopyTo(strem);
+                }
+
+                // List<InvoicePrintedSchema> invoicePrintItem = _invoicePrinting.getPrintByInvoice_id(body.invoiceId);
+                _invoicePrinting.setAttachmentDir(body.invoiceId, filePathDB);
+
+                return Ok(new { success = true, message = "Attachment file success." });
+            }
+            catch (System.Exception e)
+            {
+                return Problem(e.StackTrace);
+            }
+
         }
     }
 }

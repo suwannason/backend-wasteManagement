@@ -67,6 +67,10 @@ namespace backend.Services
             {
                 update = Builders<Invoices>.Update.Set("status", status).Set("acc_approve", user);
             }
+            else if (user == null)
+            {
+                update = Builders<Invoices>.Update.Set("status", status);
+            }
             invoice.UpdateMany(filter, update);
         }
 

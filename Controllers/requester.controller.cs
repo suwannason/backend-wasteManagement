@@ -57,16 +57,6 @@ namespace backend.Controllers
                 user.name = User.FindFirst("name")?.Value;
                 user.tel = User.FindFirst("tel")?.Value;
 
-                List<UserSchema> userDB = _user.Getlist(user.empNo);
-
-                if (body.status.IndexOf("check") > 0 && userDB.FindAll(item => item.permission == "Checked").Count == 0)
-                {
-                    return Unauthorized(new { success = false, message = "Can't check, Permission denied." });
-                }
-                else if (body.status.IndexOf("approve") > 0 && userDB.FindAll(item => item.permission == "Approved").Count == 0)
-                {
-                    return Unauthorized(new { success = false, message = "Can't approve, Permission denied." });
-                }
 
                 foreach (string item in body.id)
                 {

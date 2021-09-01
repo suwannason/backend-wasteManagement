@@ -142,7 +142,30 @@ namespace backend.Controllers
         public ActionResult getStatusPrepareAndReject()
         {
             List<SummaryInvoiceSchema> data = _services.getPrepareandReject();
-            return Ok(new { success = true, message = "Data for FAE prepare summary", data, });
+            List<dynamic> response = new List<dynamic>();
+            foreach (SummaryInvoiceSchema item in data)
+            {
+                response.Add(new {
+                    _id = item._id,
+                    approve = item.approve,
+                    check = item.check,
+                    createDate = item.createDate,
+                    exportRef = item.exportRef,
+                    mainInvoice = item.mainInvoice,
+                    prepare = item.prepare,
+                    recycle = item.recycle,
+                    recycleWeight = item.recycleWeight.ToString("##,###.00"),
+                    rejectBy = item.rejectBy,
+                    rejectCommend = item.rejectCommend,
+                    requester = item.requester,
+                    requesterWeight = item.requesterWeight.ToString("##,###.00"),
+                    status = item.status,
+                    totalPrice = item.totalPrice,
+                    totalWeight = item.totalWeight,
+                    type = item.type,
+                });
+            }
+            return Ok(new { success = true, message = "Data for FAE prepare summary", data = response, });
         }
         [HttpGet("{status}")]
         public ActionResult getByStatus(string status)
@@ -153,9 +176,11 @@ namespace backend.Controllers
                 List<SummaryInvoiceSchema> data = _services.getByStatus(status);
                 List<dynamic> returnData = new List<dynamic>();
 
-                foreach (SummaryInvoiceSchema item in data) {
+                foreach (SummaryInvoiceSchema item in data)
+                {
                     returnData.Add(
-                        new {
+                        new
+                        {
                             _id = item._id,
                             type = item.type,
                             recycleWeight = item.recycleWeight.ToString("##,###.00"),
