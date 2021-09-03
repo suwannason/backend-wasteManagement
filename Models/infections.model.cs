@@ -20,6 +20,7 @@ namespace backend.Models
         public string year { get; set; }
         public string month { get; set; }
         public string rejectCommend { get; set; }
+        public string filename { get; set; }
 
         // APPROVING STEP
         public Profile req_prepared { get; set; }

@@ -115,5 +115,10 @@ namespace backend.Services
 
             _Hazadous.UpdateOne(filter, update);
         }
+        public void deleteWithfileName(string filename) {
+            FilterDefinition<HazadousSchema> filter = Builders<HazadousSchema>.Filter.Eq("filename", filename);
+
+            _Hazadous.DeleteMany(filter);
+        }
     }
 }

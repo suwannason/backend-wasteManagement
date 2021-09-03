@@ -85,5 +85,12 @@ namespace backend.Services
 
             _infection.UpdateOne(filter, update);
         }
+
+        public void deleteByFileName(string filename)
+        {
+            FilterDefinition<InfectionSchema> filter = Builders<InfectionSchema>.Filter.Eq("filename", filename);
+
+            _infection.DeleteMany(filter);
+        }
     }
 }

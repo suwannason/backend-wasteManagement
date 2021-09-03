@@ -14,6 +14,7 @@ namespace backend.Models
         public string dept { get; set; }
         public string div { get; set; }
         public string phase { get; set; }
+        public string filename { get; set; }
         public string netWasteWeight { get; set; }
         public HazadousItems[] items { get; set; }
         public string status { get; set; }

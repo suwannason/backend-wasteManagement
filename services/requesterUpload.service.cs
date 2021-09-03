@@ -247,11 +247,16 @@ namespace backend.Services
         public void rejectByFileName(string filename, string commend, Profile user)
         {
 
-            FilterDefinition<requesterUploadSchema> filter = Builders<requesterUploadSchema>.Filter.Eq("fileUploadName", filename);
+            FilterDefinition<requesterUploadSchema> filter = Builders<requesterUploadSchema>.Filter.Eq("filename", filename);
 
             UpdateDefinition<requesterUploadSchema> update = Builders<requesterUploadSchema>.Update.Set("status", "reject").Set("rejectCommend", commend).Set("rejectBy", user);
 
             _scrapMatrial.UpdateMany(filter, update);
+        }
+        public void deleteWithFilename(string filename)
+        {
+            FilterDefinition<requesterUploadSchema> filter = Builders<requesterUploadSchema>.Filter.Eq("filename", filename);
+            _scrapMatrial.DeleteMany(filter);
         }
     }
 }

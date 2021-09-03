@@ -58,6 +58,7 @@ namespace backend.Controllers
                     data.phase = "Phase " + sheet.Cells[1, 2].Value?.ToString();
                     data.dept = User.FindFirst("dept")?.Value;
                     data.div = User.FindFirst("div")?.Value;
+                    data.filename = fiilServername;
                     data.description = "-";
                     data.req_prepared = new request.Profile
                     {

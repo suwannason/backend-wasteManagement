@@ -65,7 +65,7 @@ namespace backend.Controllers
 
                 foreach (string item in body.id)
                 {
-                   _requester.signedProfile(item, body.status, user);
+                    _requester.signedProfile(item, body.status, user);
                 }
                 return Ok(new { success = true, message = "Update status to " + body.status + " success." });
 
@@ -96,11 +96,12 @@ namespace backend.Controllers
                 }
 
                 Console.WriteLine(dept + " = " + data.Count);
-                List<requesterUploadSchema> grouped = data.GroupBy(x => new { x.moveOutDate, x.phase, x.boiType }).Select(y => new requesterUploadSchema
+                List<requesterUploadSchema> grouped = data.GroupBy(x => new { x.moveOutDate, x.phase, x.boiType, x.filename }).Select(y => new requesterUploadSchema
                 {
                     boiType = y.Key.boiType,
                     moveOutDate = y.Key.moveOutDate,
-                    phase = y.Key.phase
+                    phase = y.Key.phase,
+                    filename = y.Key.filename
                 }).ToList();
 
                 // return Ok(grouped);
@@ -128,6 +129,7 @@ namespace backend.Controllers
                         dept = itemInGroup[0].dept,
                         netWasteWeight = totalNetweight.ToString("##,###.00"),
                         phase = item.phase,
+                        filename = item.filename,
                         id = id.ToArray(),
                     });
                 }
@@ -454,9 +456,62 @@ namespace backend.Controllers
             user.tel = User.FindFirst("tel")?.Value;
 
             requesterUploadSchema data = _requester.getById(body.id[0]);
-            _requester.rejectByFileName(data.fileUploadName, body.commend, user);
+            _requester.rejectByFileName(data.filename, body.commend, user);
 
             return Ok(new { success = true, message = "Reject success." });
+        }
+
+        [HttpPut("upload"), Consumes("multipart/form-data")]
+        public ActionResult editwithUpload([FromForm] request.editByUpload body)
+        {
+            try
+            {
+                _requester.deleteWithFilename(body.sourceFilename);
+
+                string rootFolder = Directory.GetCurrentDirectory();
+
+                string pathString2 = @"\API site\files\wastemanagement\upload\";
+                string serverPath = rootFolder.Substring(0, rootFolder.LastIndexOf(@"\")) + pathString2;
+
+                Console.WriteLine(serverPath);
+                if (!System.IO.Directory.Exists(serverPath))
+                {
+                    Directory.CreateDirectory(serverPath);
+                }
+                Profile req_prepare = new Profile();
+
+                req_prepare.empNo = User.FindFirst("username")?.Value;
+                req_prepare.band = User.FindFirst("band")?.Value;
+                req_prepare.dept = User.FindFirst("dept")?.Value;
+                req_prepare.div = User.FindFirst("div")?.Value;
+                req_prepare.name = User.FindFirst("name")?.Value;
+                req_prepare.tel = User.FindFirst("tel")?.Value;
+                req_prepare.date = DateTime.Now.ToString("yyyy/MM/dd");
+
+                string filename = serverPath + System.Guid.NewGuid().ToString() + "-" + body.file.FileName;
+                using (FileStream strem = System.IO.File.Create(filename))
+                {
+                    body.file.CopyTo(strem);
+                }
+                Profile usertmp = new Profile();
+                usertmp.band = "-";
+                usertmp.dept = "-";
+                usertmp.empNo = "-";
+                usertmp.name = "-";
+                usertmp.div = "-";
+                usertmp.tel = "-";
+
+                handleUpload action = new handleUpload(_itcDB, _faeDB);
+
+                List<requesterUploadSchema> data = action.uploadData(filename, System.Guid.NewGuid().ToString() + "-" + body.file.FileName, req_prepare, usertmp);
+                _requester.handleUpload(data);
+
+                return Ok(new { success = true, message = "Replace success." });
+            }
+            catch (Exception e)
+            {
+                return Problem(e.StackTrace);
+            }
         }
     }
 

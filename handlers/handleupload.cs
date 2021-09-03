@@ -305,7 +305,7 @@ public class handleUpload
                     item.itc_checked = emptyUser;
                     item.itc_approved = emptyUser;
                     item.fae_approved = emptyUser;
-                    item.fileUploadName = fileName;
+                    item.filename = fileName;
                     item.rejectCommend = "-";
                 }
                 if (isEmptyRow == false && item.totalWeight != "-")

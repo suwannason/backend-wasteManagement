@@ -40,7 +40,7 @@ namespace backend.Models
         public string supOnMacro { get; set; }
         public string dateSupplierConfirm { get; set; }
         public string remark { get; set; }
-        public string fileUploadName { get; set; }
+        public string filename { get; set; }
         public string boiUnit { get; set; }
         public string KG_G { get; set; }
         // adding format updated with ITC
