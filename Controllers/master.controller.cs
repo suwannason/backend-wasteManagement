@@ -221,7 +221,7 @@ namespace backend.Controllers
                 for (int row = 2; row < rowCount; row += 1)
                 {
                     Companies item = new Companies();
-                    for (int col = 1; col <= 9; col += 1)
+                    for (int col = 1; col <= 11; col += 1)
                     {
                         string value = "-";
                         if (sheet.Cells[row, col].Value != null)
@@ -230,7 +230,7 @@ namespace backend.Controllers
                         }
                         switch (col)
                         {
-                            case 1: break;
+                            case 1: item.companyCase = value; break;
                             case 2: item.no = value; break;
                             case 3: item.companyName = value; break;
                             case 4: item.address = value; break;
@@ -239,11 +239,14 @@ namespace backend.Controllers
                             case 7: item.contractNo = value; break;
                             case 8: item.contractStartDate = value; break;
                             case 9: item.contractEndDate = value; break;
+                            case 10: item.customerCode = value; break;
+                            case 11: item.attnRef = value; break;
                         }
                         item.fileName = (uuid + "-" + body.file.FileName).Trim();
                     }
                     data.Add(item);
                 }
+                data = data.FindAll(item => item.no != "-");
                 _company.upload(data);
                 // _itcdb.replace(data);
 

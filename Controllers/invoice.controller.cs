@@ -131,9 +131,7 @@ namespace backend.Controllers
                 data.termsOfPayment = "-";
                 data.rejectCommend = "-";
                 data.dueDate = "-";
-                data.customerCode = "-";
                 data.poNo = "-";
-                data.attnRef = "-";
                 data.totalPrice = totalPrice.ToString("#,##0.00");
                 _invoiceService.Create(data);
 
@@ -229,7 +227,9 @@ namespace backend.Controllers
                 int i = 1;
                 foreach (ITCinvoiceSchema item in itc_invoice)
                 {
+                    Console.WriteLine(item.summaryId);
                     SummaryInvoiceSchema summary = _summary.getById(item.summaryId);
+                    Console.WriteLine("summary: " + summary.type);
                     ITCdata.Add(
                         new
                         {
@@ -595,10 +595,10 @@ namespace backend.Controllers
                         invoiceDate = data.invoiceDate,
                         termOfPayment = data.termsOfPayment,
                         dueDate = data.dueDate,
-                        customerCode = data.customerCode,
+                        customerCode = data.company.customerCode,
                         poNo = data.poNo,
                         address = data.company.address,
-                        attnRef = data.attnRef,
+                        attnRef = data.company.attnRef,
                         customerName = data.company.companyName
                     },
                     detail = dataItems.ToArray(),

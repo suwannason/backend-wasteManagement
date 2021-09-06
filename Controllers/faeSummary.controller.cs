@@ -193,7 +193,7 @@ namespace backend.Controllers
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.StackTrace);
+                Console.WriteLine(e.Message);
                 return Problem(e.StackTrace);
             }
         }
@@ -369,7 +369,7 @@ namespace backend.Controllers
                         color = item.color,
                         weight = Double.Parse(item.netWasteWeight).ToString("#,###.00"),
                         unitPrice = item.unitPrice,
-                        totalPrice = Double.Parse(item.totalPrice).ToString("#,###.00")
+                        totalPrice = (item.totalPrice != "-") ? Double.Parse(item.totalPrice).ToString("#,###.00") : "0",
                     });
 
                     totalWeight += Double.Parse(item.netWasteWeight);
