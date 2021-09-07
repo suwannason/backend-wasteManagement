@@ -290,6 +290,9 @@ namespace backend.Controllers
                         {
                             status = "Waiting for ITC approving";
                         }
+                        else {
+                            status = "Approve completed.";
+                        }
                         returnData.Add(new
                         {
                             dept = dataItem.dept,

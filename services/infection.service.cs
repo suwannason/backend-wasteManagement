@@ -92,5 +92,13 @@ namespace backend.Services
 
             _infection.DeleteMany(filter);
         }
+        public List<InfectionSchema> getHistory(string month, string year, string dept)
+        {
+            FilterDefinition<InfectionSchema> monthFilter = Builders<InfectionSchema>.Filter.Eq("month", month);
+            FilterDefinition<InfectionSchema> yearFilter = Builders<InfectionSchema>.Filter.Eq("year", year);
+            FilterDefinition<InfectionSchema> deptFilter = Builders<InfectionSchema>.Filter.Eq("dept", dept);
+
+            return _infection.Find<InfectionSchema>(monthFilter & yearFilter & deptFilter).ToList();
+        }
     }
 }

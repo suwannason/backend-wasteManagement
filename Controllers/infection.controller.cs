@@ -169,12 +169,12 @@ namespace backend.Controllers
         }
 
 
-        [HttpPut("upload"), ]
+        [HttpPut("upload"),]
         public ActionResult editByUpload([FromForm] request.editByUpload body)
         {
             try
             {
-                 _tb.deleteByFileName(body.sourceFilename);
+                _tb.deleteByFileName(body.sourceFilename);
 
                 string rootFolder = Directory.GetCurrentDirectory();
                 string pathString2 = @"\API site\files\wastemanagement\upload\";
@@ -267,6 +267,54 @@ namespace backend.Controllers
                 return Problem(e.StackTrace);
             }
 
+        }
+
+        [HttpPatch("history")]
+        public ActionResult getHistory(request.requesterHistory body)
+        {
+            try
+            {
+                string dept = User.FindFirst("dept")?.Value;
+                List<InfectionSchema> data = _tb.getHistory(body.month, body.year, dept);
+
+                List<dynamic> returnData = new List<dynamic>();
+
+                foreach (InfectionSchema item in data)
+                {
+                    string status = "";
+                    if (item.status == "req-prepared")
+                    {
+                        status = "Wait requester check";
+                    }
+                    else if (item.status == "req-checked")
+                    {
+                        status = "Wait requester approve";
+                    }
+                    else if (item.status == "req-approved")
+                    {
+                        status = "Wait FAE acknowledge";
+                    }
+                    else if (item.status == "fae-approved")
+                    {
+                        status = "Completed";
+                    }
+
+                    returnData.Add(new {
+                        id = item._id,
+                        status = status,
+                        requestDate = item.date,
+                        dept = item.dept,
+                        phase = item.phase,
+                        netWasteWeight = item.netWasteWeight
+                    });
+
+                }
+                return Ok(new { success = true, message = "Infection data history", data = returnData });
+            }
+            catch (System.Exception e)
+            {
+                return Problem(e.StackTrace);
+            }
         }
     }
 }

@@ -287,13 +287,70 @@ namespace backend.Controllers
         }
 
         [HttpPatch("reject")]
-        public ActionResult reject(request.RejectHazadous body) {
+        public ActionResult reject(request.RejectHazadous body)
+        {
 
-            foreach (string item in body.id) {
+            foreach (string item in body.id)
+            {
 
                 _tb.reject(item, body.commend);
             }
-            return Ok(new { success = true, message = "Reject hazadous success. "});
+            return Ok(new { success = true, message = "Reject hazadous success. " });
+        }
+
+        [HttpPatch("history")]
+        public ActionResult getTracking(request.requesterHistory body)
+        {
+            try
+            {
+                string dept = User.FindFirst("dept")?.Value;
+                List<HazadousSchema> data = _tb.getTracking(body.month, body.year, dept);
+
+                List<dynamic> returnData = new List<dynamic>();
+
+                foreach (HazadousSchema item in data)
+                {
+                    string status = "";
+                    if (item.status == "req-prepared")
+                    {
+                        status = "Waiting for requester check";
+                    }
+                    else if (item.status == "req-checked")
+                    {
+                        status = "Waiting for requester approve";
+                    }
+                    else if (item.status == "req-approved")
+                    {
+                        status = "Waiting for FAE prepare data";
+                    }
+                    else if (item.status == "fae-prepared")
+                    {
+                        status = "Waiting for FAE check";
+                    }
+                    else if (item.status == "fae-checked")
+                    {
+                        status = "Waiting for FAE approve";
+                    }
+                    else if (item.status == "fae-approved")
+                    {
+                        status = "Completed";
+                    }
+                    returnData.Add(new
+                    {
+                        id = item._id,
+                        requestDate = item.date,
+                        phase = item.phase,
+                        status = status,
+                        dept = item.dept,
+                        netWasteWeight = item.netWasteWeight
+                    });
+                }
+                return Ok(new { success = true, message = "Hazadous tracking", data = returnData });
+            }
+            catch (System.Exception e)
+            {
+                return Problem(e.StackTrace);
+            }
         }
     }
 }

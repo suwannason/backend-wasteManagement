@@ -2,11 +2,8 @@
 using MongoDB.Driver;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 using backend.Models;
-using backend.request;
-using System;
 
 namespace backend.Services
 {
@@ -119,6 +116,13 @@ namespace backend.Services
             FilterDefinition<HazadousSchema> filter = Builders<HazadousSchema>.Filter.Eq("filename", filename);
 
             _Hazadous.DeleteMany(filter);
+        }
+        public List<HazadousSchema> getTracking(string month, string year, string dept)
+        {
+            FilterDefinition<HazadousSchema> monthFilter = Builders<HazadousSchema>.Filter.Eq("month", month);
+            FilterDefinition<HazadousSchema> yearFilter = Builders<HazadousSchema>.Filter.Eq("year", year);
+            FilterDefinition<HazadousSchema> deptFilter = Builders<HazadousSchema>.Filter.Eq("dept", dept);
+            return _Hazadous.Find<HazadousSchema>(monthFilter & yearFilter & deptFilter).ToList();
         }
     }
 }
