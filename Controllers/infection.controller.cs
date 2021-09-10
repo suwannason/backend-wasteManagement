@@ -147,7 +147,17 @@ namespace backend.Controllers
                 dept = User.FindFirst("dept")?.Value,
                 tel = "-"
             };
+
             List<UserSchema> userDB = _user.Getlist(user.empNo);
+
+            if (body.status.IndexOf("check") > 0 && userDB.FindAll(item => item.permission == "Checked").Count == 0)
+            {
+                return Unauthorized(new { success = false, message = "Can't check, Permission denied." });
+            }
+            else if (body.status.IndexOf("approve") > 0 && userDB.FindAll(item => item.permission == "Approved").Count == 0)
+            {
+                return Unauthorized(new { success = false, message = "Can't approve, Permission denied." });
+            }
 
             foreach (string id in body.id)
             {
@@ -299,7 +309,8 @@ namespace backend.Controllers
                         status = "Completed";
                     }
 
-                    returnData.Add(new {
+                    returnData.Add(new
+                    {
                         id = item._id,
                         status = status,
                         requestDate = item.date,
