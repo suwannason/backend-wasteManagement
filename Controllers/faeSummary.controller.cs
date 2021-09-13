@@ -145,7 +145,8 @@ namespace backend.Controllers
             List<dynamic> response = new List<dynamic>();
             foreach (SummaryInvoiceSchema item in data)
             {
-                response.Add(new {
+                response.Add(new
+                {
                     _id = item._id,
                     approve = item.approve,
                     check = item.check,
@@ -197,7 +198,7 @@ namespace backend.Controllers
                 return Problem(e.StackTrace);
             }
         }
-        
+
         [HttpGet("pmd/{id}")]
         public ActionResult getById(string id)
         {
@@ -664,7 +665,6 @@ namespace backend.Controllers
                 return Problem(e.StackTrace);
             }
         }
-
         [HttpGet("recycle/{id}")]
         public ActionResult getRecycleData(string id)
         {

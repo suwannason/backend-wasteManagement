@@ -217,7 +217,7 @@ namespace backend.Controllers
             {
                 return Unauthorized(new { success = false, message = "Can't check, Permission denied." });
             }
-            else if (body.status.IndexOf("approve") > 0 && userDB.FindAll(item => item.permission == "Approved").Count == 0)
+            else if (body.status.IndexOf("approve") > 0 && userDB.FindAll(item => item.permission == "Approved" || user.dept.ToUpper() == "FAE").Count == 0)
             {
                 return Unauthorized(new { success = false, message = "Can't approve, Permission denied." });
             }

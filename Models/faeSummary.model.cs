@@ -27,5 +27,6 @@ namespace backend.Models
 
         public string totalWeight { get; set; }
         public string totalPrice { get; set; }
+        public string boiCase { get; set; }
     }
 }
