@@ -91,7 +91,7 @@ namespace backend.Services
 
         public List<SummaryInvoiceSchema> ITC_getsummary_approved()
         {
-            return _tb.Find<SummaryInvoiceSchema>(item => item.status == "approved" && item.type == "Summary BOI/Non-BOI").ToList();
+            return _tb.Find<SummaryInvoiceSchema>(item => item.status == "approved" && item.type == "Summary BOI/Non-BOI" || item.boiCase == "BOI").ToList();
         }
         public List<SummaryInvoiceSchema> getPrepareandReject()
         {

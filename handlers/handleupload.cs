@@ -250,7 +250,7 @@ public class handleUpload
                             break;
                         case 18: item.lotNo = value; break;
                         case 19: item.totalWeight = value; break;
-                        case 20: item.containerWeight = value; break;
+                        case 20: item.containerWeight = Double.Parse(value).ToString("##,##0.00"); break;
                         case 21: item.qtyOfContainer = value; break;
                         case 22: item.unit = value; break;
                         case 23: item.netWasteWeight = value; break;

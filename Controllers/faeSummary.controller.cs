@@ -126,6 +126,21 @@ namespace backend.Controllers
                 createItem.recycleWeight = sumRecycle;
                 createItem.requesterWeight = sumRequester;
                 createItem.createDate = DateTime.Now.ToString("yyyy/MM/dd");
+                if (createItem.requester.Length > 0)
+                {
+                    if (createItem.requester[0].boiType == "BOI")
+                    {
+                        createItem.boiCase = "BOI";
+                    }
+                    else
+                    {
+                        createItem.boiCase = null;
+                    }
+                }
+                else
+                {
+                    createItem.boiCase = null;
+                }
 
                 _services.create(createItem);
 
@@ -155,11 +170,11 @@ namespace backend.Controllers
                     mainInvoice = item.mainInvoice,
                     prepare = item.prepare,
                     recycle = item.recycle,
-                    recycleWeight = item.recycleWeight.ToString("##,###.00"),
+                    recycleWeight = item.recycleWeight.ToString("##,##0.00"),
                     rejectBy = item.rejectBy,
                     rejectCommend = item.rejectCommend,
                     requester = item.requester,
-                    requesterWeight = item.requesterWeight.ToString("##,###.00"),
+                    requesterWeight = item.requesterWeight.ToString("##,##0.00"),
                     status = item.status,
                     totalPrice = item.totalPrice,
                     totalWeight = item.totalWeight,
@@ -184,8 +199,8 @@ namespace backend.Controllers
                         {
                             _id = item._id,
                             type = item.type,
-                            recycleWeight = item.recycleWeight.ToString("##,###.00"),
-                            requesterWeight = item.requesterWeight.ToString("##,###.00"),
+                            recycleWeight = item.recycleWeight.ToString("##,##0.00"),
+                            requesterWeight = item.requesterWeight.ToString("##,##0.00"),
                             totalPrice = Double.Parse(item.totalPrice).ToString("##,###.00"),
                         }
                     );
@@ -679,7 +694,7 @@ namespace backend.Controllers
                 {
                     returnItems.Add(new
                     {
-                        id = i,
+                        id = item._id,
                         date = item.moveOutDate,
                         wasteName = item.wasteName,
                         weight = item.netWasteWeight,
