@@ -24,7 +24,8 @@ namespace backend.Services
         {
             _tb.InsertOne(body);
         }
-        public void delete(string id) {
+        public void delete(string id)
+        {
             FilterDefinition<SummaryInvoiceSchema> filter = Builders<SummaryInvoiceSchema>.Filter.Eq("_id", id);
 
             _tb.DeleteOne(filter);
@@ -102,6 +103,13 @@ namespace backend.Services
         {
             FilterDefinition<SummaryInvoiceSchema> filter = Builders<SummaryInvoiceSchema>.Filter.Eq("_id", id);
             UpdateDefinition<SummaryInvoiceSchema> update = Builders<SummaryInvoiceSchema>.Update.Set("status", "reject").Set("rejectBy", user).Set("rejectCommend", commend);
+
+            _tb.UpdateOne(filter, update);
+        }
+        public void updatePMDconsistent(string id, string consistent)
+        {
+            FilterDefinition<SummaryInvoiceSchema> filter = Builders<SummaryInvoiceSchema>.Filter.Eq("_id", id);
+            UpdateDefinition<SummaryInvoiceSchema> update = Builders<SummaryInvoiceSchema>.Update.Set("pmdConsistent", consistent);
 
             _tb.UpdateOne(filter, update);
         }

@@ -313,7 +313,7 @@ namespace backend.Controllers
                 item.biddingNo = faeData.biddingNo;
                 item.color = faeData.color;
                 item.unitPrice = faeData.pricePerUnit;
-                item.totalPrice = (Double.Parse(item.netWasteWeight) * Double.Parse(faeData.pricePerUnit)).ToString();
+                item.totalPrice = (Double.Parse(item.netWasteWeight) * Double.Parse(faeData.pricePerUnit)).ToString("#,##0.00");
                 item.unit = faeData.unit;
 
                 Profile user = new Profile();

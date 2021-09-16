@@ -252,6 +252,25 @@ namespace backend.Controllers
             }
         }
 
+        [HttpPut("pmd/pmdConsistent")]
+        public ActionResult changePmdConsistentStatus(request.updateConsistent body)
+        {
+            try
+            {
+                string dept = User.FindFirst("dept")?.Value;
+                Console.WriteLine(dept);
+                if (dept.ToUpper() != "FAE")
+                {
+                    return BadRequest(new { success = false, message = "Permission denied." });
+                }
+                _services.updatePMDconsistent(body.id, body.consistent);
+                return Ok(new { success = true, message = "Update consistent success." });
+            }
+            catch (System.Exception e)
+            {
+                return Problem(e.StackTrace);
+            }
+        }
         [HttpGet("imo/{id}")]
         public ActionResult getImodata(string id)
         {

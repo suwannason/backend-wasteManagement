@@ -48,4 +48,8 @@ namespace backend.request
         public string[] id { get; set; }
         public string commend { get; set; }
     }
+    public class updateConsistent {
+        public string id { get; set; }
+        public string consistent { get; set; }
+    }
 }

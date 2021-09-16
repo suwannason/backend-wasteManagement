@@ -37,6 +37,9 @@ namespace backend.Controllers
         {
             try
             {
+                string dept = User.FindFirst("dept")?.Value;
+
+                Console.WriteLine(dept);
                 List<SummaryInvoiceSchema> data = _summaryInvoice.ITC_getsummary_approved();
                 List<ITCinvoiceSchema> itcReject = _itc_invoice.getByStatus("reject");
 
