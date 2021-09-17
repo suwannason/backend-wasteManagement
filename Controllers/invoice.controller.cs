@@ -118,15 +118,24 @@ namespace backend.Controllers
                 data.createDate = DateTime.Now.ToString("yyyy/MM/dd");
 
                 double totalPrice = 0.0;
+                string deptCase = "";
                 foreach (string item in body.summaryId)
                 {
                     _summary.updateToInvoice(item);
 
                     SummaryInvoiceSchema summary = _summary.getById(item);
-
+                    if (summary.boiCase == "BOI")
+                    {
+                        deptCase = "itc";
+                    }
+                    else
+                    {
+                        deptCase = "fae";
+                    }
                     totalPrice += Double.Parse(summary.totalPrice);
 
                 }
+                data.deptCase = deptCase;
                 data.invoiceNo = "-";
                 data.termsOfPayment = "-";
                 data.rejectCommend = "-";
@@ -209,7 +218,7 @@ namespace backend.Controllers
 
                 else if (status == "fae-prepared")
                 {
-                    invoice = _invoiceService.getByStatus(status);
+                    invoice = _invoiceService.FAEpreparedGetInvoice(status);
                     // itc_invoice = _itc_invoice.getByStatus("checked");
                 }
                 else if (status == "fae-checked")

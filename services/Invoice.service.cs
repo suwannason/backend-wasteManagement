@@ -29,6 +29,10 @@ namespace backend.Services
         {
             return invoice.Find<Invoices>(invoice => invoice._id == id).FirstOrDefault();
         }
+        public List<Invoices> ITCgetInvoice()
+        {
+            return invoice.Find<Invoices>(invoice => invoice.deptCase.Contains("itc")).ToList();
+        }
 
         public void Create(Invoices data)
         {
@@ -78,6 +82,30 @@ namespace backend.Services
         {
             List<Invoices> data = invoice.Find<Invoices>(item => item.status == status).ToList();
             return data;
+        }
+        public List<Invoices> FAEpreparedGetInvoice(string status)
+        {
+            List<Invoices> data = invoice.Find<Invoices>(item => item.status == status && item.deptCase == "fae" && item.status == "fae-prepared").ToList();
+            return data;
+        }
+        public void changeStatusWhenITCprepare(string id)
+        {
+            try
+            {
+                Console.WriteLine(id);
+                FilterDefinition<Invoices> filterElematch = Builders<Invoices>.Filter.AnyEq(item => item.summaryId, id);
+                Invoices invoiceData = invoice.Find(filterElematch).FirstOrDefault();
+
+                Console.WriteLine("ID: " + invoiceData._id);
+
+                FilterDefinition<Invoices> finInvoice = Builders<Invoices>.Filter.Eq("_id", invoiceData._id);
+                UpdateDefinition<Invoices> update = Builders<Invoices>.Update.Set("status", "itc-prepared");
+                invoice.UpdateOne(finInvoice, update);
+            }
+            catch (System.Exception e)
+            {
+                Console.WriteLine(e.StackTrace);
+            }
         }
         public void deleteInvoice(string id)
         {

@@ -871,6 +871,8 @@ namespace backend.Controllers
 
                 SummaryInvoiceSchema summary = _services.getById(id);
                 MemoryStream stream = new MemoryStream();
+                List<requesterUploadSchema> distinctBidding = summary.requester.GroupBy(x => x.biddingType).Select(x => x.First()).ToList();
+
 
                 using (ExcelPackage excel = new ExcelPackage(stream))
                 {
@@ -930,7 +932,7 @@ namespace backend.Controllers
                     // Header table data
                     sheet.Cells["B11:X11"].Style.Font.Name = "Calibri";
 
-                    sheet.Row(11).Height = 50;
+                    sheet.Row(11).Height = 60;
                     sheet.Cells["B11"].Value = "NO.";
                     sheet.Cells["C11"].Value = "MATERIAL CODE";
                     sheet.Cells["D11:E11"].Merge = true;
@@ -963,10 +965,13 @@ namespace backend.Controllers
                     sheet.Cells["J11:Q11"].Style.Fill.SetBackground(ColorTranslator.FromHtml("#8DB4E2"));
                     // Header table data
 
+
                     // row table data
                     int no = 1; int row = 12;
+
                     foreach (requesterUploadSchema item in summary.requester)
                     {
+
                         sheet.Cells["B" + row.ToString()].Value = no.ToString();
                         sheet.Cells["C" + row.ToString()].Value = item.matrialCode;
                         sheet.Cells["D" + row.ToString() + ":E" + row.ToString()].Merge = true;
@@ -990,6 +995,7 @@ namespace backend.Controllers
                     sheet.Cells["B12:Q" + row.ToString()].Style.Font.Size = 14;
 
                     sheet.Cells["C" + row.ToString()].Value = "Grand Total";
+                    sheet.Cells["C" + row.ToString()].Style.Font.Bold = true;
                     sheet.Cells["D" + row.ToString() + ":E" + row.ToString()].Merge = true;
                     sheet.Cells["J" + row.ToString()].Formula = "=SUM(J12:J" + (row - 1).ToString() + ")";
                     sheet.Cells["K" + row.ToString()].Formula = "=SUM(K12:K" + (row - 1).ToString() + ")";
@@ -1006,10 +1012,25 @@ namespace backend.Controllers
                     sheet.Cells["B11:Q" + (row).ToString()].Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
                     // row table data
 
+                    // Pricing table
+                    sheet.Cells["S11:X11"].Merge = true;
+                    sheet.Cells["S11"].Value = "FAE Summary scrap material (BOI)";
+                    sheet.Cells["S12"].Value = "ลำดับ";
+                    sheet.Cells["T12"].Value = "ชนิดพลาสติก";
+                    sheet.Cells["U12"].Value = "สี";
+                    sheet.Cells["V12"].Value = "น้ำหนัก";
+                    sheet.Cells["W12"].Value = "ราคา";
+                    sheet.Cells["X12"].Value = "รวมราคา";
+                    foreach (requesterUploadSchema item in distinctBidding)
+                    {
+
+                    }
+
                     excel.SaveAs(file);
                     stream.Position = 0;
                 }
-                return Ok(new { success = true, message = "Export IMO format success." });
+                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", filePath);
+                // return Ok(new { success = true, message = "Export IMO format success.", data = distinctBidding });
             }
             catch (System.Exception e)
             {

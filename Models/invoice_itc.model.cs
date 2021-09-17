@@ -12,7 +12,7 @@ namespace backend.Models
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string _id { get; set; }
-        public string files { get; set; }
+        public string[] files { get; set; }
         public string summaryId { get; set; }
         public string status { get; set; }
         public string rejectCommend { get; set; }

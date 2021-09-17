@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.AspNetCore.Http;
 
 namespace backend.Controllers
 {
@@ -23,13 +24,15 @@ namespace backend.Controllers
 
         private readonly SummaryInvoiceService _summaryInvoice;
         private readonly ITC_invoiceService _itc_invoice;
+        private readonly InvoiceService _invoice;
 
-        public routingController(HazadousService req, requesterUploadServices scrapImo, SummaryInvoiceService summary, ITC_invoiceService itcInvoice)
+        public routingController(HazadousService req, requesterUploadServices scrapImo, SummaryInvoiceService summary, ITC_invoiceService itcInvoice, InvoiceService invoice)
         {
             _hazadous = req;
             _scrapImo = scrapImo;
             _summaryInvoice = summary;
             _itc_invoice = itcInvoice;
+            _invoice = invoice;
         }
 
         [HttpGet("itc/summary/approved")] // get summary BOI for itc
@@ -37,26 +40,35 @@ namespace backend.Controllers
         {
             try
             {
-                string dept = User.FindFirst("dept")?.Value;
+                // string dept = User.FindFirst("dept")?.Value;
 
-                Console.WriteLine(dept);
-                List<SummaryInvoiceSchema> data = _summaryInvoice.ITC_getsummary_approved();
+                List<Invoices> data = _invoice.ITCgetInvoice();
                 List<ITCinvoiceSchema> itcReject = _itc_invoice.getByStatus("reject");
+                List<SummaryInvoiceSchema> returnData = new List<SummaryInvoiceSchema>();
 
+                foreach (Invoices item in data)
+                {
+                    foreach (string summaryId in item.summaryId)
+                    {
+                        SummaryInvoiceSchema summaryItem = _summaryInvoice.getById(summaryId);
+                        returnData.Add(summaryItem);
+
+                    }
+                }
                 foreach (ITCinvoiceSchema item in itcReject)
                 {
                     SummaryInvoiceSchema summaryItem = _summaryInvoice.getById(item.summaryId);
                     if (summaryItem != null)
                     {
                         summaryItem.status = "reject";
-                        data.Add(summaryItem);
+                        returnData.Add(summaryItem);
                     }
                 }
                 return Ok(new
                 {
                     success = true,
                     message = "Data for ITC Download.",
-                    data,
+                    data = returnData,
                 });
             }
             catch (Exception e)
@@ -66,7 +78,7 @@ namespace backend.Controllers
         }
 
         [HttpPost("itc/invoice/{id}")]
-        public ActionResult itcUploadInvoice(string id, [FromForm] uploadFile body)
+        public ActionResult itcUploadInvoice(string id, [FromForm] uploadFileMulti body)
         {
             try
             {
@@ -82,10 +94,15 @@ namespace backend.Controllers
                 }
 
                 string g = Guid.NewGuid().ToString();
-
-                using (FileStream strem = System.IO.File.Create($"{serverPath}{g}-{body.file.FileName}"))
+                List<string> file = new List<string>();
+                foreach (IFormFile item in body.files)
                 {
-                    body.file.CopyTo(strem);
+                    using (FileStream strem = System.IO.File.Create($"{serverPath}{g}-{item.FileName}"))
+                    {
+                        // body.file.CopyTo(strem);
+                        item.CopyTo(strem);
+                        file.Add(g + "-" + item.FileName);
+                    }
                 }
                 Profile req_prepare = new Profile();
 
@@ -97,15 +114,18 @@ namespace backend.Controllers
 
                 // Console.WriteLine($"{serverPath}{g}-{body.file.FileName}");
                 // Console.WriteLine(id);
+
                 _itc_invoice.create(new ITCinvoiceSchema
                 {
-                    files = g + body.file.FileName,
+                    files = file.ToArray(),
                     summaryId = id,
                     createDate = DateTime.Now.ToString("yyyy/MM/dd"),
                     prepare = req_prepare,
                     status = "prepared"
                 });
                 _summaryInvoice.updateStatus(id, "toInvoice", req_prepare);
+
+                _invoice.changeStatusWhenITCprepare(id);
 
                 return Ok(new { success = true, message = "Upload ITC invoice success", });
             }

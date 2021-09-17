@@ -35,6 +35,7 @@ namespace backend.Models
         public string dueDate { get; set; }
         public string poNo { get; set; }
         // ACC INPUT
+        public string deptCase { get; set; } // itc or fae
     }
     public class company
     {
