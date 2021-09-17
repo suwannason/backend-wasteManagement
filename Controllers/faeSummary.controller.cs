@@ -850,5 +850,171 @@ namespace backend.Controllers
             }
             return Ok(new { success = true, message = "Reject summary success." });
         }
+
+        [HttpGet("invoice/imo/print/{id}"),]
+        public ActionResult imoPrintFormat(string id)
+        {
+            try
+            {
+                string rootFolder = Directory.GetCurrentDirectory();
+                string pathString2 = @"\API site\files\wastemanagement\download\";
+                string serverPath = rootFolder.Substring(0, rootFolder.LastIndexOf(@"\")) + pathString2;
+
+                if (!Directory.Exists(serverPath))
+                {
+                    Directory.CreateDirectory(serverPath);
+                }
+
+                // string uuid = System.Guid.NewGuid().ToString();
+                string uuid = "A";
+                string filePath = serverPath + uuid + ".xlsx";
+
+                SummaryInvoiceSchema summary = _services.getById(id);
+                MemoryStream stream = new MemoryStream();
+
+                using (ExcelPackage excel = new ExcelPackage(stream))
+                {
+                    excel.Workbook.Worksheets.Add("Bank");
+                    ExcelWorksheet sheet = excel.Workbook.Worksheets["Bank"];
+
+                    sheet.View.ZoomScale = 70;
+                    sheet.View.ShowGridLines = false;
+                    FileInfo file = new FileInfo(filePath);
+
+                    sheet.Cells["B8:C8"].Merge = true;
+                    sheet.Cells["D8:E8"].Merge = true;
+                    sheet.Cells["F8:G8"].Merge = true;
+                    sheet.Cells["B8"].Value = "Case: ";
+                    sheet.Cells["B8"].Style.Font.Bold = true;
+                    sheet.Cells["D8"].Value = "BOI";
+                    sheet.Cells["D8"].Style.Font.Bold = true;
+                    sheet.Cells["F8"].Value = "NON BOI";
+                    sheet.Cells["F8"].Style.Font.Bold = true;
+                    sheet.Column(3).Width = 20;
+                    sheet.Column(2).Width = 10;
+                    sheet.Column(4).Width = 15;
+                    sheet.Column(6).Width = 20;
+                    sheet.Column(7).Width = 16;
+                    sheet.Column(9).Width = 16;
+                    sheet.Column(11).Width = 22;
+                    sheet.Column(13).Width = 16;
+                    sheet.Column(14).Width = 23;
+                    sheet.Column(15).Width = 16;
+                    sheet.Column(17).Width = 16;
+                    sheet.Row(8).Height = 20;
+                    sheet.Column(8).Width = 20;
+                    sheet.Column(10).Width = 20;
+                    sheet.Column(12).Width = 20;
+                    sheet.Cells["B8:G8"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    sheet.Cells["B8:G8"].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
+                    sheet.Cells["B8:M9"].Style.Font.Name = "CordiaUPC";
+                    sheet.Cells["B8:M9"].Style.Font.Size = 20;
+                    sheet.Cells["B9"].Value = "Lot No.";
+                    sheet.Cells["B9"].Style.Font.Bold = true;
+
+                    sheet.Cells["C9:E9"].Merge = true; // Lotno space
+                    sheet.Cells["F9"].Value = "Date move out";
+                    sheet.Cells["F9"].Style.Font.Bold = true;
+
+                    sheet.Cells["H9"].Value = "Contract no.";
+                    sheet.Cells["H9"].Style.Font.Bold = true;
+
+                    sheet.Cells["J9"].Value = "Contract Start";
+                    sheet.Cells["J9"].Style.Font.Bold = true;
+
+                    sheet.Cells["L9"].Value = "Contract End";
+                    sheet.Cells["L9"].Style.Font.Bold = true;
+                    sheet.Cells["B9:M9"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    sheet.Cells["B9:M9"].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
+
+                    // Header table data
+                    sheet.Cells["B11:X11"].Style.Font.Name = "Calibri";
+
+                    sheet.Row(11).Height = 50;
+                    sheet.Cells["B11"].Value = "NO.";
+                    sheet.Cells["C11"].Value = "MATERIAL CODE";
+                    sheet.Cells["D11:E11"].Merge = true;
+                    sheet.Cells["D11"].Value = "MATRIAL NAME";
+                    sheet.Cells["B11:E11"].Style.Font.Size = 14;
+
+                    sheet.Cells["F11"].Value = "Privilege";
+                    sheet.Cells["G11"].Value = "Group";
+                    sheet.Cells["H11"].Value = "Common";
+                    sheet.Cells["I11"].Value = "Unit";
+                    sheet.Cells["F11:I11"].Style.Font.Size = 11;
+
+                    sheet.Cells["J11"].Value = "QUANTITY (BAG)";
+                    sheet.Cells["K11"].Value = "NET WEIGHT (KG)";
+                    sheet.Cells["L11"].Value = "GROSS WEIGHT (KG)";
+                    sheet.Cells["M11"].Value = "BAG Weight (KG)";
+                    sheet.Cells["N11"].Value = "ชนิด";
+                    sheet.Cells["O11"].Value = "สี";
+                    sheet.Cells["P11"].Value = "ราคา";
+                    sheet.Cells["Q11"].Value = "รวมราคา";
+                    sheet.Cells["J11:Q11"].Style.Font.Size = 14;
+
+                    sheet.Cells["B11:Q11"].Style.WrapText = true;
+
+                    sheet.Cells["B11:Q11"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    sheet.Cells["B11:Q11"].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
+                    sheet.Cells["B11:Q11"].Style.Font.Bold = true;
+                    sheet.Cells["B11:E11"].Style.Fill.SetBackground(ColorTranslator.FromHtml("#8DB4E2"));
+                    sheet.Cells["F11:I11"].Style.Fill.SetBackground(ColorTranslator.FromHtml("#76933C"));
+                    sheet.Cells["J11:Q11"].Style.Fill.SetBackground(ColorTranslator.FromHtml("#8DB4E2"));
+                    // Header table data
+
+                    // row table data
+                    int no = 1; int row = 12;
+                    foreach (requesterUploadSchema item in summary.requester)
+                    {
+                        sheet.Cells["B" + row.ToString()].Value = no.ToString();
+                        sheet.Cells["C" + row.ToString()].Value = item.matrialCode;
+                        sheet.Cells["D" + row.ToString() + ":E" + row.ToString()].Merge = true;
+                        sheet.Cells["D" + row.ToString()].Value = item.matrialName;
+                        sheet.Cells["F" + row.ToString()].Value = item.boiType;
+                        sheet.Cells["G" + row.ToString()].Value = item.groupBoiNo;
+                        sheet.Cells["H" + row.ToString()].Value = item.groupBoiName;
+                        sheet.Cells["I" + row.ToString()].Value = item.unit;
+                        sheet.Cells["J" + row.ToString()].Value = Double.Parse(item.qtyOfContainer);
+                        sheet.Cells["K" + row.ToString()].Value = Double.Parse(item.netWasteWeight);
+                        sheet.Cells["L" + row.ToString()].Value = Double.Parse(item.netWasteWeight);
+                        sheet.Cells["M" + row.ToString()].Value = Double.Parse(item.containerWeight);
+                        sheet.Cells["N" + row.ToString()].Value = item.biddingType;
+                        sheet.Cells["O" + row.ToString()].Value = item.color;
+                        sheet.Cells["P" + row.ToString()].Value = item.unitPrice;
+                        sheet.Cells["Q" + row.ToString()].Value = Double.Parse(item.totalPrice);
+                        no += 1; row += 1;
+                    }
+                    sheet.Cells["B12:Q" + row.ToString()].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    sheet.Cells["B12:Q" + row.ToString()].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
+                    sheet.Cells["B12:Q" + row.ToString()].Style.Font.Size = 14;
+
+                    sheet.Cells["C" + row.ToString()].Value = "Grand Total";
+                    sheet.Cells["D" + row.ToString() + ":E" + row.ToString()].Merge = true;
+                    sheet.Cells["J" + row.ToString()].Formula = "=SUM(J12:J" + (row - 1).ToString() + ")";
+                    sheet.Cells["K" + row.ToString()].Formula = "=SUM(K12:K" + (row - 1).ToString() + ")";
+                    sheet.Cells["L" + row.ToString()].Formula = "=SUM(L12:L" + (row - 1).ToString() + ")";
+                    sheet.Cells["M" + row.ToString()].Formula = "=SUM(M12:M" + (row - 1).ToString() + ")";
+                    sheet.Cells["Q" + row.ToString()].Formula = "=SUM(Q12:Q" + (row - 1).ToString() + ")";
+                    sheet.Cells["J12:M" + (row + 1).ToString()].Style.Numberformat.Format = "###,##0.00";
+                    sheet.Cells["Q12:Q" + (row + 1).ToString()].Style.Numberformat.Format = "###,##0.00";
+                    sheet.Cells["Q" + (row + 1).ToString()].Style.Font.Bold = true;
+
+                    sheet.Cells["B11:Q" + (row).ToString()].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    sheet.Cells["B11:Q" + (row).ToString()].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    sheet.Cells["B11:Q" + (row).ToString()].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    sheet.Cells["B11:Q" + (row).ToString()].Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    // row table data
+
+                    excel.SaveAs(file);
+                    stream.Position = 0;
+                }
+                return Ok(new { success = true, message = "Export IMO format success." });
+            }
+            catch (System.Exception e)
+            {
+                return Problem(e.StackTrace);
+            }
+        }
     }
 }
