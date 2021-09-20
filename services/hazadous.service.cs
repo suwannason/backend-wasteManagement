@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using backend.Models;
+using System;
 
 namespace backend.Services
 {
@@ -54,6 +55,23 @@ namespace backend.Services
             }
             else if (status == "fae-approved")
             {
+                SortDefinition<HazadousSchema> sorting = Builders<HazadousSchema>.Sort.Descending("_id");
+                HazadousSchema lastHazadous = _Hazadous.Find<HazadousSchema>(item => item.runningNo != "-").Sort(sorting).FirstOrDefault();
+
+                string runningNo = "HZ-";
+                if (lastHazadous == null)
+                {
+                    runningNo = "001";
+                }
+                else
+                {
+                    string no = lastHazadous.runningNo.Substring(lastHazadous.runningNo.IndexOf("-") + 1, 3);
+                    runningNo += (Int32.Parse(no) + 1).ToString().PadLeft(3, '0') + "/" + DateTime.Now.ToString("yyyy");
+                    Console.WriteLine(runningNo);
+
+                    update = Builders<HazadousSchema>.Update.Set("runningNo", runningNo);
+                    _Hazadous.UpdateOne(findId, update);
+                }
                 update = Builders<HazadousSchema>.Update.Set("fae_approved", user).Set("status", status);
             }
             _Hazadous.UpdateOne(findId, update);
@@ -108,21 +126,37 @@ namespace backend.Services
 
             FilterDefinition<HazadousSchema> filter = Builders<HazadousSchema>.Filter.Eq("_id", id);
 
-            UpdateDefinition<HazadousSchema> update = Builders<HazadousSchema>.Update.Set("rejectCommend", commend).Set("status", "reject");
+            string status = "";
+
+            HazadousSchema data = _Hazadous.Find(filter).FirstOrDefault();
+
+            if (data.status.Contains("fae"))
+            {
+                status = "req-approved";
+            }
+            else if (data.status.Contains("req"))
+            {
+                status = "reject";
+            }
+            UpdateDefinition<HazadousSchema> update = Builders<HazadousSchema>.Update.Set("rejectCommend", commend).Set("status", status);
 
             _Hazadous.UpdateOne(filter, update);
         }
-        public void deleteWithfileName(string filename) {
-            FilterDefinition<HazadousSchema> filter = Builders<HazadousSchema>.Filter.Eq("filename", filename);
 
-            _Hazadous.DeleteMany(filter);
-        }
         public List<HazadousSchema> getTracking(string month, string year, string dept)
         {
             FilterDefinition<HazadousSchema> monthFilter = Builders<HazadousSchema>.Filter.Eq("month", month);
             FilterDefinition<HazadousSchema> yearFilter = Builders<HazadousSchema>.Filter.Eq("year", year);
             FilterDefinition<HazadousSchema> deptFilter = Builders<HazadousSchema>.Filter.Eq("dept", dept);
             return _Hazadous.Find<HazadousSchema>(monthFilter & yearFilter & deptFilter).ToList();
+        }
+
+
+        public void deleteByFileName(string filename)
+        {
+            FilterDefinition<HazadousSchema> filter = Builders<HazadousSchema>.Filter.Eq("filename", filename);
+
+            _Hazadous.DeleteMany(filter);
         }
     }
 }

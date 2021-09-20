@@ -22,6 +22,7 @@ namespace backend.Models
         public string month { get; set; }
         public string description { get; set; }
         public string rejectCommend { get; set; }
+        public string runningNo { get; set; } // HZ-001/2021
 
         // APPROVING STEP
         public Profile req_prepared { get; set; }

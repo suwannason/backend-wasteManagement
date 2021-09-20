@@ -31,7 +31,7 @@ namespace backend.Services
         }
         public List<Invoices> ITCgetInvoice()
         {
-            return invoice.Find<Invoices>(invoice => invoice.deptCase.Contains("itc")).ToList();
+            return invoice.Find<Invoices>(invoice => invoice.deptCase.Contains("itc") && invoice.status == "fae-prepared").ToList();
         }
 
         public void Create(Invoices data)
