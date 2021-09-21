@@ -276,7 +276,7 @@ public class handleUpload
                                 }
                                 else
                                 {
-                                    item.containerWeight = Double.Parse(value).ToString("##,##0.00"); break;
+                                    item.containerWeight = Double.Parse(value).ToString("##,##0.0000"); break;
                                 }
                             case 21: item.qtyOfContainer = value; break;
                             case 22: item.unit = value; break;

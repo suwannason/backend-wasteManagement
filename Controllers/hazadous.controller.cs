@@ -368,6 +368,11 @@ namespace backend.Controllers
             return Ok(new { success = true, message = "Hazadous items", data, });
         }
 
+        [HttpGet("fae/acknowledge")]
+        public ActionResult getDataForFAEAcknowledge() {
+
+            return Ok(new { success = true, data = _tb.getForFAE_Acknowledge() });
+        }
         [HttpPut("status")]
         public ActionResult updateStatus(request.UpdateStatusFormRequester body)
         {

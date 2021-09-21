@@ -20,5 +20,7 @@ namespace backend.Models
         public Profile check { get; set; }
         public Profile approve { get; set; }
         public string createDate { get; set; }
+        public string createMonth { get; set; }
+        public string createYear { get; set; }
     }
 }

@@ -82,6 +82,13 @@ namespace backend.Controllers
         {
             try
             {
+                foreach (IFormFile item in body.files)
+                {
+                    if (!item.FileName.Contains(".pdf"))
+                    {
+                        return BadRequest(new { success = false, message = "Please upload PDF files." });
+                    }
+                }
                 string rootFolder = Directory.GetCurrentDirectory();
 
                 string pathString2 = @"\API site\files\wastemanagement\";
@@ -121,7 +128,9 @@ namespace backend.Controllers
                     summaryId = id,
                     createDate = DateTime.Now.ToString("yyyy/MM/dd"),
                     prepare = req_prepare,
-                    status = "prepared"
+                    status = "prepared",
+                    createMonth = DateTime.Now.ToString("MMMM"),
+                    createYear = DateTime.Now.ToString("yyyy"),
                 });
                 _summaryInvoice.updateStatus(id, "toInvoice", req_prepare);
 
@@ -220,6 +229,71 @@ namespace backend.Controllers
                 success = true,
                 message = "Prepare data success"
             });
+        }
+
+
+        [HttpPatch("itc/invoice/tracking")]
+        public ActionResult getITCinvoice(request.requesterHistory body)
+        {
+            try
+            {
+                List<ITCinvoiceSchema> data = _itc_invoice.getByYearMonth(body.year, body.month);
+                List<dynamic> returnData = new List<dynamic>();
+
+                if (data.Count > 0)
+                {
+                    Int32 no = 1;
+                    foreach (ITCinvoiceSchema item in data)
+                    {
+                        string statusMessage = "";
+                        if (item.status == "prepared")
+                        {
+                            statusMessage = "Wait for ITC checker";
+                        }
+                        else if (item.status == "checked")
+                        {
+                            statusMessage = "Wait for ITC approver";
+                        }
+                        else if (item.status == "approved")
+                        {
+                            statusMessage = "Wait for ACC checker";
+                        }
+                        else if (item.status == "acc-checked")
+                        {
+                            statusMessage = "Wait for ACC approve";
+                        }
+                        else if (item.status == "acc-approved")
+                        {
+                            statusMessage = "Approve completed";
+                        }
+                        Console.WriteLine(item.summaryId);
+                        SummaryInvoiceSchema summary = _summaryInvoice.getById(item.summaryId);
+
+                        if (summary != null)
+                        {
+                            returnData.Add(new
+                            {
+                                no,
+                                status = statusMessage,
+                                id = item._id,
+                                faeCreateBy = summary.prepare.name,
+                                itcPrepareBy = item.prepare.name,
+                                rejectCommend = item.rejectCommend,
+                                createDate = item.createDate,
+                                files = item.files,
+                                summaryId = item.summaryId,
+                            });
+                            no += 1;
+                        }
+
+                    }
+                }
+                return Ok(new { success = true, message = "Invoice for ITC created.", data = returnData, });
+            }
+            catch (System.Exception e)
+            {
+                return Problem(e.StackTrace);
+            }
         }
     }
 }

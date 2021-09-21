@@ -29,10 +29,22 @@ namespace backend.Services
 
         public List<HazadousSchema> getByStatus(string status, string dept)
         {
-
             List<HazadousSchema> data = new List<HazadousSchema>();
+            if (dept.ToLower().Contains("fae") && status.Contains("fae"))
+            {
+                data = _Hazadous.Find<HazadousSchema>(item => item.status == status).ToList();
+            }
+            else
+            {
+                data = _Hazadous.Find<HazadousSchema>(item => item.status == status && item.dept == dept).ToList();
+            }
 
-            data = _Hazadous.Find<HazadousSchema>(item => item.status == status && item.dept == dept).ToList();
+            return data;
+        }
+
+        public List<HazadousSchema> getForFAE_Acknowledge()
+        {
+            List<HazadousSchema> data = _Hazadous.Find<HazadousSchema>(item => item.status == "req-approved").ToList();
             return data;
         }
         public void updateStatus(string id, string status, request.Profile user)
@@ -103,6 +115,7 @@ namespace backend.Services
         {
             var filter = Builders<HazadousSchema>.Filter.Eq("_id", id) & Builders<HazadousSchema>.Filter.Eq("items.no", no);
             UpdateDefinition<HazadousSchema> update = Builders<HazadousSchema>.Update
+            .Set("rejectCommend", "-")
             .Set("items.$.allowed", allowed)
             .Set("items.$.burn", burn)
             .Set("items.$.recycle", recycle)
@@ -149,6 +162,14 @@ namespace backend.Services
             FilterDefinition<HazadousSchema> yearFilter = Builders<HazadousSchema>.Filter.Eq("year", year);
             FilterDefinition<HazadousSchema> deptFilter = Builders<HazadousSchema>.Filter.Eq("dept", dept);
             return _Hazadous.Find<HazadousSchema>(monthFilter & yearFilter & deptFilter).ToList();
+        }
+
+        public List<HazadousSchema> getBymonthYear(string month, string year)
+        {
+
+            FilterDefinition<HazadousSchema> monthFilter = Builders<HazadousSchema>.Filter.Eq("month", month);
+            FilterDefinition<HazadousSchema> yearFilter = Builders<HazadousSchema>.Filter.Eq("year", year);
+            return _Hazadous.Find<HazadousSchema>(monthFilter & yearFilter).ToList();
         }
 
 

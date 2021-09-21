@@ -959,6 +959,7 @@ namespace backend.Controllers
                     new
                     {
                         id = item.invoiceId,
+                        invoiceNo = item.invoice.invoiceNo,
                         contractNo = invoice.company.contractNo,
                         contractStartDate = invoice.company.contractStartDate,
                         contractEndDate = invoice.company.contractEndDate,
@@ -977,6 +978,11 @@ namespace backend.Controllers
         {
             try
             {
+
+                if (!body.file.FileName.Contains(".pdf"))
+                {
+                    return BadRequest(new { success = false, message = "System allow PDF file only." });
+                }
 
                 string rootFolder = Directory.GetCurrentDirectory();
 
@@ -1007,6 +1013,62 @@ namespace backend.Controllers
                 return Problem(e.StackTrace);
             }
 
+        }
+
+        [HttpGet("attachment/all/{invoiceId}")]
+        public ActionResult getAllAttachmentFile(string invoiceId)
+        {
+            try
+            {
+                List<string> attachmentFile = new List<string>();
+                Invoices invoice = _invoiceService.getById(invoiceId);
+
+                List<InvoicePrintedSchema> invoicePrinted = _invoicePrinting.getPrintByInvoice_id(invoiceId);
+
+                foreach (InvoicePrintedSchema item in invoicePrinted)
+                {
+                    attachmentFile.Add(item.attatchmentFile);
+                }
+
+                List<SummaryInvoiceSchema> allSummary = new List<SummaryInvoiceSchema>();
+                foreach (string summaryId in invoice.summaryId)
+                {
+                    allSummary.Add(_summary.getById(summaryId));
+
+                    ITCinvoiceSchema itcInvoice = _itc_invoice.getBySummaryId(summaryId);
+                    if (itcInvoice != null)
+                    {
+                        attachmentFile.AddRange(itcInvoice.files);
+                    }
+                }
+
+                // Attach file from recycle capture
+                List<requesterUploadSchema> requesterItem = new List<requesterUploadSchema>();
+                foreach (SummaryInvoiceSchema summary in allSummary)
+                {
+                    foreach (Waste recycle in summary.recycle)
+                    {
+                        attachmentFile.AddRange(recycle.files);
+                    }
+                    requesterItem.AddRange(summary.requester);
+                }
+
+                // SummaryInvoiceSchema summaryItem = _summary.getById(invoice.summaryId);
+                return Ok(new
+                {
+                    success = true,
+                    message = "All attachment invoice file.",
+                    data = new
+                    {
+                        files = attachmentFile,
+                        requester = requesterItem,
+                    }
+                });
+            }
+            catch (System.Exception e)
+            {
+                return Problem(e.StackTrace);
+            }
         }
     }
 }

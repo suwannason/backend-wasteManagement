@@ -227,6 +227,10 @@ namespace backend.Services
             return _scrapMatrial.Find<requesterUploadSchema>(item => item.moveOutDate == moveOutDate && item.phase == phase && item.boiType == boiType && item.status == status).ToList();
 
         }
+        public List<requesterUploadSchema> getGroupingItems(string moveOutDate, string phase, string boiType)
+        {
+            return _scrapMatrial.Find<requesterUploadSchema>(item => item.moveOutDate == moveOutDate && item.phase == phase && item.boiType == boiType).ToList();
+        }
 
         public List<requesterUploadSchema> getGroupingTracking(string moveOutDate, string phase, string boiType)
         {
@@ -257,6 +261,14 @@ namespace backend.Services
         {
             FilterDefinition<requesterUploadSchema> filter = Builders<requesterUploadSchema>.Filter.Eq("filename", filename);
             _scrapMatrial.DeleteMany(filter);
+        }
+
+        public List<requesterUploadSchema> getbyYearMonth(string year, string month)
+        {
+            FilterDefinition<requesterUploadSchema> monthFilter = Builders<requesterUploadSchema>.Filter.Eq("requestMonth", month);
+            FilterDefinition<requesterUploadSchema> yearFilter = Builders<requesterUploadSchema>.Filter.Eq("requestYear", year);
+
+            return _scrapMatrial.Find<requesterUploadSchema>(monthFilter & yearFilter).ToList();
         }
     }
 }

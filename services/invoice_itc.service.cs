@@ -61,6 +61,22 @@ namespace backend.Services
 
             _tb.UpdateOne(filter, update);
         }
+
+        public List<ITCinvoiceSchema> getByYearMonth(string year, string month)
+        {
+
+            FilterDefinition<ITCinvoiceSchema> monthFilter = Builders<ITCinvoiceSchema>.Filter.Eq("createMonth", month);
+            FilterDefinition<ITCinvoiceSchema> yearFilter = Builders<ITCinvoiceSchema>.Filter.Eq("createYear", year);
+
+            return _tb.Find<ITCinvoiceSchema>(monthFilter & yearFilter).ToList();
+        }
+
+        public ITCinvoiceSchema getBySummaryId(string summaryId)
+        {
+            FilterDefinition<ITCinvoiceSchema> filter = Builders<ITCinvoiceSchema>.Filter.Eq("summaryId", summaryId);
+
+            return _tb.Find<ITCinvoiceSchema>(filter).FirstOrDefault();
+        }
     }
 
 }

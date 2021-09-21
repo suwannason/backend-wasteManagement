@@ -223,6 +223,9 @@ namespace backend.Controllers
                 handleUpload action = new handleUpload(_itcDB, _faeDB);
 
                 List<requesterUploadSchema> data = action.uploadData(filename, System.Guid.NewGuid().ToString() + "-" + body.file.FileName, req_prepare, usertmp);
+                if (data.Count == 0) {
+                    return BadRequest(new { success = false, message = "Error, please check file upload" });
+                }
                 _requester.handleUpload(data);
 
                 return Ok(new { success = true, message = "Upload data success.", });
@@ -381,78 +384,68 @@ namespace backend.Controllers
             }
         }
 
-        [HttpGet("fae/tracking")]
-        public ActionResult tracking()
+        [HttpPatch("fae/tracking"), AllowAnonymous]
+        public ActionResult tracking(request.requesterHistory body)
         {
-            List<requesterUploadSchema> data = _requester.getTracking();
+            // HAZADOUS
+            List<HazadousSchema> hazadousItem = _hazadous.getBymonthYear(body.month, body.year);
 
-            List<requesterUploadSchema> grouped = data.GroupBy(x => new { x.moveOutDate, x.phase, x.boiType }).Select(y => new requesterUploadSchema
+            List<dynamic> returnHazadous = new List<dynamic>();
+            foreach (HazadousSchema item in hazadousItem)
             {
-                boiType = y.Key.boiType,
-                moveOutDate = y.Key.moveOutDate,
-                phase = y.Key.phase
-            }).ToList();
-
-            List<dynamic> returnData = new List<dynamic>();
-
-            foreach (requesterUploadSchema item in grouped)
-            {
-                List<requesterUploadSchema> itemInGroup = _requester.getGroupingTracking(item.moveOutDate, item.phase, item.boiType);
-
-                // return Ok(itemInGroup);
-                double totalNetweight = 0;
-                List<string> id = new List<string>();
-
-                foreach (requesterUploadSchema gItem in itemInGroup)
-                { // this loop for sum total and add id to return data
-                    totalNetweight += Double.Parse(gItem.netWasteWeight);
-                    id.Add(gItem._id);
+                string statusMessage = "";
+                if (item.status == "req-prepared")
+                {
+                    statusMessage = "Wait for requester cheker";
+                }
+                else if (item.status == "req-checked")
+                {
+                    statusMessage = "Wait for requester approver";
+                }
+                else if (item.status == "req-approved")
+                {
+                    statusMessage = "Wait for FAE prepare";
+                }
+                else if (item.status == "fae-prepared")
+                {
+                    statusMessage = "Wait for FAE cheker";
+                }
+                else if (item.status == "fae-checked")
+                {
+                    statusMessage = "Wait for FAE approver";
+                }
+                else if (item.status == "fae-approved")
+                {
+                    statusMessage = "Approve completed";
                 }
 
-                requesterUploadSchema dataItem = _requester.getById(id[0]);
-                string status = "";
-                if (dataItem.status == "req-prepared")
-                {
-                    status = "Waiting for requester checking";
-                }
-                else if (dataItem.status == "req-checked")
-                {
-                    status = "Waiting for requester approving";
-                }
-                else if (dataItem.status == "req-approved")
-                {
-                    status = "Waiting for PDC prepare data";
-                }
-                else if (dataItem.status == "pdc-prepared")
-                {
-                    status = "Waiting for PDC checking";
-                }
-                else if (dataItem.status == "pdc-checked")
-                {
-                    status = "Waiting for ITC checking data";
-                }
-                else if (dataItem.status == "itc-checked")
-                {
-                    status = "Waiting for ITC approving";
-                }
-                returnData.Add(new
-                {
-                    dept = dataItem.dept,
-                    moveOutDate = item.moveOutDate,
-                    boiType = item.boiType,
-                    netWasteWeight = totalNetweight.ToString("##,###.00"),
-                    phase = item.phase,
-                    status,
-                    id = id.ToArray(),
-                });
+                returnHazadous.Add(
+                    new
+                    {
+                        id = item._id,
+                        moveOutDate = item.date,
+                        type = "hazadous",
+                        dept = item.dept,
+                        phase = item.phase,
+                        netWasteWeight = item.netWasteWeight,
+                        status = statusMessage,
+                        files = new List<string>(),
+                    }
+                );
             }
+            // HAZADOUS
 
+            // ITCinvoice
+         
+            // ITCinvoice
             return Ok(
                 new
                 {
                     success = true,
                     message = "All requester tracking data.",
-                    data = returnData,
+                    hazadous = returnHazadous,
+                    infection = "",
+                    requester = "",
                 }
             );
         }
