@@ -107,6 +107,13 @@ namespace backend.Services
                 Console.WriteLine(e.StackTrace);
             }
         }
+
+        public Invoices getBySummaryId(string summaryId)
+        {
+            FilterDefinition<Invoices> filterElematch = Builders<Invoices>.Filter.AnyEq(item => item.summaryId, summaryId);
+
+            return invoice.Find<Invoices>(filterElematch).FirstOrDefault();
+        }
         public void deleteInvoice(string id)
         {
             // invoice.DeleteOne(item => item._id == id);

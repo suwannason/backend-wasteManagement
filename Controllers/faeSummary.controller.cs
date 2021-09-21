@@ -26,13 +26,15 @@ namespace backend.Controllers
         private readonly RecycleService _recycle;
         private readonly requesterUploadServices _requester;
         private readonly faeDBservice _faeDB;
+        private readonly InvoiceService _invoice;
 
-        public summaryController(SummaryInvoiceService summary, RecycleService recycle, requesterUploadServices requester, faeDBservice fae)
+        public summaryController(SummaryInvoiceService summary, RecycleService recycle, requesterUploadServices requester, faeDBservice fae, InvoiceService invoice)
         {
             _services = summary;
             _recycle = recycle;
             _requester = requester;
             _faeDB = fae;
+            _invoice = invoice;
         }
         [HttpGet("get/{id}")]
         public ActionResult getByIdSummary(string id)
@@ -865,8 +867,8 @@ namespace backend.Controllers
                     Directory.CreateDirectory(serverPath);
                 }
 
-                // string uuid = System.Guid.NewGuid().ToString();
-                string uuid = "A";
+                string uuid = System.Guid.NewGuid().ToString();
+                // string uuid = "A";
                 string filePath = serverPath + uuid + ".xlsx";
 
                 SummaryInvoiceSchema summary = _services.getById(id);
@@ -1004,7 +1006,7 @@ namespace backend.Controllers
                     sheet.Cells["Q" + row.ToString()].Formula = "=SUM(Q12:Q" + (row - 1).ToString() + ")";
                     sheet.Cells["J12:M" + (row + 1).ToString()].Style.Numberformat.Format = "###,##0.00";
                     sheet.Cells["Q12:Q" + (row + 1).ToString()].Style.Numberformat.Format = "###,##0.00";
-                    sheet.Cells["Q" + (row + 1).ToString()].Style.Font.Bold = true;
+                    sheet.Cells["Q" + (row).ToString()].Style.Font.Bold = true;
 
                     sheet.Cells["B11:Q" + (row).ToString()].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
                     sheet.Cells["B11:Q" + (row).ToString()].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
@@ -1021,16 +1023,110 @@ namespace backend.Controllers
                     sheet.Cells["V12"].Value = "น้ำหนัก";
                     sheet.Cells["W12"].Value = "ราคา";
                     sheet.Cells["X12"].Value = "รวมราคา";
+
+                    int startRow = 13;
                     foreach (requesterUploadSchema item in distinctBidding)
                     {
+                        sheet.Cells["S" + startRow].Value = item.biddingNo;
+                        sheet.Cells["T" + startRow].Value = item.biddingType;
+                        sheet.Cells["U" + startRow].Value = item.color;
 
+                        List<requesterUploadSchema> itemWithBidding = summary.requester.ToList().FindAll(e => e.biddingType == item.biddingType);
+
+                        double sumWeight = 0.0;
+                        sheet.Cells["W" + startRow].Value = Double.Parse(item.unitPrice);
+                        foreach (requesterUploadSchema biddingItem in itemWithBidding)
+                        {
+                            sumWeight += Double.Parse(biddingItem.netWasteWeight);
+                        }
+                        sheet.Cells["V" + startRow].Value = sumWeight;
+                        sheet.Cells["X" + startRow].Formula = "=V" + startRow + "*W" + startRow;
+                        startRow += 1;
                     }
+                    sheet.Column(24).Width = 20;
+                    sheet.Column(23).Width = 20;
+                    sheet.Column(22).Width = 20;
+                    sheet.Column(21).Width = 20;
+                    sheet.Column(20).Width = 20;
+                    sheet.Column(19).Width = 20;
+
+                    sheet.Cells["W13:W" + startRow].Style.Numberformat.Format = "##,##0.00";
+                    sheet.Cells["X13:X" + startRow].Style.Numberformat.Format = "##,##0.00";
+                    sheet.Cells["V13:V" + startRow].Style.Numberformat.Format = "##,##0.00";
+                    sheet.Cells["S13:S" + startRow].Style.Numberformat.Format = "##,##0";
+
+                    sheet.Cells["S11:X" + (startRow + 1)].Style.Font.Name = "Calibri";
+                    sheet.Cells["S11:X11"].Style.Font.Size = 18;
+                    sheet.Cells["S11:X11"].Style.Fill.SetBackground(ColorTranslator.FromHtml("#D8E4BC"));
+                    sheet.Cells["S11:X11"].Style.Font.Bold = true;
+                    sheet.Cells["S12:X" + startRow].Style.Font.Size = 14;
+                    sheet.Cells["S12:X12"].Style.Font.Bold = true;
+                    sheet.Cells["S" + startRow + ":X" + startRow].Style.Font.Bold = true;
+                    sheet.Cells["S12:X12"].Style.Fill.SetBackground(ColorTranslator.FromHtml("#8DB4E2"));
+
+                    sheet.Cells["S" + (startRow)].Value = "Total";
+                    sheet.Cells["V" + (startRow)].Formula = "=SUM(V13:V" + (startRow - 1) + ")";
+                    sheet.Cells["X" + (startRow)].Formula = "=SUM(X13:X" + (startRow - 1) + ")";
+
+                    sheet.Cells["S11:X" + (startRow)].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    sheet.Cells["S11:X" + (startRow)].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    sheet.Cells["S11:X" + (startRow)].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    sheet.Cells["S11:X" + (startRow)].Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    sheet.Cells["S11:X" + (startRow)].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    sheet.Cells["S11:X" + (startRow)].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
+
+                    // Write heading
+
+                    sheet.Cells["B8:G8"].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    sheet.Cells["B8:G8"].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    sheet.Cells["B8:G8"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    sheet.Cells["B8:G8"].Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    sheet.Cells["B8:G8"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    sheet.Cells["B8:G8"].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
+
+                    sheet.Cells["B9:M9"].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    sheet.Cells["B9:M9"].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    sheet.Cells["B9:M9"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    sheet.Cells["B9:M9"].Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    sheet.Cells["B9:M9"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    sheet.Cells["B9:M9"].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
+                    sheet.Cells["C9"].Value = distinctBidding[0].lotNo;
+
+                    Invoices invoiceData = _invoice.getBySummaryId(id);
+                    sheet.Cells["G9"].Value = distinctBidding[0].moveOutDate;
+                    sheet.Cells["I9"].Value = invoiceData.company.contractNo;
+                    sheet.Cells["K9"].Value = invoiceData.company.contractStartDate;
+                    sheet.Cells["M9"].Value = invoiceData.company.contractEndDate;
+
+                    if (summary.boiCase == "BOI")
+                    {
+                        sheet.Cells["D8:E8"].Style.Fill.SetBackground(ColorTranslator.FromHtml("#92D050"));
+                    }
+                    else
+                    {
+                        sheet.Cells["F8:G8"].Style.Fill.SetBackground(ColorTranslator.FromHtml("#92D050"));
+                    }
+
+                    // Write heading
 
                     excel.SaveAs(file);
                     stream.Position = 0;
                 }
                 return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", filePath);
-                // return Ok(new { success = true, message = "Export IMO format success.", data = distinctBidding });
+                // return Ok(new { success = true, message = "Export IMO format success.", });
+            }
+            catch (System.Exception e)
+            {
+                return Problem(e.StackTrace);
+            }
+        }
+
+        [HttpGet("invoice/pmd/print/{id}")]
+        public ActionResult pmdPrintFormat(string id)
+        {
+            try
+            {
+                return Ok(new { success = true, });
             }
             catch (System.Exception e)
             {
