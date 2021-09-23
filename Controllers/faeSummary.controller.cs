@@ -12,6 +12,8 @@ using System.Linq;
 using System.Drawing;
 using OfficeOpenXml.Drawing;
 using System.Net;
+using Microsoft.AspNetCore.Authorization;
+using OfficeOpenXml.DataValidation.Contracts;
 
 namespace backend.Controllers
 {
@@ -1121,12 +1123,172 @@ namespace backend.Controllers
             }
         }
 
-        [HttpGet("invoice/pmd/print/{id}")]
+        [HttpGet("invoice/pmd/print/{id}"), AllowAnonymous]
         public ActionResult pmdPrintFormat(string id)
         {
             try
             {
-                return Ok(new { success = true, });
+                string rootFolder = Directory.GetCurrentDirectory();
+                string pathString2 = @"\API site\files\wastemanagement\download\";
+                string serverPath = rootFolder.Substring(0, rootFolder.LastIndexOf(@"\")) + pathString2;
+
+                if (!Directory.Exists(serverPath))
+                {
+                    Directory.CreateDirectory(serverPath);
+                }
+
+                string uuid = System.Guid.NewGuid().ToString();
+                // string uuid = "A";
+                string filePath = serverPath + uuid + ".xlsx";
+
+                SummaryInvoiceSchema summary = _services.getById(id);
+
+                List<requesterUploadSchema> distinctBidding = summary.requester.GroupBy(x => x.biddingType).Select(x => x.First()).ToList();
+
+                MemoryStream stream = new MemoryStream();
+
+                using (ExcelPackage excel = new ExcelPackage(stream))
+                {
+                    excel.Workbook.Worksheets.Add("Bank");
+                    ExcelWorksheet sheet = excel.Workbook.Worksheets["Bank"];
+
+                    sheet.View.ZoomScale = 70;
+                    sheet.View.ShowGridLines = false;
+                    FileInfo file = new FileInfo(filePath);
+
+                    IExcelDataValidationList pmdDept = sheet.DataValidations.AddListValidation("B3");
+                    pmdDept.Formula.Values.Add("PMD");
+                    pmdDept.Formula.Values.Add("PMD (CLP)");
+                    sheet.Cells["B3:D5"].Style.Fill.SetBackground(ColorTranslator.FromHtml("#FFFFCC"));
+
+                    IExcelDataValidationList boi = sheet.DataValidations.AddListValidation("F3");
+                    boi.Formula.Values.Add("BOI");
+                    boi.Formula.Values.Add("NON BOI");
+                    sheet.Cells["F3:H5"].Style.Fill.SetBackground(ColorTranslator.FromHtml("#FFFFCC"));
+
+                    sheet.Cells["A1:H1"].Merge = true;
+                    sheet.Cells["A2:H2"].Merge = true;
+                    sheet.Row(1).Height = 30;
+                    sheet.Cells["A1"].Value = "SUMMARY SCRAPED MATERIAL";
+                    sheet.Cells["A2"].Value = "ตารางสรุปน้ำหนักของเสีย";
+                    sheet.Cells["A1:H2"].Style.Font.Size = 22;
+                    sheet.Cells["A1:H2"].Style.Font.Bold = true;
+
+                    sheet.Cells["A1:H2"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    sheet.Cells["A1:H2"].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
+
+                    if (distinctBidding.Count > 0)
+                    {
+                        sheet.Cells["B4"].Value = distinctBidding[0].lotNo;
+                        sheet.Cells["F4"].Value = distinctBidding[0].moveOutDate;
+                        sheet.Cells["F3"].Value = distinctBidding[0].boiType;
+                    }
+                    Invoices invoiceData = _invoice.getBySummaryId(id);
+                    if (invoiceData != null)
+                    {
+                        sheet.Cells["B5"].Value = invoiceData.company.contractNo;
+                        sheet.Cells["F5"].Value = invoiceData.company.contractStartDate + " - " + invoiceData.company.contractEndDate;
+                    }
+
+                    sheet.Row(2).Height = 30;
+                    sheet.Row(3).Height = 30;
+                    sheet.Row(4).Height = 30;
+                    sheet.Row(5).Height = 30;
+                    sheet.Row(6).Height = 70;
+                    sheet.Row(7).Height = 70;
+
+                    sheet.Column(1).Width = 30;
+                    sheet.Column(2).Width = 17;
+                    sheet.Column(3).Width = 18;
+                    sheet.Column(4).Width = 20;
+                    sheet.Column(5).Width = 20;
+                    sheet.Column(6).Width = 20;
+                    sheet.Column(7).Width = 20;
+                    sheet.Column(8).Width = 30;
+
+                    sheet.Cells["A3"].Value = "Dept :";
+                    sheet.Cells["B3:D3"].Merge = true;
+                    sheet.Cells["A4"].Value = "Lot No :";
+                    sheet.Cells["B4:D4"].Merge = true;
+                    sheet.Cells["B5:D5"].Merge = true;
+                    sheet.Cells["F3:H3"].Merge = true;
+                    sheet.Cells["F4:H4"].Merge = true;
+                    sheet.Cells["F5:H5"].Merge = true;
+                    sheet.Cells["A5"].Value = "Contract no.";
+                    sheet.Cells["A3:A5"].Style.Font.Size = 18;
+                    sheet.Cells["A3:A5"].Style.Fill.SetBackground(ColorTranslator.FromHtml("#D9D9D9"));
+                    sheet.Cells["B3:D5"].Style.Font.Size = 16;
+                    sheet.Cells["E3:E5"].Style.Font.Size = 18;
+                    sheet.Cells["E3:E5"].Style.Fill.SetBackground(ColorTranslator.FromHtml("#D9D9D9"));
+                    sheet.Cells["F3:H5"].Style.Font.Size = 16;
+
+
+                    sheet.Cells["E3"].Value = "Privilege Type :";
+                    sheet.Cells["E4"].Value = "Date move out :";
+                    sheet.Cells["E5"].Value = "Contract Start-End :";
+
+                    sheet.Cells["A6"].Value = "Waste Type";
+                    sheet.Cells["B6"].Value = "Box No.";
+                    sheet.Cells["C6"].Value = "Box Weight / Track weight (Kg.)";
+                    sheet.Cells["D6"].Value = "Gross  Weight / Truck weight+Waste (Kg.)";
+                    sheet.Cells["E6"].Value = "NET Weight (Kg.)";
+                    sheet.Cells["F6"].Value = "Price (THB)/Kg.";
+                    sheet.Cells["G6"].Value = "Total price";
+
+                    sheet.Cells["A7"].Value = "ประเภทของเสีย";
+                    sheet.Cells["B7"].Value = "ถังเลขที่";
+                    sheet.Cells["C7"].Value = "น้ำหนักรถเปล่า/น้ำหนักถัง (กก.)";
+                    sheet.Cells["D7"].Value = "น้ำหนักรถหนัก/น้ำหนักรวมถัง (กก.)";
+                    sheet.Cells["E7"].Value = "น้ำหนักของเสีย";
+                    sheet.Cells["F7"].Value = "ราคา (บาท)/กก.";
+                    sheet.Cells["G7"].Value = "ราคารวม";
+
+                    sheet.Cells["A6:H7"].Style.Font.Size = 14;
+                    sheet.Cells["A6:H7"].Style.Font.Bold = true;
+                    sheet.Cells["A6:H7"].Style.WrapText = true;
+                    sheet.Cells["A6:H7"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    sheet.Cells["A6:H7"].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
+                    sheet.Cells["H6:H7"].Merge = true;
+                    sheet.Cells["H6"].Value = "FAE (J3 up) Confirmation Status Consistent = OK Not consistent = NG with EF-FAE-ENV-056";
+
+                    int startRow = 8;
+
+                    foreach (Waste item in summary.recycle)
+                    {
+                        IExcelDataValidationList wasteType = sheet.DataValidations.AddListValidation("A" + startRow);
+                        wasteType.Formula.Values.Add("เศษสแตนเลสจากการกลึง");
+                        wasteType.Formula.Values.Add("สแตนเลส (แท่ง)");
+                        wasteType.Formula.Values.Add("เศษทองเหลืองจากการกลึง");
+                        wasteType.Formula.Values.Add("ทองเหลือง (แท่ง)");
+                        wasteType.Formula.Values.Add("เหล็ก");
+                        sheet.Cells["B" + startRow].Value = "";
+                        sheet.Cells["C" + startRow].Value = Double.Parse(item.containerWeight);
+                        sheet.Cells["D" + startRow].Value = Double.Parse(item.totalWeight);
+                        sheet.Cells["E" + startRow].Value = Double.Parse(item.netWasteWeight);
+                        sheet.Cells["F" + startRow].Value = Double.Parse(item.unitPrice);
+                        sheet.Cells["G" + startRow].Value = Double.Parse(item.totalPrice);
+                        startRow += 1;
+                    }
+                    sheet.Cells["H8"].Value = summary.pmdConsistent;
+                    sheet.Cells["H8"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    sheet.Cells["H8"].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Top;
+
+                    sheet.Cells["A1:H55"].Style.Font.Name = "CordiaUPC";
+                    sheet.Cells["H8:H45"].Merge = true;
+                    sheet.Cells["A3:H46"].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    sheet.Cells["A3:H46"].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    sheet.Cells["A3:H46"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    sheet.Cells["A3:H46"].Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+
+                    sheet.Cells["C8:D45"].Style.Numberformat.Format = "###,##0.00";
+                    sheet.Cells["E8:G45"].Style.Numberformat.Format = "###,##0.00";
+                    sheet.Cells["A8:D45"].Style.Fill.SetBackground(ColorTranslator.FromHtml("#FFFFCC"));
+
+                    excel.SaveAs(file);
+                    stream.Position = 0;
+                }
+                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", filePath);
+                // return Ok(new { success = true, });
             }
             catch (System.Exception e)
             {
