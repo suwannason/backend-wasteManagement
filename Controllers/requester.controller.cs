@@ -223,7 +223,8 @@ namespace backend.Controllers
                 handleUpload action = new handleUpload(_itcDB, _faeDB);
 
                 List<requesterUploadSchema> data = action.uploadData(filename, System.Guid.NewGuid().ToString() + "-" + body.file.FileName, req_prepare, usertmp);
-                if (data.Count == 0) {
+                if (data.Count == 0)
+                {
                     return BadRequest(new { success = false, message = "Error, please check file upload" });
                 }
                 _requester.handleUpload(data);
@@ -298,6 +299,10 @@ namespace backend.Controllers
                         else if (dataItem.status == "pdc-checked")
                         {
                             status = "Waiting for ITC checking data";
+                        }
+                        else if (dataItem.status == "itc-approved")
+                        {
+                            status = "Waiting for FAE acknokledge";
                         }
                         else if (dataItem.status == "itc-checked")
                         {
@@ -436,7 +441,7 @@ namespace backend.Controllers
             // HAZADOUS
 
             // ITCinvoice
-         
+
             // ITCinvoice
             return Ok(
                 new

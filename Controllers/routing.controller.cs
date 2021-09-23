@@ -245,6 +245,7 @@ namespace backend.Controllers
                     Int32 no = 1;
                     foreach (ITCinvoiceSchema item in data)
                     {
+                        List<string> fileAttachment = new List<string>();
                         string statusMessage = "";
                         if (item.status == "prepared")
                         {
@@ -266,11 +267,16 @@ namespace backend.Controllers
                         {
                             statusMessage = "Approve completed";
                         }
-                        Console.WriteLine(item.summaryId);
+                        // Console.WriteLine(item.summaryId);
+                        fileAttachment.AddRange(item.files);
                         SummaryInvoiceSchema summary = _summaryInvoice.getById(item.summaryId);
 
                         if (summary != null)
                         {
+                            foreach (Waste recycle in summary.recycle)
+                            {
+                                fileAttachment.AddRange(recycle.files);
+                            }
                             returnData.Add(new
                             {
                                 no,
@@ -280,8 +286,9 @@ namespace backend.Controllers
                                 itcPrepareBy = item.prepare.name,
                                 rejectCommend = item.rejectCommend,
                                 createDate = item.createDate,
-                                files = item.files,
+                                files = fileAttachment,
                                 summaryId = item.summaryId,
+                                summaryType = summary.type,
                             });
                             no += 1;
                         }
