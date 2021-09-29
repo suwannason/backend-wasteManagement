@@ -51,7 +51,7 @@ namespace backend.Services
         {
 
             FilterDefinition<HazadousSchema> findId = Builders<HazadousSchema>.Filter.Eq(item => item._id, id);
-
+            Console.WriteLine(status);
             UpdateDefinition<HazadousSchema> update = null;
             if (status == "req-checked")
             {
@@ -67,26 +67,33 @@ namespace backend.Services
             }
             else if (status == "fae-approved")
             {
-                SortDefinition<HazadousSchema> sorting = Builders<HazadousSchema>.Sort.Descending("_id");
-                HazadousSchema lastHazadous = _Hazadous.Find<HazadousSchema>(item => item.runningNo != "-").Sort(sorting).FirstOrDefault();
+                
+                string runningNo = getLastRunningNo();
+                update = Builders<HazadousSchema>.Update.Set("fae_approved", user).Set("status", status).Set("runningNo", runningNo);
+                // _Hazadous.UpdateOne(findId, update);
 
-                string runningNo = "HZ-";
-                if (lastHazadous == null)
-                {
-                    runningNo = "001";
-                }
-                else
-                {
-                    string no = lastHazadous.runningNo.Substring(lastHazadous.runningNo.IndexOf("-") + 1, 3);
-                    runningNo += (Int32.Parse(no) + 1).ToString().PadLeft(3, '0') + "/" + DateTime.Now.ToString("yyyy");
-                    Console.WriteLine(runningNo);
-
-                    update = Builders<HazadousSchema>.Update.Set("runningNo", runningNo);
-                    _Hazadous.UpdateOne(findId, update);
-                }
-                update = Builders<HazadousSchema>.Update.Set("fae_approved", user).Set("status", status);
+                // update = Builders<HazadousSchema>.Update.Set("fae_approved", user).Set("status", status);
             }
             _Hazadous.UpdateOne(findId, update);
+        }
+        public string getLastRunningNo()
+        {
+            SortDefinition<HazadousSchema> sorting = Builders<HazadousSchema>.Sort.Descending("_id");
+            HazadousSchema lastHazadous = _Hazadous.Find<HazadousSchema>(item => item.runningNo != "-" && item.runningNo != null).Sort(sorting).FirstOrDefault();
+
+            string runningNo = "HZ-";
+            if (lastHazadous == null)
+            {
+                runningNo += "001/" + DateTime.Now.ToString("yyyy");
+            }
+            else
+            {
+                string no = lastHazadous.runningNo.Substring(lastHazadous.runningNo.IndexOf("-") + 1, 3);
+                runningNo += (Int32.Parse(no) + 1).ToString().PadLeft(3, '0') + "/" + DateTime.Now.ToString("yyyy");
+
+                // _Hazadous.UpdateOne(findId, update);
+            }
+            return runningNo;
         }
 
         public HazadousSchema getById(string id)

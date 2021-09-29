@@ -57,7 +57,7 @@ namespace backend.Controllers
                     data.time = DateTime.Now.ToString("hh:mm");
                     data.phase = "Phase " + sheet.Cells[1, 2].Value?.ToString();
                     data.dept = User.FindFirst("dept")?.Value;
-                    data.runningNo = "-";
+                    data.runningNo = null;
                     data.div = User.FindFirst("div")?.Value;
                     data.filename = fiilServername;
                     data.description = "-";
