@@ -41,7 +41,8 @@ namespace backend.Services
         }
         public faeDBschema getByMatname(string matrialName)
         {
-            return _faedb.Find<faeDBschema>(item => item.matrialName == matrialName).FirstOrDefault<faeDBschema>();
+            System.Console.WriteLine("getByMatname: " + matrialName);
+            return _faedb.Find<faeDBschema>(item => item.matrialName.ToLower() == matrialName.ToLower()).FirstOrDefault<faeDBschema>();
         }
 
         public faeDBschema getByWasteName(string matrialCode, string kind)
@@ -64,16 +65,49 @@ namespace backend.Services
         }
         public faeDBschema getByBiddingType(string biddingType)
         {
-            return _faedb.Find<faeDBschema>(item => item.biddingType == biddingType).FirstOrDefault();
+            return _faedb.Find<faeDBschema>(item => item.biddingType.ToLower() == biddingType.ToLower()).FirstOrDefault();
         }
         public faeDBschema getByMatcodeAndKind(string matrialCode, string kind)
         {
-            return _faedb.Find<faeDBschema>(item => item.matrialCode == matrialCode && item.kind == kind).FirstOrDefault();
+            return _faedb.Find<faeDBschema>(item => item.matrialCode.ToLower() == matrialCode.ToLower() && item.kind.ToLower() == kind.ToLower()).FirstOrDefault();
         }
 
-        public faeDBschema getByKind(string kind)
+        public faeDBschema getByKindWith_matCode_matName(string kind, string matrialCode, string matrialName)
         {
-            return _faedb.Find<faeDBschema>(item => item.kind == kind).FirstOrDefault();
+            return _faedb.Find<faeDBschema>(item =>
+            item.kind.ToLower() == kind.ToLower()
+            && item.matrialCode.ToLower() == matrialCode.ToLower()
+            && item.matrialName.ToLower() == matrialName.ToLower()
+            )
+            .FirstOrDefault();
+        }
+        public List<faeDBschema> getByMatCodeAndMatName(string matrialCode, string matrialName)
+        {
+
+            return _faedb.Find<faeDBschema>(item =>
+                        item.matrialCode.ToLower() == matrialCode.ToLower()
+                        && item.matrialName.ToLower() == matrialName.ToLower()
+            ).ToList();
+        }
+
+        public faeDBschema getByBiddingTypeAndColor(string matrialCode, string matrialName, string biddingType, string color)
+        {
+
+            return _faedb.Find<faeDBschema>(item =>
+                item.matrialCode.ToLower() == matrialCode.ToLower()
+                && item.matrialName.ToLower() == matrialName.ToLower()
+                && item.biddingType.ToLower() == biddingType.ToLower()
+                && item.color.ToLower() == color.ToLower()
+            ).FirstOrDefault();
+        }
+        public faeDBschema getByBiddingTypeAndColor(string matrialName, string biddingType, string color)
+        {
+
+            return _faedb.Find<faeDBschema>(item =>
+                item.matrialName.ToLower() == matrialName.ToLower()
+                && item.biddingType.ToLower() == biddingType.ToLower()
+                && item.color.ToLower() == color.ToLower()
+            ).FirstOrDefault();
         }
     }
 }

@@ -44,14 +44,14 @@ namespace backend.Controllers
 
                 List<Invoices> data = _invoice.ITCgetInvoice();
                 List<ITCinvoiceSchema> itcReject = _itc_invoice.getByStatus("reject");
-                List<SummaryInvoiceSchema> returnData = new List<SummaryInvoiceSchema>();
+                List<SummaryInvoiceSchema> summaryData = new List<SummaryInvoiceSchema>();
 
                 foreach (Invoices item in data)
                 {
                     foreach (string summaryId in item.summaryId)
                     {
                         SummaryInvoiceSchema summaryItem = _summaryInvoice.getById(summaryId);
-                        returnData.Add(summaryItem);
+                        summaryData.Add(summaryItem);
 
                     }
                 }
@@ -61,14 +61,14 @@ namespace backend.Controllers
                     if (summaryItem != null)
                     {
                         summaryItem.status = "reject";
-                        returnData.Add(summaryItem);
+                        summaryData.Add(summaryItem);
                     }
                 }
                 return Ok(new
                 {
                     success = true,
                     message = "Data for ITC Download.",
-                    data = returnData,
+                    data = summaryData,
                 });
             }
             catch (Exception e)
@@ -78,10 +78,11 @@ namespace backend.Controllers
         }
 
         [HttpPost("itc/invoice/{id}")]
-        public ActionResult itcUploadInvoice(string id, [FromForm] uploadFileMulti body)
+        public ActionResult itcUploadInvoice(string id, [FromForm] request.itcPrepareInvoice body)
         {
             try
             {
+
                 foreach (IFormFile item in body.files)
                 {
                     if (!item.FileName.Contains(".pdf"))
@@ -106,7 +107,6 @@ namespace backend.Controllers
                 {
                     using (FileStream strem = System.IO.File.Create($"{serverPath}{g}-{item.FileName}"))
                     {
-                        // body.file.CopyTo(strem);
                         item.CopyTo(strem);
                         file.Add(g + "-" + item.FileName);
                     }
@@ -119,8 +119,6 @@ namespace backend.Controllers
                 req_prepare.name = User.FindFirst("name")?.Value;
                 req_prepare.date = DateTime.Now.ToString("yyyy/MM/dd");
 
-                // Console.WriteLine($"{serverPath}{g}-{body.file.FileName}");
-                // Console.WriteLine(id);
 
                 _itc_invoice.create(new ITCinvoiceSchema
                 {
@@ -131,6 +129,8 @@ namespace backend.Controllers
                     status = "prepared",
                     createMonth = DateTime.Now.ToString("MMMM"),
                     createYear = DateTime.Now.ToString("yyyy"),
+                    invoiceNo = body.invoiceNo,
+                    dueDate = body.dueDate,
                 });
                 _summaryInvoice.updateStatus(id, "toInvoice", req_prepare);
 
@@ -140,6 +140,7 @@ namespace backend.Controllers
             }
             catch (Exception e)
             {
+                Console.WriteLine(e.Message);
                 return Problem(e.StackTrace);
             }
         }
@@ -164,7 +165,11 @@ namespace backend.Controllers
                         faeCreateBy = summary.prepare.name,
                         itcPrepareBy = item.prepare.name,
                         fileName = item.files,
-                        createDate = item.createDate
+                        createDate = item.createDate,
+                        invoiceNo = item.invoiceNo,
+                        lotNo = summary.requester[0].lotNo,
+                        dueDate = item.dueDate,
+                        totalPrice = summary.totalPrice,
                     }
                 );
                 i += 1;

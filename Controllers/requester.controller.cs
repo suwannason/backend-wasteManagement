@@ -227,7 +227,37 @@ namespace backend.Controllers
                 {
                     return BadRequest(new { success = false, message = "Error, please check file upload" });
                 }
-                _requester.handleUpload(data);
+                else if (data.Find(item => item.totalPrice == null || item.totalPrice == "-") != null)
+                {
+                    int no = 1;
+                    List<dynamic> returnData = new List<dynamic>();
+                    foreach (requesterUploadSchema item in data)
+                    {
+                        returnData.Add(
+                            new
+                            {
+                                id = no.ToString(),
+                                kind = item.kind,
+                                moveOutDate = item.moveOutDate,
+                                lotNo = item.lotNo,
+                                matrialCode = item.matrialCode,
+                                matrialName = item.matrialName,
+                                totalWeight = item.totalWeight,
+                                containerWeight = item.containerWeight,
+                                qtyOfContainer = item.qtyOfContainer,
+                                netWasteWeight = item.netWasteWeight,
+                                unit = item.unit,
+                            }
+                        );
+                        no += 1;
+                    }
+                    return BadRequest(new { success = false, message = "Error, please check file upload", data = returnData });
+                }
+                else
+                {
+                    _requester.handleUpload(data);
+                }
+
 
                 return Ok(new { success = true, message = "Upload data success.", });
             }

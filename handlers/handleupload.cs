@@ -197,6 +197,7 @@ public class handleUpload
         try
         {
             List<requesterUploadSchema> data = new List<requesterUploadSchema>();
+            List<requesterUploadSchema> errordata = new List<requesterUploadSchema>();
 
             using (ExcelPackage package = new ExcelPackage(new FileInfo(pathFile)))
             {
@@ -288,17 +289,47 @@ public class handleUpload
                         {
                             faeDBschema faeDB = null;
 
-                            if (item.kind == "-")
-                            {
-                                break;
+                            if (item.matrialCode == "-" && item.matrialName != "-")
+                            { // no matCode but have matname
+                                faeDBschema matCodeAndName = _faeDB.getByMatname(item.matrialName);
+                                if (matCodeAndName == null)
+                                {
+                                    break;
+                                }
+                                if (matCodeAndName.color != "-")
+                                {
+                                    faeDB = _faeDB.getByBiddingTypeAndColor(item.matrialName, matCodeAndName.biddingType, matCodeAndName.color);
+                                }
+                                else
+                                {
+                                    faeDB = _faeDB.getByBiddingType(matCodeAndName.biddingType);
+                                }
                             }
-                            if (item.matrialCode == "-")
-                            {
-                                faeDB = _faeDB.getByKind(item.kind);
-                            }
-                            else
-                            {
-                                faeDB = _faeDB.getByMatcodeAndKind(item.matrialCode, item.kind);
+                            else if (item.matrialCode != "-" && item.matrialName != "-")
+                            { // have both
+                                List<faeDBschema> matCodeAndName = _faeDB.getByMatCodeAndMatName(item.matrialCode, item.matrialName);
+                                if (matCodeAndName.Count > 1)
+                                { // muti record result
+                                    faeDB = _faeDB.getByKindWith_matCode_matName(item.kind, item.matrialCode, item.matrialName);
+                                }
+                                else
+                                {
+                                    if (matCodeAndName.Count == 0)
+                                    {
+                                        faeDB = null;
+                                    }
+                                    else
+                                    {
+                                        if (matCodeAndName.ToArray()[0].color != "-")
+                                        {
+                                            faeDB = _faeDB.getByBiddingTypeAndColor(item.matrialCode, item.matrialName, matCodeAndName.ToArray()[0].biddingType, matCodeAndName.ToArray()[0].color);
+                                        }
+                                        else
+                                        {
+                                            faeDB = _faeDB.getByBiddingType(matCodeAndName.ToArray()[0].biddingType);
+                                        }
+                                    }
+                                }
                             }
 
                             if (faeDB != null)
@@ -339,13 +370,24 @@ public class handleUpload
                         item.filename = fileName;
                         item.rejectCommend = "-";
                     }
-                    if (isEmptyRow == false && item.totalWeight != "-")
+
+                    if (isEmptyRow == false && (item.totalPrice != "-" && item.totalPrice != null))
                     {
                         data.Add(item);
                     }
+                    else
+                    {
+                        if (item.lotNo != "-")
+                        {
+                            errordata.Add(item);
+                        }
 
+                    }
                 }
-                Console.WriteLine(data.Count);
+            }
+            if (errordata.Count > 0)
+            {
+                return errordata;
             }
 
             return data;

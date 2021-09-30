@@ -22,5 +22,7 @@ namespace backend.Models
         public string createDate { get; set; }
         public string createMonth { get; set; }
         public string createYear { get; set; }
+        public string invoiceNo { get; set; }
+        public string dueDate { get; set; }
     }
 }

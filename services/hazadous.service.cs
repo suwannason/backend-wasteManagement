@@ -67,7 +67,7 @@ namespace backend.Services
             }
             else if (status == "fae-approved")
             {
-                
+
                 string runningNo = getLastRunningNo();
                 update = Builders<HazadousSchema>.Update.Set("fae_approved", user).Set("status", status).Set("runningNo", runningNo);
                 // _Hazadous.UpdateOne(findId, update);
@@ -81,6 +81,7 @@ namespace backend.Services
             SortDefinition<HazadousSchema> sorting = Builders<HazadousSchema>.Sort.Descending("_id");
             HazadousSchema lastHazadous = _Hazadous.Find<HazadousSchema>(item => item.runningNo != "-" && item.runningNo != null).Sort(sorting).FirstOrDefault();
 
+
             string runningNo = "HZ-";
             if (lastHazadous == null)
             {
@@ -88,8 +89,17 @@ namespace backend.Services
             }
             else
             {
-                string no = lastHazadous.runningNo.Substring(lastHazadous.runningNo.IndexOf("-") + 1, 3);
-                runningNo += (Int32.Parse(no) + 1).ToString().PadLeft(3, '0') + "/" + DateTime.Now.ToString("yyyy");
+                string hazadousYearLast = lastHazadous?.runningNo?.Substring(lastHazadous.runningNo.IndexOf("/") + 1);
+
+                if (DateTime.Now.ToString("yyyy") != hazadousYearLast)
+                {
+                    // condition in new year running no.
+                }
+                else
+                {
+                    string no = lastHazadous.runningNo.Substring(lastHazadous.runningNo.IndexOf("-") + 1, 3);
+                    runningNo += (Int32.Parse(no) + 1).ToString().PadLeft(3, '0') + "/" + DateTime.Now.ToString("yyyy");
+                }
 
                 // _Hazadous.UpdateOne(findId, update);
             }

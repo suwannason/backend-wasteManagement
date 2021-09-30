@@ -14,4 +14,10 @@ namespace backend.request
     public class uploadFileMulti {
         public Microsoft.AspNetCore.Http.IFormFile[] files { get; set; }
     }
+
+    public class itcPrepareInvoice {
+        public Microsoft.AspNetCore.Http.IFormFile[] files { get; set; }
+        public string invoiceNo { get; set; }
+        public string dueDate { get; set; }
+    }
 }
