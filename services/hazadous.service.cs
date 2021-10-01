@@ -79,7 +79,7 @@ namespace backend.Services
         public string getLastRunningNo()
         {
             SortDefinition<HazadousSchema> sorting = Builders<HazadousSchema>.Sort.Descending("_id");
-            HazadousSchema lastHazadous = _Hazadous.Find<HazadousSchema>(item => item.runningNo != "-" && item.runningNo != null).Sort(sorting).FirstOrDefault();
+            HazadousSchema lastHazadous = _Hazadous.Find<HazadousSchema>(item => item.runningNo != "-" && item.runningNo != null && item.year == DateTime.Now.ToString("yyyy")).Sort(sorting).FirstOrDefault();
 
 
             string runningNo = "HZ-";
@@ -91,15 +91,10 @@ namespace backend.Services
             {
                 string hazadousYearLast = lastHazadous?.runningNo?.Substring(lastHazadous.runningNo.IndexOf("/") + 1);
 
-                if (DateTime.Now.ToString("yyyy") != hazadousYearLast)
-                {
-                    // condition in new year running no.
-                }
-                else
-                {
-                    string no = lastHazadous.runningNo.Substring(lastHazadous.runningNo.IndexOf("-") + 1, 3);
-                    runningNo += (Int32.Parse(no) + 1).ToString().PadLeft(3, '0') + "/" + DateTime.Now.ToString("yyyy");
-                }
+
+                string no = lastHazadous.runningNo.Substring(lastHazadous.runningNo.IndexOf("-") + 1, 3);
+                runningNo += (Int32.Parse(no) + 1).ToString().PadLeft(3, '0') + "/" + DateTime.Now.ToString("yyyy");
+
 
                 // _Hazadous.UpdateOne(findId, update);
             }

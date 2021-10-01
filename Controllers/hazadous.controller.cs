@@ -512,6 +512,7 @@ namespace backend.Controllers
                     {
                         id = item._id,
                         requestDate = item.date,
+                        runningNo = item.runningNo,
                         phase = item.phase,
                         status = status,
                         dept = item.dept,

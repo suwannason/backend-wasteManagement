@@ -198,7 +198,7 @@ namespace backend.Controllers
                 if (status == "acc-prepared")
                 {
                     invoice = _invoiceService.getByStatus(status);
-                    itc_invoice = _itc_invoice.getByStatus("approved");
+                    itc_invoice = _itc_invoice.getByStatus("acc-prepared");
                 }
                 else if (status == "acc-checked")
                 {
@@ -229,6 +229,7 @@ namespace backend.Controllers
                 else if (status == "makingApproved")
                 {
                     invoice = _invoiceService.getByStatus(status);
+                    itc_invoice = _itc_invoice.getByStatus("approved");
                     // itc_invoice = _itc_invoice.getByStatus("checked");
                 }
 
@@ -238,7 +239,6 @@ namespace backend.Controllers
                 {
                     Console.WriteLine(item.summaryId);
                     SummaryInvoiceSchema summary = _summary.getById(item.summaryId);
-                    Console.WriteLine("summary: " + summary.type);
                     ITCdata.Add(
                         new
                         {
@@ -248,7 +248,11 @@ namespace backend.Controllers
                             faeCreateBy = summary.prepare.name,
                             itcPrepareBy = item.prepare.name,
                             fileName = item.files,
-                            createDate = item.createDate
+                            createDate = item.createDate,
+                            invoiceNo = item.invoiceNo,
+                            lotNo = summary.requester[0].lotNo,
+                            dueDate = item.dueDate,
+                            totalPrice = summary.totalPrice,
                         }
                     );
                     i += 1;
