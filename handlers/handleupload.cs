@@ -281,55 +281,31 @@ public class handleUpload
                                 }
                             case 21: item.qtyOfContainer = value; break;
                             case 22: item.unit = value; break;
-                            case 23: item.netWasteWeight = value; break;
+                            case 23:
+                                if (value == "-")
+                                {
+                                    isEmptyRow = true;
+                                    break;
+                                }
+                                else
+                                {
+                                    item.netWasteWeight = value; break;
+                                }
+
                             case 24: item.KG_G = value; break;
                             case 25: item.remark = value; break;
                         }
-                        if (col == 25)
+                        if (col == 25 && isEmptyRow == false)
                         {
                             faeDBschema faeDB = null;
 
-                            if (item.matrialCode == "-" && item.matrialName != "-")
-                            { // no matCode but have matname
-                                faeDBschema matCodeAndName = _faeDB.getByMatname(item.matrialName);
-                                if (matCodeAndName == null)
-                                {
-                                    break;
-                                }
-                                if (matCodeAndName.color != "-")
-                                {
-                                    faeDB = _faeDB.getByBiddingTypeAndColor(item.matrialName, matCodeAndName.biddingType, matCodeAndName.color);
-                                }
-                                else
-                                {
-                                    faeDB = _faeDB.getByBiddingType(matCodeAndName.biddingType);
-                                }
+                            if (item.matrialCode != "-" && item.matrialName != "-")
+                            { // have matCode and have matname
+                                faeDB = _faeDB.getByKind_matCode_matName(item.kind, item.matrialCode, item.matrialName);
                             }
-                            else if (item.matrialCode != "-" && item.matrialName != "-")
-                            { // have both
-                                List<faeDBschema> matCodeAndName = _faeDB.getByMatCodeAndMatName(item.matrialCode, item.matrialName);
-                                if (matCodeAndName.Count > 1)
-                                { // muti record result
-                                    faeDB = _faeDB.getByKindWith_matCode_matName(item.kind, item.matrialCode, item.matrialName);
-                                }
-                                else
-                                {
-                                    if (matCodeAndName.Count == 0)
-                                    {
-                                        faeDB = null;
-                                    }
-                                    else
-                                    {
-                                        if (matCodeAndName.ToArray()[0].color != "-")
-                                        {
-                                            faeDB = _faeDB.getByBiddingTypeAndColor(item.matrialCode, item.matrialName, matCodeAndName.ToArray()[0].biddingType, matCodeAndName.ToArray()[0].color);
-                                        }
-                                        else
-                                        {
-                                            faeDB = _faeDB.getByBiddingType(matCodeAndName.ToArray()[0].biddingType);
-                                        }
-                                    }
-                                }
+                            else
+                            {
+                                faeDB = _faeDB.getByKind(item.kind);
                             }
 
                             if (faeDB != null)
@@ -371,7 +347,7 @@ public class handleUpload
                         item.rejectCommend = "-";
                     }
 
-                    if (isEmptyRow == false && (item.totalPrice != "-" && item.totalPrice != null))
+                    if (isEmptyRow == false)
                     {
                         data.Add(item);
                     }

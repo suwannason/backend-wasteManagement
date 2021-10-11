@@ -270,5 +270,20 @@ namespace backend.Services
 
             return _scrapMatrial.Find<requesterUploadSchema>(monthFilter & yearFilter).ToList();
         }
+
+        public void updatePricingRequester(string id, string netWasteWeight, string biddingType, string wasteName, string biddingNo, string color, string unitPrice)
+        {
+            FilterDefinition<requesterUploadSchema> filter = Builders<requesterUploadSchema>.Filter.Eq("_id", id);
+
+            UpdateDefinition<requesterUploadSchema> update =  Builders<requesterUploadSchema>.Update
+            .Set("biddingType", biddingType)
+            .Set("wasteName", wasteName)
+            .Set("biddingNo", biddingNo)
+            .Set("color", color)
+            .Set("unitPrice", unitPrice)
+            .Set("totalPrice", Math.Round(Double.Parse(unitPrice) * Double.Parse(netWasteWeight), 4).ToString());
+
+            _scrapMatrial.UpdateOne(filter, update);
+        }
     }
 }

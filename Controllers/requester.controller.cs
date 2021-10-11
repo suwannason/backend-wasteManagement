@@ -227,32 +227,32 @@ namespace backend.Controllers
                 {
                     return BadRequest(new { success = false, message = "Error, please check file upload" });
                 }
-                else if (data.Find(item => item.totalPrice == null || item.totalPrice == "-") != null)
-                {
-                    int no = 1;
-                    List<dynamic> returnData = new List<dynamic>();
-                    foreach (requesterUploadSchema item in data)
-                    {
-                        returnData.Add(
-                            new
-                            {
-                                id = no.ToString(),
-                                kind = item.kind,
-                                moveOutDate = item.moveOutDate,
-                                lotNo = item.lotNo,
-                                matrialCode = item.matrialCode,
-                                matrialName = item.matrialName,
-                                totalWeight = item.totalWeight,
-                                containerWeight = item.containerWeight,
-                                qtyOfContainer = item.qtyOfContainer,
-                                netWasteWeight = item.netWasteWeight,
-                                unit = item.unit,
-                            }
-                        );
-                        no += 1;
-                    }
-                    return BadRequest(new { success = false, message = "Error, please check file upload", data = returnData });
-                }
+                // else if (data.Find(item => item.totalPrice == null || item.totalPrice == "-") != null)
+                // { // Return error check with price = -
+                //     int no = 1;
+                //     List<dynamic> returnData = new List<dynamic>();
+                //     foreach (requesterUploadSchema item in data)
+                //     {
+                //         returnData.Add(
+                //             new
+                //             {
+                //                 id = no.ToString(),
+                //                 kind = item.kind,
+                //                 moveOutDate = item.moveOutDate,
+                //                 lotNo = item.lotNo,
+                //                 matrialCode = item.matrialCode,
+                //                 matrialName = item.matrialName,
+                //                 totalWeight = item.totalWeight,
+                //                 containerWeight = item.containerWeight,
+                //                 qtyOfContainer = item.qtyOfContainer,
+                //                 netWasteWeight = item.netWasteWeight,
+                //                 unit = item.unit,
+                //             }
+                //         );
+                //         no += 1;
+                //     }
+                //     return BadRequest(new { success = false, message = "Error, please check file upload", data = returnData });
+                // }
                 else
                 {
                     _requester.handleUpload(data);
@@ -460,6 +460,7 @@ namespace backend.Controllers
                         id = item._id,
                         moveOutDate = item.date,
                         type = "hazadous",
+                        runningNo = item.runningNo,
                         dept = item.dept,
                         phase = item.phase,
                         netWasteWeight = item.netWasteWeight,
@@ -549,6 +550,52 @@ namespace backend.Controllers
                 _requester.handleUpload(data);
 
                 return Ok(new { success = true, message = "Replace success." });
+            }
+            catch (Exception e)
+            {
+                return Problem(e.StackTrace);
+            }
+        }
+
+        [HttpPost("summary/recal"), AllowAnonymous]
+        public ActionResult reCalculatePrice(request.recalCulateSummary[] body)
+        {
+
+            try
+            {
+                int updatedRow = 0;
+                foreach (recalCulateSummary item in body)
+                {
+                    List<requesterUploadSchema> requester = _requester.getByLotAndBoi(item.lotNo, item.boiType);
+                    Console.WriteLine(requester.Count);
+                    foreach (requesterUploadSchema requesterRow in requester)
+                    {
+                        faeDBschema faeDB = null;
+                        if (requesterRow.matrialCode != "-" && requesterRow.matrialName != "-")
+                        {
+                            faeDB = _faeDB.getByKind_matCode_matName(requesterRow.kind, requesterRow.matrialCode, requesterRow.matrialName);
+                        }
+                        else
+                        {
+                            faeDB = _faeDB.getByKind(requesterRow.kind);
+                        }
+                        if (faeDB != null)
+                        {
+                            _requester.updatePricingRequester(
+                                requesterRow._id,
+                                requesterRow.netWasteWeight,
+                                faeDB.biddingType,
+                                faeDB.wasteName,
+                                faeDB.biddingNo,
+                                faeDB.color,
+                                faeDB.pricePerUnit
+                                );
+                                updatedRow += 1;
+                        }
+
+                    }
+                }
+                return Ok(new { success = true, message = "Updated " + updatedRow + " row completed" });
             }
             catch (Exception e)
             {

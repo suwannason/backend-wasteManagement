@@ -39,10 +39,9 @@ namespace backend.Services
         {
             return _faedb.Find<faeDBschema>(item => item.matrialCode == matrialCode).FirstOrDefault<faeDBschema>();
         }
-        public faeDBschema getByMatname(string matrialName)
+        public faeDBschema getByKind(string kind)
         {
-            System.Console.WriteLine("getByMatname: " + matrialName);
-            return _faedb.Find<faeDBschema>(item => item.matrialName.ToLower() == matrialName.ToLower()).FirstOrDefault<faeDBschema>();
+            return _faedb.Find<faeDBschema>(item => item.kind == kind).FirstOrDefault<faeDBschema>();
         }
 
         public faeDBschema getByWasteName(string matrialCode, string kind)
@@ -72,12 +71,12 @@ namespace backend.Services
             return _faedb.Find<faeDBschema>(item => item.matrialCode.ToLower() == matrialCode.ToLower() && item.kind.ToLower() == kind.ToLower()).FirstOrDefault();
         }
 
-        public faeDBschema getByKindWith_matCode_matName(string kind, string matrialCode, string matrialName)
+        public faeDBschema getByKind_matCode_matName(string kind, string matrialCode, string matrialName)
         {
             return _faedb.Find<faeDBschema>(item =>
-            item.kind.ToLower() == kind.ToLower()
-            && item.matrialCode.ToLower() == matrialCode.ToLower()
-            && item.matrialName.ToLower() == matrialName.ToLower()
+            item.kind == kind
+            && item.matrialCode == matrialCode
+            && item.matrialName == matrialName
             )
             .FirstOrDefault();
         }

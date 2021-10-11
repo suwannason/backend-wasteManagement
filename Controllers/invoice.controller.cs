@@ -633,7 +633,12 @@ namespace backend.Controllers
                     invoiceId = id,
                     attatchmentFile = null,
                 };
-                _invoicePrinting.create(printingData);
+                InvoicePrintedSchema checkPrinted = _invoicePrinting.getByInvoiceId(printingData.invoiceId);
+                if (checkPrinted == null)
+                {
+                    _invoicePrinting.create(printingData);
+                }
+
                 _invoiceService.updateStatus(id, "printed", null);
 
                 string filePathcreated = accCreatePrintFile(printingData);

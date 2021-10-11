@@ -262,7 +262,11 @@ namespace backend.Controllers
                         }
                         else if (item.status == "approved")
                         {
-                            statusMessage = "Wait for ACC checker";
+                            statusMessage = "Wait for ACC prepare";
+                        }
+                        else if (item.status == "acc-prepared")
+                        {
+                            statusMessage = "Wait for ACC prepare";
                         }
                         else if (item.status == "acc-checked")
                         {

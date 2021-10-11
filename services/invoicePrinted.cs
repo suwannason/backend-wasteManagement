@@ -29,6 +29,10 @@ namespace backend.Services
 
             return data;
         }
+        public InvoicePrintedSchema getByInvoiceId(string invoiceId)
+        {
+            return _tb.Find<InvoicePrintedSchema>(item => item.invoiceId == invoiceId).FirstOrDefault();
+        }
 
         public List<InvoicePrintedSchema> getPrintByInvoice_id(string id)
         {

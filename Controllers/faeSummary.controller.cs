@@ -991,7 +991,7 @@ namespace backend.Controllers
                         sheet.Cells["N" + row.ToString()].Value = item.biddingType;
                         sheet.Cells["O" + row.ToString()].Value = item.color;
                         sheet.Cells["P" + row.ToString()].Value = item.unitPrice;
-                        sheet.Cells["Q" + row.ToString()].Value = Double.Parse(item.totalPrice);
+                        sheet.Cells["Q" + row.ToString()].Value = (item.totalPrice == "-") ? 0 : Double.Parse(item.totalPrice);
                         no += 1; row += 1;
                     }
                     sheet.Cells["B12:Q" + row.ToString()].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
@@ -1036,7 +1036,7 @@ namespace backend.Controllers
                         List<requesterUploadSchema> itemWithBidding = summary.requester.ToList().FindAll(e => e.biddingType == item.biddingType);
 
                         double sumWeight = 0.0;
-                        sheet.Cells["W" + startRow].Value = Double.Parse(item.unitPrice);
+                        sheet.Cells["W" + startRow].Value = (item.unitPrice == "-") ? 0 : Double.Parse(item.unitPrice);
                         foreach (requesterUploadSchema biddingItem in itemWithBidding)
                         {
                             sumWeight += Double.Parse(biddingItem.netWasteWeight);
@@ -1096,9 +1096,9 @@ namespace backend.Controllers
 
                     Invoices invoiceData = _invoice.getBySummaryId(id);
                     sheet.Cells["G9"].Value = distinctBidding[0].moveOutDate;
-                    sheet.Cells["I9"].Value = invoiceData.company.contractNo;
-                    sheet.Cells["K9"].Value = invoiceData.company.contractStartDate;
-                    sheet.Cells["M9"].Value = invoiceData.company.contractEndDate;
+                    sheet.Cells["I9"].Value = invoiceData?.company?.contractNo;
+                    sheet.Cells["K9"].Value = invoiceData?.company?.contractStartDate;
+                    sheet.Cells["M9"].Value = invoiceData?.company?.contractEndDate;
 
                     if (summary.boiCase == "BOI")
                     {
