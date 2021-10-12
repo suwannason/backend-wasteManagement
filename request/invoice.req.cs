@@ -17,6 +17,9 @@ namespace backend.request
         public string invoiceDate { get; set; }
         public backend.Models.company company { get; set; }
     }
+    public class InvoiceIdMultiple {
+        public string[] id { get; set; }
+    }
 
     public class getInvoice
     {

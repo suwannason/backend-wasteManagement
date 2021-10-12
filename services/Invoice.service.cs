@@ -147,5 +147,14 @@ namespace backend.Services
 
             invoice.UpdateOne(filter, update);
         }
+
+        public List<string> resetInvoice(string id)
+        {
+            FilterDefinition<Invoices> filter = Builders<Invoices>.Filter.Eq(item => item._id, id);
+
+            Invoices data = invoice.Find<Invoices>(filter).FirstOrDefault();
+            invoice.DeleteOne(filter);
+            return data.summaryId.ToList();
+        }
     }
 }

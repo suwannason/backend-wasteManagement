@@ -110,12 +110,12 @@ namespace backend.Controllers
                 foreach (requesterUploadSchema item in requesterItems)
                 {
                     // Console.WriteLine(item.totalWeight + " ==> " + Double.Parse(item.totalWeight).ToString());
-                    sumRequester += Double.Parse(item.totalWeight);
+                    sumRequester += Double.Parse(item.netWasteWeight);
                 }
                 double sumRecycle = 0;
                 foreach (Waste item in wasteItems)
                 {
-                    sumRecycle += Double.Parse(item.totalWeight);
+                    sumRecycle += Double.Parse(item.netWasteWeight);
                 }
 
                 createItem.approve = new Profile { band = "-", date = "-", dept = "-", div = "-", empNo = "-", name = "-", tel = "-" };

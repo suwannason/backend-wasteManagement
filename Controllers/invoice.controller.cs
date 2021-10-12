@@ -32,10 +32,11 @@ namespace backend.Controllers
         private readonly InvoicePrintedService _invoicePrinting;
         private readonly faeDBservice _faeDB;
         private readonly ITC_invoiceService _itc_invoice;
+        private readonly UserService _user;
 
         InvoiceResponse res = new InvoiceResponse();
 
-        public invoiceController(InvoiceService invoiceService, RecycleService wasteService, requesterUploadServices requester, faeDBservice fae, SummaryInvoiceService summary, InvoicePrintedService invoicePrinting, ITC_invoiceService itcInvoice)
+        public invoiceController(InvoiceService invoiceService, RecycleService wasteService, requesterUploadServices requester, faeDBservice fae, SummaryInvoiceService summary, InvoicePrintedService invoicePrinting, ITC_invoiceService itcInvoice, UserService user)
         {
             _invoiceService = invoiceService;
             _wasteService = wasteService;
@@ -44,6 +45,7 @@ namespace backend.Controllers
             _summary = summary;
             _invoicePrinting = invoicePrinting;
             _itc_invoice = itcInvoice;
+            _user = user;
         }
 
         [HttpPut("{id}")]
@@ -195,6 +197,8 @@ namespace backend.Controllers
                 List<ITCinvoiceSchema> itc_invoice = new List<ITCinvoiceSchema>();
                 List<Invoices> invoice = new List<Invoices>();
 
+
+
                 if (status == "acc-prepared")
                 {
                     invoice = _invoiceService.getByStatus(status);
@@ -219,6 +223,7 @@ namespace backend.Controllers
                 else if (status == "fae-prepared")
                 {
                     invoice = _invoiceService.FAEpreparedGetInvoice(status);
+                    invoice.AddRange(_invoiceService.getByStatus("reject"));
                     // itc_invoice = _itc_invoice.getByStatus("checked");
                 }
                 else if (status == "fae-checked")
@@ -963,22 +968,25 @@ namespace backend.Controllers
             foreach (InvoicePrintedSchema item in invoiceOnPrinted)
             {
                 Invoices invoice = _invoiceService.GetById(item.invoiceId);
+                if (invoice != null)
+                {
+                    response.Add(
+     new
+     {
+         id = item.invoiceId,
+         invoiceNo = item.invoice.invoiceNo,
+         contractNo = invoice.company.contractNo,
+         contractStartDate = invoice.company.contractStartDate,
+         contractEndDate = invoice.company.contractEndDate,
+         companyName = invoice.company.companyName,
+         phoneNo = invoice.company.tel,
+         fax = invoice.company.fax,
+         invoiceDate = invoice.invoiceDate,
+         attachment = item.attatchmentFile,
+     }
+ );
+                }
 
-                response.Add(
-                    new
-                    {
-                        id = item.invoiceId,
-                        invoiceNo = item.invoice.invoiceNo,
-                        contractNo = invoice.company.contractNo,
-                        contractStartDate = invoice.company.contractStartDate,
-                        contractEndDate = invoice.company.contractEndDate,
-                        companyName = invoice.company.companyName,
-                        phoneNo = invoice.company.tel,
-                        fax = invoice.company.fax,
-                        invoiceDate = invoice.invoiceDate,
-                        attachment = item.attatchmentFile,
-                    }
-                );
             }
             return Ok(new { success = true, message = "History invoice print", data = response });
         }
@@ -1080,5 +1088,19 @@ namespace backend.Controllers
             }
         }
 
+        [HttpPatch("revise/summary")]
+        public ActionResult reviseNewInvoice(request.InvoiceIdMultiple body)
+        {
+
+            List<string> summaryId = new List<string>();
+
+            foreach (string id in body.id)
+            {
+                summaryId.AddRange(_invoiceService.resetInvoice(id));
+            }
+
+            return Ok(new { success = true, data = summaryId });
+            // _invoiceService.changeStatusWhenITCprepare
+        }
     }
 }
