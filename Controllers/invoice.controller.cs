@@ -234,6 +234,7 @@ namespace backend.Controllers
                 else if (status == "makingApproved")
                 {
                     invoice = _invoiceService.getByStatus(status);
+                    invoice.AddRange(_invoiceService.getByStatus("reject"));
                     itc_invoice = _itc_invoice.getByStatus("approved");
                     // itc_invoice = _itc_invoice.getByStatus("checked");
                 }

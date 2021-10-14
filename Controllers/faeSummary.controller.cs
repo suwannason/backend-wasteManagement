@@ -143,7 +143,14 @@ namespace backend.Controllers
                 }
                 else
                 {
-                    createItem.boiCase = null;
+                    if (createItem.recycle.Length > 0)
+                    {
+                        createItem.boiCase = createItem.recycle[0].boiType.ToUpper();
+                    }
+                    else
+                    {
+                        createItem.boiCase = null;
+                    }
                 }
 
                 _services.create(createItem);
@@ -196,12 +203,30 @@ namespace backend.Controllers
                 List<SummaryInvoiceSchema> data = _services.getByStatus(status);
                 List<dynamic> returnData = new List<dynamic>();
 
+                string boiType = "";
                 foreach (SummaryInvoiceSchema item in data)
                 {
+                    if (item.requester.Length > 0)
+                    {
+                        boiType = item.requester[0].boiType;
+                    }
+                    else
+                    {
+                        if (item.recycle.Length > 0)
+                        {
+                            boiType = item.recycle[0].boiType;
+                        }
+                        else
+                        {
+                            boiType = "-";
+                        }
+
+                    }
                     returnData.Add(
                         new
                         {
                             _id = item._id,
+                            boiType,
                             type = item.type,
                             recycleWeight = item.recycleWeight.ToString("##,##0.00"),
                             requesterWeight = item.requesterWeight.ToString("##,##0.00"),
@@ -713,6 +738,9 @@ namespace backend.Controllers
                 List<dynamic> returnItems = new List<dynamic>();
 
                 int i = 1; double totalWeight = 0.0; double totalPrice = 0.0;
+                List<DateTime> dates = data.recycle.Select(item => DateTime.ParseExact(item.moveOutDate, "dd-MMMM-yyyy", null)).ToList();
+                string minDate = dates.Min().ToString("dd-MMMM-yyyy");
+                string maxDate = dates.Max().ToString("dd-MMMM-yyyy");
                 foreach (Waste item in data.recycle)
                 {
                     returnItems.Add(new
@@ -732,11 +760,20 @@ namespace backend.Controllers
                     }
                     i += 1;
                 }
+                Invoices invoice = _invoice.getBySummaryId(id);
+
                 return Ok(new
                 {
                     success = true,
                     message = "Recycle item",
                     data = returnItems,
+                    header = new
+                    {
+                        startDate = minDate,
+                        endDate = maxDate,
+                        wasteType = "Summary Recycle/Drinking Bottle",
+                        company = (invoice?.company?.companyName == null) ? "-" : invoice?.company?.companyName,
+                    },
                     total = new
                     {
                         totalWeight = totalWeight.ToString("#,##0.00"),
