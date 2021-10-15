@@ -29,6 +29,8 @@ namespace backend.Services
                 FilterDefinition<ITCinvoiceSchema> filter = Builders<ITCinvoiceSchema>.Filter.Eq(item => item._id, invoice._id);
                 invoice.files = data.files;
                 invoice.status = "prepared";
+                invoice.invoiceNo = data.invoiceNo;
+                invoice.dueDate = data.dueDate;
                 invoice.createDate = System.DateTime.Now.ToString("yyyy/MM/dd");
                 invoice.prepare = invoice.prepare;
 

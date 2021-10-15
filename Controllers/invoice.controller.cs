@@ -972,19 +972,19 @@ namespace backend.Controllers
                 if (invoice != null)
                 {
                     response.Add(
-     new
-     {
-         id = item.invoiceId,
-         invoiceNo = item.invoice.invoiceNo,
-         contractNo = invoice.company.contractNo,
-         contractStartDate = invoice.company.contractStartDate,
-         contractEndDate = invoice.company.contractEndDate,
-         companyName = invoice.company.companyName,
-         phoneNo = invoice.company.tel,
-         fax = invoice.company.fax,
-         invoiceDate = invoice.invoiceDate,
-         attachment = item.attatchmentFile,
-     }
+                            new
+                            {
+                                id = item.invoiceId,
+                                invoiceNo = item.invoice.invoiceNo,
+                                contractNo = invoice.company.contractNo,
+                                contractStartDate = invoice.company.contractStartDate,
+                                contractEndDate = invoice.company.contractEndDate,
+                                companyName = invoice.company.companyName,
+                                phoneNo = invoice.company.tel,
+                                fax = invoice.company.fax,
+                                invoiceDate = invoice.invoiceDate,
+                                attachment = item.attatchmentFile,
+                            }
  );
                 }
 

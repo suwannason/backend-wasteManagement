@@ -156,5 +156,9 @@ namespace backend.Services
             invoice.DeleteOne(filter);
             return data.summaryId.ToList();
         }
+    
+        public List<Invoices> getInvoiceITC_new() {
+            return invoice.Find<Invoices>(item => item.status == "fae-prepared" && item.deptCase != "fae").ToList();
+        }
     }
 }

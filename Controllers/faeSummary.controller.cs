@@ -203,30 +203,13 @@ namespace backend.Controllers
                 List<SummaryInvoiceSchema> data = _services.getByStatus(status);
                 List<dynamic> returnData = new List<dynamic>();
 
-                string boiType = "";
                 foreach (SummaryInvoiceSchema item in data)
                 {
-                    if (item.requester.Length > 0)
-                    {
-                        boiType = item.requester[0].boiType;
-                    }
-                    else
-                    {
-                        if (item.recycle.Length > 0)
-                        {
-                            boiType = item.recycle[0].boiType;
-                        }
-                        else
-                        {
-                            boiType = "-";
-                        }
-
-                    }
                     returnData.Add(
                         new
                         {
                             _id = item._id,
-                            boiType,
+                            boiType = item.boiCase,
                             type = item.type,
                             recycleWeight = item.recycleWeight.ToString("##,##0.00"),
                             requesterWeight = item.requesterWeight.ToString("##,##0.00"),

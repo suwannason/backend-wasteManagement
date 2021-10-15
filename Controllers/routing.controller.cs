@@ -183,6 +183,7 @@ namespace backend.Controllers
             foreach (string id in body.id)
             {
                 _itc_invoice.updateStatus(id, body.status);
+
             }
             return Ok(new { success = true, message = "Update status success." });
         }
@@ -236,7 +237,6 @@ namespace backend.Controllers
             });
         }
 
-
         [HttpPatch("itc/invoice/tracking")]
         public ActionResult getITCinvoice(request.requesterHistory body)
         {
@@ -244,10 +244,30 @@ namespace backend.Controllers
             {
                 List<ITCinvoiceSchema> data = _itc_invoice.getByYearMonth(body.year, body.month);
                 List<dynamic> returnData = new List<dynamic>();
+                List<Invoices> invoiceITCnew = _invoice.getInvoiceITC_new();
+                Int32 no = 1;
+                foreach (Invoices item in invoiceITCnew)
+                {
+                    SummaryInvoiceSchema summary = _summaryInvoice.getById(item.summaryId[0]);
+                    returnData.Add(new
+                    {
+                        no,
+                        status = "Waiting for ITC prepere",
+                        id = item._id,
+                        faeCreateBy = item.fae_prepared.name,
+                        itcPrepareBy = "-",
+                        rejectCommend = item.rejectCommend,
+                        createDate = item.createDate,
+                        files = new List<string>(),
+                        summaryId = item.summaryId,
+                        summaryType = summary.type,
+                    });
+                    no += 1;
+                }
 
                 if (data.Count > 0)
                 {
-                    Int32 no = 1;
+
                     foreach (ITCinvoiceSchema item in data)
                     {
                         List<string> fileAttachment = new List<string>();
@@ -275,6 +295,10 @@ namespace backend.Controllers
                         else if (item.status == "acc-approved")
                         {
                             statusMessage = "Approve completed";
+                        }
+                        else if (item.status == "reject")
+                        {
+                            statusMessage = "Reject to ITC prepare";
                         }
                         // Console.WriteLine(item.summaryId);
                         fileAttachment.AddRange(item.files);
@@ -310,6 +334,13 @@ namespace backend.Controllers
             {
                 return Problem(e.StackTrace);
             }
+        }
+    
+        [HttpGet("itc/invoice/bySummary/{summaryId}")]
+        public ActionResult getITCinvoiceWithSummaryId(string summaryId) {
+            ITCinvoiceSchema data = _itc_invoice.getBySummaryId(summaryId);
+
+            return Ok(new { success = true, data, });
         }
     }
 }

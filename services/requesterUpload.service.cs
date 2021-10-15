@@ -275,7 +275,7 @@ namespace backend.Services
         {
             FilterDefinition<requesterUploadSchema> filter = Builders<requesterUploadSchema>.Filter.Eq("_id", id);
 
-            UpdateDefinition<requesterUploadSchema> update =  Builders<requesterUploadSchema>.Update
+            UpdateDefinition<requesterUploadSchema> update = Builders<requesterUploadSchema>.Update
             .Set("biddingType", biddingType)
             .Set("wasteName", wasteName)
             .Set("biddingNo", biddingNo)

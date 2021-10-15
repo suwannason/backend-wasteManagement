@@ -25,8 +25,9 @@ namespace backend.Controllers
         private readonly RecycleService _waste;
         private readonly faeDBservice _faeDB;
         private readonly UserService _user;
+        private readonly InfectionService _infection;
 
-        public requesterController(HazadousService req, requesterUploadServices scrapImo, itcDBservice itc_imo, RecycleService waste, faeDBservice fae, UserService user)
+        public requesterController(HazadousService req, requesterUploadServices scrapImo, itcDBservice itc_imo, RecycleService waste, faeDBservice fae, UserService user, InfectionService infection)
         {
             _hazadous = req;
             _requester = scrapImo;
@@ -34,6 +35,7 @@ namespace backend.Controllers
             _waste = waste;
             _faeDB = fae;
             _user = user;
+            _infection = infection;
         }
 
         [HttpGet("getById/{id}")]
@@ -460,6 +462,7 @@ namespace backend.Controllers
                         id = item._id,
                         moveOutDate = item.date,
                         type = "hazadous",
+                        issueNo = item.runningNo,
                         runningNo = item.runningNo,
                         dept = item.dept,
                         phase = item.phase,
@@ -471,17 +474,125 @@ namespace backend.Controllers
             }
             // HAZADOUS
 
-            // ITCinvoice
+            // Infection
+            List<InfectionSchema> infections = _infection.getHistory(body.month, body.year);
 
-            // ITCinvoice
+            List<dynamic> infectionData = new List<dynamic>();
+
+            foreach (InfectionSchema item in infections)
+            {
+                string status = "";
+                if (item.status == "req-prepared")
+                {
+                    status = "Wait requester check";
+                }
+                else if (item.status == "req-checked")
+                {
+                    status = "Wait requester approve";
+                }
+                else if (item.status == "req-approved")
+                {
+                    status = "Wait FAE acknowledge";
+                }
+                else if (item.status == "fae-approved")
+                {
+                    status = "Completed";
+                }
+
+                infectionData.Add(new
+                {
+                    id = item._id,
+                    status = status,
+                    requestDate = item.date,
+                    dept = item.dept,
+                    phase = item.phase,
+                    netWasteWeight = item.netWasteWeight
+                });
+
+            }
+            // Infection
+
+            // Parts
+            List<requesterUploadSchema> data = _requester.getbyYearMonth(body.year, body.month);
+
+                List<requesterUploadSchema> grouped = data.GroupBy(x => new { x.moveOutDate, x.phase, x.boiType }).Select(y => new requesterUploadSchema
+                {
+                    boiType = y.Key.boiType,
+                    moveOutDate = y.Key.moveOutDate,
+                    phase = y.Key.phase
+                }).ToList();
+                List<dynamic> partData = new List<dynamic>();
+
+                foreach (requesterUploadSchema item in grouped)
+                {
+                    List<requesterUploadSchema> itemInGroup = _requester.getGroupingTracking(item.moveOutDate, item.phase, item.boiType);
+                    // return Ok(itemInGroup);
+                    if (itemInGroup.Count > 0)
+                    {
+                        double totalNetweight = 0;
+                        List<string> id = new List<string>();
+
+                        foreach (requesterUploadSchema gItem in itemInGroup)
+                        { // this loop for sum total and add id to return data
+                            totalNetweight += Double.Parse(gItem.netWasteWeight);
+                            id.Add(gItem._id);
+                        }
+
+                        requesterUploadSchema dataItem = _requester.getById(id[0]);
+                        string status = "";
+                        if (dataItem.status == "req-prepared")
+                        {
+                            status = "Waiting for requester checking";
+                        }
+                        else if (dataItem.status == "req-checked")
+                        {
+                            status = "Waiting for requester approving";
+                        }
+                        else if (dataItem.status == "req-approved")
+                        {
+                            status = "Waiting for PDC prepare data";
+                        }
+                        else if (dataItem.status == "pdc-prepared")
+                        {
+                            status = "Waiting for PDC checking";
+                        }
+                        else if (dataItem.status == "pdc-checked")
+                        {
+                            status = "Waiting for ITC checking data";
+                        }
+                        else if (dataItem.status == "itc-approved")
+                        {
+                            status = "Waiting for FAE acknokledge";
+                        }
+                        else if (dataItem.status == "itc-checked")
+                        {
+                            status = "Waiting for ITC approving";
+                        }
+                        else
+                        {
+                            status = "Approve completed.";
+                        }
+                        partData.Add(new
+                        {
+                            dept = dataItem.dept,
+                            moveOutDate = item.moveOutDate,
+                            boiType = item.boiType,
+                            netWasteWeight = totalNetweight.ToString("##,###.00"),
+                            phase = item.phase,
+                            status,
+                            id = id.ToArray(),
+                        });
+                    }
+                }
+            // Parts
             return Ok(
                 new
                 {
                     success = true,
                     message = "All requester tracking data.",
                     hazadous = returnHazadous,
-                    infection = "",
-                    requester = "",
+                    infection = infectionData,
+                    requester = partData,
                 }
             );
         }
@@ -590,7 +701,7 @@ namespace backend.Controllers
                                 faeDB.color,
                                 faeDB.pricePerUnit
                                 );
-                                updatedRow += 1;
+                            updatedRow += 1;
                         }
 
                     }
