@@ -80,6 +80,11 @@ namespace backend.Controllers
                     data.fae_checked = new request.Profile();
                     data.fae_prepared = new request.Profile();
 
+                    if (sheet.Cells[3, 1].Value?.ToString().IndexOf("Hazardous") < 0)
+                    {
+                        return BadRequest();
+                    }
+
                     for (int row = 9; row <= rowCount; row += 1)
                     {
                         string no = sheet.Cells[row, 1].Value?.ToString();

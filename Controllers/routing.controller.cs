@@ -252,7 +252,7 @@ namespace backend.Controllers
                     returnData.Add(new
                     {
                         no,
-                        status = "Waiting for ITC prepere",
+                        status = "Waiting for ITC prepare",
                         id = item._id,
                         faeCreateBy = item.fae_prepared.name,
                         itcPrepareBy = "-",

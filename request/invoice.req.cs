@@ -17,7 +17,8 @@ namespace backend.request
         public string invoiceDate { get; set; }
         public backend.Models.company company { get; set; }
     }
-    public class InvoiceIdMultiple {
+    public class InvoiceIdMultiple
+    {
         public string[] id { get; set; }
     }
 
@@ -48,5 +49,11 @@ namespace backend.request
     {
         public string invoiceId { get; set; }
         public Microsoft.AspNetCore.Http.IFormFile file { get; set; }
+    }
+
+    public class ITCsendBackSummary
+    {
+        public string summaryId { get; set; }
+        public string commend { get; set; }
     }
 }

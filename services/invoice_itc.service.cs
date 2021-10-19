@@ -79,6 +79,13 @@ namespace backend.Services
 
             return _tb.Find<ITCinvoiceSchema>(filter).FirstOrDefault();
         }
+
+        public void deleteWithSummaryId(string summaryId)
+        {
+            // FilterDefinition<ITCinvoiceSchema> filter = Builders<ITCinvoiceSchema>.Filter.AnyEq("summaryId", summaryId);
+
+            _tb.DeleteOne<ITCinvoiceSchema>(item => item.summaryId == summaryId);
+        }
     }
 
 }

@@ -1103,5 +1103,29 @@ namespace backend.Controllers
             return Ok(new { success = true, data = summaryId });
             // _invoiceService.changeStatusWhenITCprepare
         }
+
+        [HttpPut("itc/sendback/summary")]
+        public ActionResult ITCprepareSendbackSummary(request.ITCsendBackSummary body)
+        {
+            try
+            {
+                Profile user = new Profile
+                {
+                    date = DateTime.Now.ToString("yyyy/MM/dd"),
+                    dept = User.FindFirst("dept")?.Value,
+                    empNo = User.FindFirst("username")?.Value,
+                    name = User.FindFirst("name")?.Value,
+                };
+                _itc_invoice.deleteWithSummaryId(body.summaryId);
+                _summary.rejectSummary(body.summaryId, body.commend, user);
+                return Ok(new { success = true, message = "Sendback data to FAE success." });
+            }
+            catch (System.Exception e)
+            {
+                return Problem(e.StackTrace);
+            }
+        }
+
     }
+
 }
