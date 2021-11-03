@@ -248,7 +248,15 @@ public class handleUpload
                                 }
                                 else
                                 {
-                                    item.boiType = value; break;
+                                    if (value.ToLower().Contains("non"))
+                                    {
+                                        item.boiType = "NON BOI"; break;
+                                    }
+                                    else
+                                    {
+                                        item.boiType = "BOI"; break;
+                                    }
+
                                 }
                             case 10: item.groupBoiNo = value; break;
                             case 11: item.groupBoiName = value; break;
@@ -345,6 +353,7 @@ public class handleUpload
                         item.fae_approved = emptyUser;
                         item.filename = fileName;
                         item.rejectCommend = "-";
+                        item.uploadEmpNo = prepare.empNo;
                     }
 
                     if (isEmptyRow == false)

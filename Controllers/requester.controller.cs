@@ -60,10 +60,11 @@ namespace backend.Controllers
                 user.tel = User.FindFirst("tel")?.Value;
 
                 List<UserSchema> userDB = _user.Getlist(user.empNo);
+                Console.WriteLine(body.status.IndexOf("check"));
 
-                if (body.status.IndexOf("check") > 0 && userDB.FindAll(item => item.permission == "Checked").Count == 0)
+                if (body.status.IndexOf("check") > 0 && (userDB.FindAll(item => item.permission == "Prepared").Count > 0))
                 {
-                    return Unauthorized(new { success = false, message = "Can't check, Permission denied." });
+                    return Unauthorized(new { success = false, message = "Can't send, Permission denied." });
                 }
                 else if (body.status.IndexOf("approve") > 0 && userDB.FindAll(item => item.permission == "Approved" || user.dept.ToUpper() == "FAE").Count == 0)
                 {
@@ -107,13 +108,13 @@ namespace backend.Controllers
                     data = _requester.getByStatus(status, dept);
                 }
 
-                Console.WriteLine(dept + " = " + data.Count);
-                List<requesterUploadSchema> grouped = data.GroupBy(x => new { x.moveOutDate, x.phase, x.boiType, x.filename }).Select(y => new requesterUploadSchema
+                List<requesterUploadSchema> grouped = data.GroupBy(x => new { x.moveOutDate, x.phase, x.boiType, x.uploadEmpNo, x.filename }).Select(y => new requesterUploadSchema
                 {
                     boiType = y.Key.boiType,
                     moveOutDate = y.Key.moveOutDate,
                     phase = y.Key.phase,
-                    filename = y.Key.filename
+                    filename = y.Key.filename,
+                    uploadEmpNo = y.Key.uploadEmpNo,
                 }).ToList();
 
                 // return Ok(grouped);
@@ -121,9 +122,11 @@ namespace backend.Controllers
 
                 foreach (requesterUploadSchema item in grouped)
                 {
-                    List<requesterUploadSchema> itemInGroup = _requester.getGroupingItems(item.moveOutDate, item.phase, item.boiType, status, dept);
+                    List<requesterUploadSchema> itemInGroup = _requester.getGroupingItems(item.moveOutDate, item.phase, item.boiType, status, dept, item.uploadEmpNo);
 
-                    // return Ok(itemInGroup);
+                    // return Ok(new { itemInGroup, item, } );
+
+                    // Console.WriteLine("itemInGroup: " + itemInGroup.Count);
                     double totalNetweight = 0;
                     List<string> id = new List<string>();
 
@@ -141,6 +144,7 @@ namespace backend.Controllers
                         dept = itemInGroup[0].dept,
                         netWasteWeight = totalNetweight.ToString("##,###.00"),
                         phase = item.phase,
+                        name = itemInGroup[0].req_prepared.name,
                         filename = item.filename,
                         id = id.ToArray(),
                     });
@@ -194,11 +198,6 @@ namespace backend.Controllers
                 string pathString2 = @"\API site\files\wastemanagement\upload\";
                 string serverPath = rootFolder.Substring(0, rootFolder.LastIndexOf(@"\")) + pathString2;
 
-                Console.WriteLine(serverPath);
-                if (!System.IO.Directory.Exists(serverPath))
-                {
-                    Directory.CreateDirectory(serverPath);
-                }
                 Profile req_prepare = new Profile();
 
                 req_prepare.empNo = User.FindFirst("username")?.Value;
@@ -208,6 +207,16 @@ namespace backend.Controllers
                 req_prepare.name = User.FindFirst("name")?.Value;
                 req_prepare.tel = User.FindFirst("tel")?.Value;
                 req_prepare.date = DateTime.Now.ToString("yyyy/MM/dd");
+
+                requesterUploadSchema uploadedItem = _requester.checkDuplicatedUpload(req_prepare.empNo);
+                if (uploadedItem != null)
+                {
+                    return BadRequest(new { success = false, message = "You have data in progress, Please wait for approve." });
+                }
+                if (!System.IO.Directory.Exists(serverPath))
+                {
+                    Directory.CreateDirectory(serverPath);
+                }
 
                 string filename = serverPath + System.Guid.NewGuid().ToString() + "-" + body.file.FileName;
                 using (FileStream strem = System.IO.File.Create(filename))
@@ -433,27 +442,27 @@ namespace backend.Controllers
                 string statusMessage = "";
                 if (item.status == "req-prepared")
                 {
-                    statusMessage = "Wait for requester cheker";
+                    statusMessage = "Waiting for requester check";
                 }
                 else if (item.status == "req-checked")
                 {
-                    statusMessage = "Wait for requester approver";
+                    statusMessage = "Waiting for requester Approve";
                 }
                 else if (item.status == "req-approved")
                 {
-                    statusMessage = "Wait for FAE prepare";
+                    statusMessage = "Waiting for FAE Prepare";
                 }
                 else if (item.status == "fae-prepared")
                 {
-                    statusMessage = "Wait for FAE cheker";
+                    statusMessage = "Waiting for FAE Check";
                 }
                 else if (item.status == "fae-checked")
                 {
-                    statusMessage = "Wait for FAE approver";
+                    statusMessage = "Waiting for FAE Approve";
                 }
                 else if (item.status == "fae-approved")
                 {
-                    statusMessage = "Approve completed";
+                    statusMessage = "FAE Approve completed";
                 }
 
                 returnHazadous.Add(
@@ -492,11 +501,11 @@ namespace backend.Controllers
                 }
                 else if (item.status == "req-approved")
                 {
-                    status = "Wait FAE acknowledge";
+                    status = "Waiting for FAE Acknowleage";
                 }
                 else if (item.status == "fae-approved")
                 {
-                    status = "Completed";
+                    status = "FAE Approve completed";
                 }
 
                 infectionData.Add(new
@@ -515,75 +524,75 @@ namespace backend.Controllers
             // Parts
             List<requesterUploadSchema> data = _requester.getbyYearMonth(body.year, body.month);
 
-                List<requesterUploadSchema> grouped = data.GroupBy(x => new { x.moveOutDate, x.phase, x.boiType }).Select(y => new requesterUploadSchema
+            List<requesterUploadSchema> grouped = data.GroupBy(x => new { x.moveOutDate, x.phase, x.boiType }).Select(y => new requesterUploadSchema
+            {
+                boiType = y.Key.boiType,
+                moveOutDate = y.Key.moveOutDate,
+                phase = y.Key.phase
+            }).ToList();
+            List<dynamic> partData = new List<dynamic>();
+
+            foreach (requesterUploadSchema item in grouped)
+            {
+                List<requesterUploadSchema> itemInGroup = _requester.getGroupingTracking(item.moveOutDate, item.phase, item.boiType);
+                // return Ok(itemInGroup);
+                if (itemInGroup.Count > 0)
                 {
-                    boiType = y.Key.boiType,
-                    moveOutDate = y.Key.moveOutDate,
-                    phase = y.Key.phase
-                }).ToList();
-                List<dynamic> partData = new List<dynamic>();
+                    double totalNetweight = 0;
+                    List<string> id = new List<string>();
 
-                foreach (requesterUploadSchema item in grouped)
-                {
-                    List<requesterUploadSchema> itemInGroup = _requester.getGroupingTracking(item.moveOutDate, item.phase, item.boiType);
-                    // return Ok(itemInGroup);
-                    if (itemInGroup.Count > 0)
-                    {
-                        double totalNetweight = 0;
-                        List<string> id = new List<string>();
-
-                        foreach (requesterUploadSchema gItem in itemInGroup)
-                        { // this loop for sum total and add id to return data
-                            totalNetweight += Double.Parse(gItem.netWasteWeight);
-                            id.Add(gItem._id);
-                        }
-
-                        requesterUploadSchema dataItem = _requester.getById(id[0]);
-                        string status = "";
-                        if (dataItem.status == "req-prepared")
-                        {
-                            status = "Waiting for requester checking";
-                        }
-                        else if (dataItem.status == "req-checked")
-                        {
-                            status = "Waiting for requester approving";
-                        }
-                        else if (dataItem.status == "req-approved")
-                        {
-                            status = "Waiting for PDC prepare data";
-                        }
-                        else if (dataItem.status == "pdc-prepared")
-                        {
-                            status = "Waiting for PDC checking";
-                        }
-                        else if (dataItem.status == "pdc-checked")
-                        {
-                            status = "Waiting for ITC checking data";
-                        }
-                        else if (dataItem.status == "itc-approved")
-                        {
-                            status = "Waiting for FAE acknokledge";
-                        }
-                        else if (dataItem.status == "itc-checked")
-                        {
-                            status = "Waiting for ITC approving";
-                        }
-                        else
-                        {
-                            status = "Approve completed.";
-                        }
-                        partData.Add(new
-                        {
-                            dept = dataItem.dept,
-                            moveOutDate = item.moveOutDate,
-                            boiType = item.boiType,
-                            netWasteWeight = totalNetweight.ToString("##,###.00"),
-                            phase = item.phase,
-                            status,
-                            id = id.ToArray(),
-                        });
+                    foreach (requesterUploadSchema gItem in itemInGroup)
+                    { // this loop for sum total and add id to return data
+                        totalNetweight += Double.Parse(gItem.netWasteWeight);
+                        id.Add(gItem._id);
                     }
+
+                    requesterUploadSchema dataItem = _requester.getById(id[0]);
+                    string status = "";
+                    if (dataItem.status == "req-prepared")
+                    {
+                        status = "Waiting for requester check";
+                    }
+                    else if (dataItem.status == "req-checked")
+                    {
+                        status = "Waiting for requester Approve";
+                    }
+                    else if (dataItem.status == "req-approved")
+                    {
+                        status = "Waiting for PDC Check";
+                    }
+                    else if (dataItem.status == "pdc-prepared")
+                    {
+                        status = "Waiting for PDC checking";
+                    }
+                    else if (dataItem.status == "pdc-checked")
+                    {
+                        status = "Waiting for ITC Check";
+                    }
+                    else if (dataItem.status == "itc-approved")
+                    {
+                        status = "Waiting for FAE Acknowleage";
+                    }
+                    else if (dataItem.status == "itc-checked")
+                    {
+                        status = "Waiting for ITC Approve";
+                    }
+                    else
+                    {
+                        status = "FAE Approve completed";
+                    }
+                    partData.Add(new
+                    {
+                        dept = dataItem.dept,
+                        moveOutDate = item.moveOutDate,
+                        boiType = item.boiType,
+                        netWasteWeight = totalNetweight.ToString("##,###.00"),
+                        phase = item.phase,
+                        status,
+                        id = id.ToArray(),
+                    });
                 }
+            }
             // Parts
             return Ok(
                 new
@@ -660,7 +669,7 @@ namespace backend.Controllers
                 List<requesterUploadSchema> data = action.uploadData(filename, System.Guid.NewGuid().ToString() + "-" + body.file.FileName, req_prepare, usertmp);
                 _requester.handleUpload(data);
 
-                return Ok(new { success = true, message = "Replace success." });
+                return Ok(new { success = true, message = "Edit complete" });
             }
             catch (Exception e)
             {

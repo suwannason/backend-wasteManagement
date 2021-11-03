@@ -274,27 +274,27 @@ namespace backend.Controllers
                         string statusMessage = "";
                         if (item.status == "prepared")
                         {
-                            statusMessage = "Wait for ITC checker";
+                            statusMessage = "Waiting for ITC Check invoice";
                         }
                         else if (item.status == "checked")
                         {
-                            statusMessage = "Wait for ITC approver";
+                            statusMessage = "Waiting for ITC Approve invoice";
                         }
                         else if (item.status == "approved")
                         {
-                            statusMessage = "Wait for ACC prepare";
+                            statusMessage = "Waiting for ACC Prepare invoice";
                         }
                         else if (item.status == "acc-prepared")
                         {
-                            statusMessage = "Wait for ACC prepare";
+                            statusMessage = "Waiting for ACC Check invoice";
                         }
                         else if (item.status == "acc-checked")
                         {
-                            statusMessage = "Wait for ACC approve";
+                            statusMessage = "Waiting for ACC Approve invoice";
                         }
                         else if (item.status == "acc-approved")
                         {
-                            statusMessage = "Approve completed";
+                            statusMessage = "Invoice complete";
                         }
                         else if (item.status == "reject")
                         {

@@ -215,7 +215,7 @@ namespace backend.Services
 
             if (phase != "-" && phase != "")
             {
-                data = data.FindAll(e => e.phase == phase);
+                data = data.FindAll(e => e.phase.Contains(phase));
             }
 
             if (startDate != "-" && startDate != "")
@@ -246,6 +246,14 @@ namespace backend.Services
             UpdateDefinition<Waste> update = Builders<Waste>.Update
             .Set("rejectCommend", commend)
             .Set("status", "reject");
+
+            recycle.UpdateOne(filter, update);
+        }
+    
+        public void revisePrice(string id, string unitPrice, string totalPrice)
+        {
+            FilterDefinition<Waste> filter = Builders<Waste>.Filter.Eq("_id", id);
+            UpdateDefinition<Waste> update = Builders<Waste>.Update.Set("unitPrice", unitPrice).Set("totalPrice", totalPrice);
 
             recycle.UpdateOne(filter, update);
         }

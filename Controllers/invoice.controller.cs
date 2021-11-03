@@ -113,7 +113,7 @@ namespace backend.Controllers
                 data.acc_approve = user_tmp;
                 data.summaryId = body.summaryId;
                 data.status = "fae-prepared";
-                data.month = DateTime.Now.ToString("MMM");
+                data.month = DateTime.Now.ToString("MMMM");
                 data.year = DateTime.Now.ToString("yyyy");
                 data.invoiceDate = DateTime.ParseExact(body.invoiceDate, "yyyy/MM/dd", CultureInfo.InvariantCulture).ToString("dd-MMM-yyyy");
                 data.company = body.company;
@@ -966,6 +966,57 @@ namespace backend.Controllers
             List<InvoicePrintedSchema> invoiceOnPrinted = _invoicePrinting.getPrintedItem(body.year, body.month);
 
             List<dynamic> response = new List<dynamic>();
+            List<Invoices> faeInvoiceNotPrint = _invoiceService.FAEinvoiceNotPrinted(body.year, body.month);
+
+            string invoiceMessage = "";
+            foreach (Invoices item in faeInvoiceNotPrint)
+            {
+                if (item.status == "fae-prepared")
+                {
+                    invoiceMessage = "Waiting for FAE Check invoice";
+                }
+                else if (item.status == "fae-checked")
+                {
+                    invoiceMessage = "Waiting for FAE Approve invoice";
+                }
+                else if (item.status == "fae-approved")
+                {
+                    invoiceMessage = "Waiting for FAE Making Approve";
+                }
+                else if (item.status == "makingApproved")
+                {
+                    invoiceMessage = "Waiting for ACC Prepare invoice";
+                }
+                else if (item.status == "acc-prepared")
+                {
+                    invoiceMessage = "Waiting for ACC Check invoice";
+                }
+                else if (item.status == "acc-checked")
+                {
+                    invoiceMessage = "Waiting for ACC Approve invoice";
+                }
+                else if (item.status == "acc-approved")
+                {
+                    invoiceMessage = "Invoice complete";
+                }
+
+                response.Add(
+                    new
+                    {
+                        id = item._id,
+                        invoiceNo = item.invoiceNo,
+                        contractNo = item.company.contractNo,
+                        contractStartDate = item.company.contractStartDate,
+                        contractEndDate = item.company.contractEndDate,
+                        companyName = item.company.companyName,
+                        phoneNo = item.company.tel,
+                        fax = item.company.fax,
+                        invoiceDate = item.invoiceDate,
+                        // attachment = null,
+                        status = invoiceMessage,
+                    }
+                );
+            }
             foreach (InvoicePrintedSchema item in invoiceOnPrinted)
             {
                 Invoices invoice = _invoiceService.GetById(item.invoiceId);
@@ -984,6 +1035,7 @@ namespace backend.Controllers
                                 fax = invoice.company.fax,
                                 invoiceDate = invoice.invoiceDate,
                                 attachment = item.attatchmentFile,
+                                status = "completed",
                             }
  );
                 }

@@ -268,7 +268,7 @@ namespace backend.Controllers
                     return BadRequest(new { success = false, messge = "No data upload, Please check file upload." });
                 }
                 _tb.create(data);
-                return Ok(new { success = true, message = "Edit completed" });
+                return Ok(new { success = true, message = "Edit complete" });
             }
             catch (Exception e)
             {

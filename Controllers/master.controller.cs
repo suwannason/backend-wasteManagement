@@ -47,8 +47,9 @@ namespace backend.Controllers
             {
                 Directory.CreateDirectory(serverPath);
             }
+            string uploadName = System.Guid.NewGuid().ToString() + "-" + body.file.FileName;
 
-            string filename = serverPath + System.Guid.NewGuid().ToString() + "-" + body.file.FileName;
+            string filename = serverPath + uploadName;
             using (FileStream strem = System.IO.File.Create(filename))
             {
                 body.file.CopyTo(strem);
@@ -102,6 +103,7 @@ namespace backend.Controllers
                         }
 
                     }
+                    item.fileName = uploadName;
                     data.Add(item);
                 }
 
@@ -259,18 +261,46 @@ namespace backend.Controllers
         {
 
             Companies data = _company.getFirst();
-            string fileUri = (_config["Endpoint:file_path"] + "/upload/" +data.fileName).Trim();
+            string fileUri = (_config["Endpoint:file_path"] + "/upload/" + data.fileName).Trim();
 
             Console.WriteLine(fileUri);
             string contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
             var client = new HttpClient();
 
             HttpResponseMessage response = await client.GetAsync(fileUri);
-            
-            if (response.StatusCode.ToString() == "NotFound") {
+
+            if (response.StatusCode.ToString() == "NotFound")
+            {
                 return NotFound();
             }
             return File(response.Content.ReadAsStream(), contentType);
+        }
+
+        [HttpGet("pricing/download")]
+        public async Task<ActionResult> getPricingFile()
+        {
+            try
+            {
+                faeDBschema data = _faedb.getFirst();
+                string fileUri = (_config["Endpoint:file_path"] + "/upload/" + data.fileName).Trim();
+
+                Console.WriteLine(fileUri);
+                string contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+                var client = new HttpClient();
+
+                HttpResponseMessage response = await client.GetAsync(fileUri);
+
+                if (response.StatusCode.ToString() == "NotFound")
+                {
+                    return NotFound();
+                }
+                return File(response.Content.ReadAsStream(), contentType);
+
+            }
+            catch (System.Exception e)
+            {
+                return Problem(e.StackTrace);
+            }
         }
 
         [HttpGet("wastename")]

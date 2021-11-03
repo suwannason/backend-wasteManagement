@@ -49,6 +49,7 @@ namespace backend.Models
         public Profile req_prepared { get; set; }
         public Profile req_checked { get; set; }
         public Profile req_approved { get; set; }
+        public string uploadEmpNo { get; set; }
 
         public Profile itc_checked { get; set; }
         public Profile itc_approved { get; set; }

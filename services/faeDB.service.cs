@@ -39,6 +39,9 @@ namespace backend.Services
         {
             return _faedb.Find<faeDBschema>(item => item.matrialCode == matrialCode).FirstOrDefault<faeDBschema>();
         }
+        public faeDBschema getFirst() {
+            return _faedb.Find<faeDBschema>(item => true).FirstOrDefault();
+        }
         public faeDBschema getByKind(string kind)
         {
             return _faedb.Find<faeDBschema>(item => item.kind == kind).FirstOrDefault<faeDBschema>();

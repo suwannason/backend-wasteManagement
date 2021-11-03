@@ -356,7 +356,7 @@ namespace backend.Controllers
                 data.netWasteWeight = totalNetweight.ToString();
                 data.items = hazadousList.ToArray();
                 _tb.create(data);
-                return Ok(new { success = true, message = "Upload completed" });
+                return Ok(new { success = true, message = "Edit complete" });
             }
             catch (System.Exception e)
             {

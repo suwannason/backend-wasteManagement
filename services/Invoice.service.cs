@@ -34,6 +34,11 @@ namespace backend.Services
             return invoice.Find<Invoices>(invoice => invoice.deptCase.Contains("itc") && invoice.status == "fae-prepared").ToList();
         }
 
+        public List<Invoices> FAEinvoiceNotPrinted(string year, string month)
+        {
+            return invoice.Find<Invoices>(item => item.year == year && item.month == month && item.deptCase != "itc" && item.status != "printed").ToList();
+        }
+
         public void Create(Invoices data)
         {
             invoice.InsertOne(data);
@@ -156,8 +161,9 @@ namespace backend.Services
             invoice.DeleteOne(filter);
             return data.summaryId.ToList();
         }
-    
-        public List<Invoices> getInvoiceITC_new() {
+
+        public List<Invoices> getInvoiceITC_new()
+        {
             return invoice.Find<Invoices>(item => item.status == "fae-prepared" && item.deptCase != "fae").ToList();
         }
     }

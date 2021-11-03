@@ -300,8 +300,8 @@ namespace backend.Controllers
                 item.department = body.department;
                 item.division = body.division;
                 item.biddingType = body.biddingType;
-                
-               
+
+
 
                 Companies contrator = _company.getByName(body.contractorCompany);
 
@@ -546,13 +546,44 @@ namespace backend.Controllers
             }
             return Ok(new { success = true, message = "Reject waste success." });
         }
-    
+
         [HttpGet("test"), AllowAnonymous]
-        public ActionResult test() {
+        public ActionResult test()
+        {
 
             Console.WriteLine(Double.Parse("155,600.05"));
-            Console.WriteLine( Math.Truncate(Double.Parse("155,600.05")));
+            Console.WriteLine(Math.Truncate(Double.Parse("155,600.05")));
             return Ok();
+        }
+
+        [HttpPatch("pricing/revise")]
+        public ActionResult revisePrice(RevisePrice body)
+        {
+            try
+            {
+                string unitPrice = ""; string totalPrice = "";
+                int rowUpdate = 0;
+                foreach (string id in body.id)
+                {
+                    Waste data = _recycleService.Get(id);
+
+                    faeDBschema faeDB = _faeDB.getByBiddingType(data.biddingType);
+                    if (faeDB != null)
+                    {
+                        unitPrice = faeDB.pricePerUnit;
+                        totalPrice = (Double.Parse(faeDB.pricePerUnit) * Double.Parse(data.netWasteWeight)).ToString("###,###.00");
+
+                        _recycleService.revisePrice(id, unitPrice, totalPrice);
+                        rowUpdate += 1;
+                    }
+                }
+
+                return Ok(new { success = true, message = "Revise price " + rowUpdate + " records completed." });
+            }
+            catch (Exception e)
+            {
+                return Problem(e.StackTrace);
+            }
         }
 
     }

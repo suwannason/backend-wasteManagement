@@ -1,10 +1,11 @@
 
 using Microsoft.AspNetCore.Http;
-using backend.Models;
 
-namespace backend.request {
+namespace backend.request
+{
 
-    public class RequestRecycle {
+    public class RequestRecycle
+    {
 
         public string date { get; set; }
         public string time { get; set; }
@@ -32,30 +33,38 @@ namespace backend.request {
         public string netWasteWeight { get; set; }
         public string status { get; set; }
         public string[] imageCapture { get; set; }
-        public  IFormFile[] files { get; set; }
+        public IFormFile[] files { get; set; }
     }
 
-    public class RequestInvoiceDataAll {
+    public class RequestInvoiceDataAll
+    {
         public string typeBoi { get; set; }
         public string lotNo { get; set; }
         public string date { get; set; }
         public string wasteName { get; set; }
     }
 
-    public class RequestInvoiceDataWithName {
+    public class RequestInvoiceDataWithName
+    {
         public string wasteName { get; set; }
     }
 
-    public class RequestGetDetail {
+    public class RequestGetDetail
+    {
         public string moveOutDate { get; set; }
         public string phase { get; set; }
         public string boiType { get; set; }
         public string status { get; set; }
     }
 
-    public class RejectWaste {
+    public class RejectWaste
+    {
 
         public string[] id { get; set; }
         public string commend { get; set; }
+    }
+    public class RevisePrice
+    {
+        public string[] id { get; set; }
     }
 }

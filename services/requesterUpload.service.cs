@@ -111,7 +111,6 @@ namespace backend.Services
 
         public List<requesterUploadSchema> getByStatus_fae(string status)
         {
-            Console.WriteLine(status);
             try
             {
                 List<requesterUploadSchema> data = _scrapMatrial.Find<requesterUploadSchema>(item => item.status == status).ToList();
@@ -189,19 +188,29 @@ namespace backend.Services
             {
                 data = data.FindAll(e => e.lotNo == lotNo);
             }
-
             if (startDate != "-" && startDate != "")
             {
                 foreach (requesterUploadSchema item in data)
                 {
-
-                    string startDateConvert = DateTime.ParseExact(item.moveOutDate, "dd-MMMM-yyyy", System.Globalization.CultureInfo.InvariantCulture).ToString("yyyy/MM/dd");
+                    string startDateConvert = DateTime.ParseExact(item.moveOutDate, "dd-MMM-yyyy", System.Globalization.CultureInfo.InvariantCulture).ToString("yyyy/MM/dd");
                     item.moveOutDate = startDateConvert;
-
+                    item.phase = String.Join("", item.phase.ToCharArray());
                 }
-                data = data.FindAll(e => startDate.CompareTo(e.moveOutDate) <= 0);
-                data = data.FindAll(e => endDate.CompareTo(e.moveOutDate) >= 0);
+                data = data.FindAll(e =>
+                {
+                    return String.Compare(startDate, e.moveOutDate) == -1;
+                }
+                );
+                data = data.FindAll(e =>
+                                {
+                                    return String.Compare(endDate, e.moveOutDate) == 1;
+                                }
+                );
             }
+            if (phase != "" && phase != "-") {
+                data = data.FindAll(e => e.phase == phase);
+            }
+
             return data;
         }
 
@@ -218,6 +227,15 @@ namespace backend.Services
             _scrapMatrial.UpdateOne(filter, update);
         }
 
+        public List<requesterUploadSchema> getGroupingItems(string moveOutDate, string phase, string boiType, string status, string dept, string uploadEmpNo)
+        {
+            if (dept != "PDC" && dept != "ITC" && dept != "FAE")
+            {
+                return _scrapMatrial.Find<requesterUploadSchema>(item => item.moveOutDate == moveOutDate && item.phase == phase && item.boiType == boiType && item.status == status && item.dept == dept && item.uploadEmpNo == uploadEmpNo).ToList();
+            }
+            return _scrapMatrial.Find<requesterUploadSchema>(item => item.moveOutDate == moveOutDate && item.phase == phase && item.boiType == boiType && item.status == status).ToList();
+
+        }
         public List<requesterUploadSchema> getGroupingItems(string moveOutDate, string phase, string boiType, string status, string dept)
         {
             if (dept != "PDC" && dept != "ITC" && dept != "FAE")
@@ -284,6 +302,13 @@ namespace backend.Services
             .Set("totalPrice", Math.Round(Double.Parse(unitPrice) * Double.Parse(netWasteWeight), 4).ToString());
 
             _scrapMatrial.UpdateOne(filter, update);
+        }
+    
+        public requesterUploadSchema checkDuplicatedUpload(string empNo)
+        {
+            // FilterDefinition<requesterUploadSchema> filter = Builders<requesterUploadSchema>.Filter.Eq(item => item.uploadEmpNo, empNo);
+
+            return _scrapMatrial.Find<requesterUploadSchema>(item => item.uploadEmpNo == empNo && (item.status == "req-prepared" || item.status == "req-checked")).FirstOrDefault();
         }
     }
 }

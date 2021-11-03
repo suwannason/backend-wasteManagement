@@ -19,5 +19,6 @@ namespace backend.Models
         public string matrialCode { get; set; }
         public string matrialName { get; set; }
         public string colorName { get; set; }
+        public string fileName { get; set; }
     }
 }

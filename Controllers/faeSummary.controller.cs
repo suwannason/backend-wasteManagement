@@ -733,7 +733,7 @@ namespace backend.Controllers
                         wasteName = item.wasteName,
                         weight = item.netWasteWeight,
                         unitPrice = item.unitPrice,
-                        totalPrice = item.totalPrice,
+                        totalPrice = Double.Parse(item.totalPrice).ToString("###,###.00"),
                         // remark = ""
                     });
                     totalWeight += Double.Parse(item.netWasteWeight);
@@ -1004,10 +1004,10 @@ namespace backend.Controllers
                         sheet.Cells["G" + row.ToString()].Value = item.groupBoiNo;
                         sheet.Cells["H" + row.ToString()].Value = item.groupBoiName;
                         sheet.Cells["I" + row.ToString()].Value = item.unit;
-                        sheet.Cells["J" + row.ToString()].Value = Double.Parse(item.qtyOfContainer);
+                        sheet.Cells["J" + row.ToString()].Value = (item.qtyOfContainer != "-" ? Double.Parse(item.qtyOfContainer) : 0);
                         sheet.Cells["K" + row.ToString()].Value = Double.Parse(item.netWasteWeight);
                         sheet.Cells["L" + row.ToString()].Value = Double.Parse(item.netWasteWeight);
-                        sheet.Cells["M" + row.ToString()].Value = Double.Parse(item.containerWeight);
+                        sheet.Cells["M" + row.ToString()].Value = (item.containerWeight != "-" ? Double.Parse(item.containerWeight) : 0); // Double.Parse(item.containerWeight);
                         sheet.Cells["N" + row.ToString()].Value = item.biddingType;
                         sheet.Cells["O" + row.ToString()].Value = item.color;
                         sheet.Cells["P" + row.ToString()].Value = item.unitPrice;
