@@ -74,6 +74,10 @@ namespace backend.Services
 
                 // update = Builders<HazadousSchema>.Update.Set("fae_approved", user).Set("status", status);
             }
+            else if (status == "fae-recevied")
+            {
+                update = Builders<HazadousSchema>.Update.Set("fae_received", user).Set("status", status);
+            }
             _Hazadous.UpdateOne(findId, update);
         }
         public string getLastRunningNo()

@@ -227,13 +227,13 @@ namespace backend.Services
             _scrapMatrial.UpdateOne(filter, update);
         }
 
-        public List<requesterUploadSchema> getGroupingItems(string moveOutDate, string phase, string boiType, string status, string dept, string uploadEmpNo)
+        public List<requesterUploadSchema> getGroupingItems(string moveOutDate, string phase, string boiType, string status, string dept, string uploadEmpNo, string filename)
         {
             if (dept != "PDC" && dept != "ITC" && dept != "FAE")
             {
-                return _scrapMatrial.Find<requesterUploadSchema>(item => item.moveOutDate == moveOutDate && item.phase == phase && item.boiType == boiType && item.status == status && item.dept == dept && item.uploadEmpNo == uploadEmpNo).ToList();
+                return _scrapMatrial.Find<requesterUploadSchema>(item => item.moveOutDate == moveOutDate && item.phase == phase && item.boiType == boiType && item.status == status && item.dept == dept && item.uploadEmpNo == uploadEmpNo && item.filename == filename).ToList();
             }
-            return _scrapMatrial.Find<requesterUploadSchema>(item => item.moveOutDate == moveOutDate && item.phase == phase && item.boiType == boiType && item.status == status).ToList();
+            return _scrapMatrial.Find<requesterUploadSchema>(item => item.moveOutDate == moveOutDate && item.phase == phase && item.boiType == boiType && item.status == status && item.filename == filename).ToList();
 
         }
         public List<requesterUploadSchema> getGroupingItems(string moveOutDate, string phase, string boiType, string status, string dept)

@@ -31,6 +31,9 @@ namespace backend.Models
         public Profile fae_prepared { get; set; }
         public Profile fae_checked { get; set; }
         public Profile fae_approved { get; set; }
+        public Profile fae_received { get; set; }
+
+        
         // APPROVING STEP
     }
     public class HazadousItems

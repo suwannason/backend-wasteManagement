@@ -122,7 +122,7 @@ namespace backend.Controllers
 
                 foreach (requesterUploadSchema item in grouped)
                 {
-                    List<requesterUploadSchema> itemInGroup = _requester.getGroupingItems(item.moveOutDate, item.phase, item.boiType, status, dept, item.uploadEmpNo);
+                    List<requesterUploadSchema> itemInGroup = _requester.getGroupingItems(item.moveOutDate, item.phase, item.boiType, status, dept, item.uploadEmpNo, item.filename);
 
                     // return Ok(new { itemInGroup, item, } );
 
@@ -462,7 +462,11 @@ namespace backend.Controllers
                 }
                 else if (item.status == "fae-approved")
                 {
-                    statusMessage = "FAE Approve completed";
+                    statusMessage = "Waiting for FAE Receive";
+                }
+                else if (item.status == "fae-recevied")
+                {
+                    statusMessage = "Receive complete";
                 }
 
                 returnHazadous.Add(
